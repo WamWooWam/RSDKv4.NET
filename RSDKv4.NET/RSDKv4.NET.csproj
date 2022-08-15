@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp3.1;sl4</TargetFrameworks>
+    <RootNamespace>RSDKv4</RootNamespace>
+    <LangVersion>10</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <ProjectReference Include="..\..\..\..\Documents\GitHub\FNA\FNA.Core.csproj" />
+    <PackageReference Include="NVorbis" Version="0.10.4" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'sl4' ">
+    <OutputType>Library</OutputType>
+    <TargetFrameworkProfile>WindowsPhone71</TargetFrameworkProfile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'metcoreapp3.1' ">
+    <DefineConstants>$(DefineConstants);FNA;</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'sl4' ">
+    <Reference Include="mscorlib" />
+    <Reference Include="mscorlib.Extensions" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.Xna.Framework" />
+    <Reference Include="Microsoft.Xna.Framework.Game" />
+    <Reference Include="Microsoft.Xna.Framework.Graphics" />
+    <Reference Include="Microsoft.Xna.Framework.Input.Touch" />
+    <Reference Include="NVorbis">
+      <HintPath>..\Dependencies\sl4\NVorbis.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
