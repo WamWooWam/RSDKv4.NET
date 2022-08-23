@@ -85,6 +85,8 @@ public static class Drawing
 
     public const float PIXEL_TO_UV = 1.0f / SURFACE_SIZE;
 
+    public static bool surfaceDirty = true;
+
 #if ENABLE_3D
     public static DrawVertex3D[] vertexList3D = new DrawVertex3D[VERTEX3D_LIMIT];
     public static ushort vertexCount3D = 0;
@@ -157,7 +159,7 @@ public static class Drawing
             tileUVList[i] *= PIXEL_TO_UV;
         }
 
-        UpdateSurfaces();
+        surfaceDirty = true;
 
         indexCount = 0;
         vertexCount = 0;
@@ -601,6 +603,8 @@ public static class Drawing
 
     public static int AddGraphicsFile(string filePath)
     {
+        surfaceDirty = true;
+
         //char sheetPath[0x100];
         var sheetPath = "Data/Sprites/" + filePath;
         int sheetId = 0;
@@ -653,6 +657,8 @@ public static class Drawing
 
             _surfaces[sheetId] = new SurfaceDesc();
         }
+
+        surfaceDirty = true;
     }
 
     public static void LoadBMPFile(string fileName, int surfaceNum)
@@ -801,6 +807,8 @@ public static class Drawing
             }
         }
         FileIO.CloseFile();
+
+        surfaceDirty = true;
     }
 
     public static void DrawStageGFX()

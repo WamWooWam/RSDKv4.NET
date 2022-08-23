@@ -32,6 +32,8 @@ public class Palette
     public static byte fadeG = 0;
     public static byte fadeB = 0;
 
+    public static bool paletteDirty = true;
+
     public static void SetPaletteEntry(byte paletteIndex, byte index, byte r, byte g, byte b)
     {
         Console.WriteLine($"{paletteIndex},{index} (#{r:X2}{g:X2}{b:X2}, {(RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0))})");
@@ -46,6 +48,8 @@ public class Palette
             fullPalette[texPaletteNum][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
             fullPalette32[texPaletteNum][index] = new Color(r, g, b);
         }
+
+        paletteDirty = true;
     }
 
     internal static void LoadPalette(string filePath, int paletteID, int startPaletteIndex, int startIndex, int endIndex)
@@ -107,6 +111,8 @@ public class Palette
             fullPalette[palID][endIndex] = startClr;
             fullPalette32[palID][endIndex] = startClr32;
         }
+
+        paletteDirty = true;
     }
 
     internal static void SetActivePalette(byte newActivePal, int startLine, int endLine)
@@ -158,6 +164,8 @@ public class Palette
 
         if (destPaletteID < PALETTE_COUNT)
             texPaletteNum = destPaletteID;
+
+        paletteDirty = true;
     }
 
     internal static void SetPaletteEntryPacked(byte paletteIndex, byte index, uint colour)
@@ -165,10 +173,16 @@ public class Palette
         var fullPalette = Drawing.fullPalette;
         var fullPalette32 = Drawing.fullPalette32;
 
-        fullPalette[paletteIndex][index] = RGB_16BIT5551((byte)(colour >> 16), (byte)(colour >> 8), (byte)(colour >> 0), index != 0 ? (byte)1 : (byte)0);
-        fullPalette32[paletteIndex][index].R = (byte)(colour >> 16);
-        fullPalette32[paletteIndex][index].G = (byte)(colour >> 8);
-        fullPalette32[paletteIndex][index].B = (byte)(colour >> 0);
+        var col = RGB_16BIT5551((byte)(colour >> 16), (byte)(colour >> 8), (byte)(colour >> 0), index != 0 ? (byte)1 : (byte)0);
+        if (fullPalette[paletteIndex][index] != col)
+        {
+            fullPalette[paletteIndex][index] = col;
+            fullPalette32[paletteIndex][index].R = (byte)(colour >> 16);
+            fullPalette32[paletteIndex][index].G = (byte)(colour >> 8);
+            fullPalette32[paletteIndex][index].B = (byte)(colour >> 0);
+
+            paletteDirty = true;
+        }
     }
 
     internal static int GetPaletteEntryPacked(byte paletteIndex, byte index)
@@ -190,5 +204,7 @@ public class Palette
                 fullPalette32[destinationPalette][destPaletteStart + i] = fullPalette32[sourcePalette][srcPaletteStart + i];
             }
         }
+
+        paletteDirty = true;
     }
 }

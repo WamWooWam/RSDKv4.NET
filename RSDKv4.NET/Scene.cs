@@ -205,7 +205,6 @@ internal class Scene
                     LoadStageFiles();
 
                     Drawing.ResetHardware();
-                    Renderer.UpdateSurfaces();
 
                     stageMode = STAGEMODE.NORMAL;
                     break;

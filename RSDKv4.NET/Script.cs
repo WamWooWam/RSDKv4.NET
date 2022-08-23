@@ -2637,17 +2637,6 @@ public class Script
                         if (Objects.objectEntityList[scriptEng.arrayPosition[8]].type > 0 && ++scriptEng.arrayPosition[8] == Objects.ENTITY_COUNT)
                             scriptEng.arrayPosition[8] = Objects.TEMPENTITY_START;
 
-                        var x = scriptEng.arrayPosition[8];
-                        Debug.WriteLine("CREATETEMPOBJECT SLOT: {0}", x);
-
-                        //if (Objects.objectEntityList[scriptEng.arrayPosition[8]].type > 0)
-                        //{
-                        //    if (scriptEng.arrayPosition[8] < 0x80) 
-                        //        scriptEng.arrayPosition[8] += Objects.TEMPENTITY_START;
-                        //    if (++scriptEng.arrayPosition[8] == Objects.ENTITY_COUNT)
-                        //        scriptEng.arrayPosition[8] = Objects.TEMPENTITY_START;
-                        //}
-
                         Entity temp = Objects.objectEntityList[scriptEng.arrayPosition[8]] = new Entity();
                         temp.type = (byte)scriptEng.operands[0];
                         temp.propertyValue = (byte)scriptEng.operands[1];
@@ -3228,7 +3217,7 @@ public class Script
                     // Variables
                     switch (variable)
                     {
-                        default: break;
+                        default: break; 
                         case VAR.TEMP0: scriptEng.temp[0] = scriptEng.operands[i]; break;
                         case VAR.TEMP1: scriptEng.temp[1] = scriptEng.operands[i]; break;
                         case VAR.TEMP2: scriptEng.temp[2] = scriptEng.operands[i]; break;

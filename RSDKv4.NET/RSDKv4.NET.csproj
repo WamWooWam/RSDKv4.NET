@@ -19,7 +19,7 @@
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants);FAST_PALETTE;</DefineConstants>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">

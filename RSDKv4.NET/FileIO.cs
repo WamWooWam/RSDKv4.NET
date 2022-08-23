@@ -67,7 +67,6 @@ public static class FileIO
         return false;
     }
 
-
     public static byte ReadByte()
     {
         rsdkStream.Read(readBuffer, 0, 1);

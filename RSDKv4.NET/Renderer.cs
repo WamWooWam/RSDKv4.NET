@@ -193,9 +193,16 @@ public static class Renderer
     internal static void UpdateActivePalettes()
     {
 #if FAST_PALETTE
-        for (int i = 0; i < Math.Max(activePaletteCount, 1); i++)
+        fullPalette[texPaletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
+        _palettes[texPaletteNum].SetData(fullPalette[texPaletteNum]);
+
+        for (int i = 0; i < activePaletteCount; i++)
         {
             var palette = activePalettes[i];
+
+            if ((palette.endLine - palette.startLine) == 0 || palette.paletteNum == texPaletteNum)
+                continue;
+
             fullPalette[palette.paletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
             _palettes[palette.paletteNum].SetData(fullPalette[palette.paletteNum]);
         }
@@ -206,13 +213,27 @@ public static class Renderer
 #endif
     }
 
+    private static int frame = 0;
     public static void Draw()
     {
+        frame++;
         _device.SetRenderTarget(_renderTarget);
         _device.Clear(Color.Red);
 
-#if FAST_PALETTE
-        UpdateActivePalettes();
+        if (surfaceDirty)
+        {
+            Console.WriteLine($"{frame} Updating surfaces");
+            UpdateSurfaces();
+            surfaceDirty = false;
+        }
+
+#if !SILVERLIGHT
+        if (paletteDirty)
+        {
+            Console.WriteLine($"{frame} Updating palettes");
+            UpdateActivePalettes();
+            paletteDirty = false;
+        }
 #endif
 
 #if FAST_PALETTE
