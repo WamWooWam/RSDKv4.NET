@@ -197,14 +197,15 @@ public static class Renderer
 #endif
     }
 
-    internal static void UpdateActivePalette()
+    internal static void UpdateActivePalettes()
     {
 #if FAST_PALETTE
-        fullPalette[texPaletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
-
-        _device.Textures[0] = null;
-        _palettes[texPaletteNum].SetData(fullPalette[texPaletteNum]);
-        _device.Textures[0] = _palettes[texPaletteNum];
+        for (int i = 0; i < Math.Max(activePaletteCount, 1); i++)
+        {
+            var palette = activePalettes[i];
+            fullPalette[palette.paletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
+            _palettes[palette.paletteNum].SetData(fullPalette[palette.paletteNum]);
+        }
 #else
         _device.Textures[0] = null;
 
@@ -219,8 +220,11 @@ public static class Renderer
     public static void Draw()
     {
         _device.SetRenderTarget(_renderTarget);
-
         _device.Clear(Color.Red);
+
+#if FAST_PALETTE
+        Renderer.UpdateActivePalettes();
+#endif
 
 #if FAST_PALETTE
         _effect.Parameters["Texture"].SetValue(_surface);
@@ -255,9 +259,9 @@ public static class Renderer
                 _device.ScissorRectangle = new Rectangle(0, palette.startLine, SCREEN_XSIZE, palette.endLine - palette.startLine);
 
 #if FAST_PALETTE
-                _device.Textures[1] = _palettes[palette.palette];
+                _effect.Parameters["Palette"].SetValue(_palettes[palette.paletteNum]);
 #else
-                _device.Textures[0] = _surfaces[palette.palette];
+                _effect.Texture = _surfaces[palette.paletteNum];
 #endif
             }
 

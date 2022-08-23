@@ -8,13 +8,13 @@ namespace RSDKv4;
 
 public struct PaletteEntry
 {
-    public int palette;
+    public int paletteNum;
     public int startLine;
     public int endLine;
 
     public PaletteEntry(int palette, int startLine, int endLine)
     {
-        this.palette = palette;
+        this.paletteNum = palette;
         this.startLine = startLine;
         this.endLine = endLine;
     }

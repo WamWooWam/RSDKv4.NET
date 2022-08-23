@@ -145,7 +145,7 @@ public class RSDKv4Game : Game
                     Script.ClearScriptData();
                     loadPercent = 0.9f;
 
-                    Scene.InitStartingStage(STAGELIST.SPECIAL, 0, 0);
+                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 5, 0);
                     loadPercent = 0.95f;
 
                     Scene.ProcessStage();
@@ -200,10 +200,6 @@ public class RSDKv4Game : Game
 
         Palette.activePalettes[0] = new PaletteEntry(0, 0, Renderer.SCREEN_YSIZE);
         Palette.activePaletteCount = 0;
-
-#if FAST_PALETTE
-        Renderer.UpdateActivePalette();
-#endif
 
         Input.ProcessInput();
         Scene.ProcessStage();

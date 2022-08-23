@@ -2,7 +2,7 @@
   "profiles": {
     "RSDKv4.NET": {
       "commandName": "Project",
-      "nativeDebugging": true
+      "nativeDebugging": false
     }
   }
 }
