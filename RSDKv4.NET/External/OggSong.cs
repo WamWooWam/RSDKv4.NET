@@ -20,6 +20,7 @@ public class OggSong : IDisposable
     private Thread thread;
     private bool threadRun = false;
     private bool needBuffer = false;
+    private bool hasPlayed = false;
 
     //private WaitHandle threadRunHandle = new WaitHandle();
     //private EventWaitHandle needBufferHandle = new EventWaitHandle();
@@ -61,7 +62,7 @@ public class OggSong : IDisposable
 
         reader = new VorbisReader(oggFile, true);
 #if NETCOREAPP3_1
-        effect = new DynamicSoundEffectInstance(reader.SampleRate, (AudioChannels)reader.Channels, 3, 32);
+        effect = new DynamicSoundEffectInstance(reader.SampleRate, (AudioChannels)reader.Channels);
 #else
         effect = new DynamicSoundEffectInstance(reader.SampleRate, (AudioChannels)reader.Channels);
 #endif
@@ -99,11 +100,6 @@ public class OggSong : IDisposable
         if(reader.TimePosition != timeSpan)
             reader.TimePosition = timeSpan;
 #endif
-
-        lock (effect)
-        {
-            effect.Play();
-        }
 
         StartThread();
     }
@@ -152,6 +148,9 @@ public class OggSong : IDisposable
         if (thread == null)
         {
             threadRun = true;
+            needBuffer = true;
+            hasPlayed = false;
+
             thread = new Thread(StreamThread);
             thread.IsBackground = true;
             thread.Start();
@@ -228,6 +227,15 @@ public class OggSong : IDisposable
             else
             {
                 break;
+            }
+
+            if (!hasPlayed)
+            {
+                hasPlayed = true;
+                lock (effect)
+                {
+                    effect.Play();
+                }
             }
 
             // reset our handle

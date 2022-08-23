@@ -5,7 +5,9 @@ VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSDKv4.NET", "RSDKv4.NET\RSDKv4.NET.csproj", "{829A8BC1-DB16-460D-806B-2E3BD4EC3EE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FNA.Core", "..\..\..\Documents\GitHub\FNA\FNA.Core.csproj", "{556CDA2E-23D6-4CF4-AF59-9089DC014D87}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{AB6C2218-5429-4E6E-8D91-790E73C3F208}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FNA.Core", "Dependencies\FNA\FNA.Core.csproj", "{EA06B049-552E-49BF-9C26-0D146C054DDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,17 +25,20 @@ Global
 		{829A8BC1-DB16-460D-806B-2E3BD4EC3EE1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{829A8BC1-DB16-460D-806B-2E3BD4EC3EE1}.Release|x64.ActiveCfg = Release|Any CPU
 		{829A8BC1-DB16-460D-806B-2E3BD4EC3EE1}.Release|x64.Build.0 = Release|Any CPU
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Debug|Any CPU.Build.0 = Debug|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Debug|x64.ActiveCfg = Debug|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Debug|x64.Build.0 = Debug|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Release|Any CPU.ActiveCfg = Release|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Release|Any CPU.Build.0 = Release|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Release|x64.ActiveCfg = Release|x64
-		{556CDA2E-23D6-4CF4-AF59-9089DC014D87}.Release|x64.Build.0 = Release|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Debug|Any CPU.Build.0 = Debug|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Debug|x64.ActiveCfg = Debug|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Debug|x64.Build.0 = Debug|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Release|Any CPU.ActiveCfg = Release|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Release|Any CPU.Build.0 = Release|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Release|x64.ActiveCfg = Release|x64
+		{EA06B049-552E-49BF-9C26-0D146C054DDF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EA06B049-552E-49BF-9C26-0D146C054DDF} = {AB6C2218-5429-4E6E-8D91-790E73C3F208}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DF7621BC-3E10-4692-8CE9-21F95F1F659D}
