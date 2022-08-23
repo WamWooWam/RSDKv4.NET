@@ -2989,7 +2989,7 @@ public class Script
                     }
                 case FUNC.COPY16X16TILE:
                     opcodeSize = 0;
-                    Scene.Copy16x16Tile(scriptEng.operands[0], scriptEng.operands[1]);
+                    Drawing.Copy16x16Tile(scriptEng.operands[0], scriptEng.operands[1]);
                     break;
                 case FUNC.GETANIMATIONBYNAME:
                     {

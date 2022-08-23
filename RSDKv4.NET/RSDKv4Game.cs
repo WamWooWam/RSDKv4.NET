@@ -76,8 +76,7 @@ public class RSDKv4Game : Game
     /// and initialize them as well.
     /// </summary>
     protected override void Initialize()
-    {
-        // TODO: Add your initialization logic here       
+    {    
         base.Initialize();
     }
 
@@ -104,15 +103,13 @@ public class RSDKv4Game : Game
         });
 
         loadThread.Start();
-
-        // TODO: use this.Content to load your game content here
     }
 
     private void LoadRetroEngine()
     {
         NativeRenderer.InitRenderDevice(this, GraphicsDevice);
         FastMath.CalculateTrigAngles();
-        FileIO.CheckRSDKFile("Data.rsdk");
+        FileIO.CheckRSDKFile("DataS1.rsdk");
 
         if (Engine.LoadGameConfig("Data/Game/GameConfig.bin"))
         {
@@ -128,17 +125,22 @@ public class RSDKv4Game : Game
 
                     Engine.SetGlobalVariableByName("options.saveSlot", 0);
                     Engine.SetGlobalVariableByName("options.gameMode", 1);
-
                     Engine.SetGlobalVariableByName("options.stageSelectFlag", 0);
+
                     Engine.SetGlobalVariableByName("player.lives", 69);
                     Engine.SetGlobalVariableByName("player.score", 0);
                     Engine.SetGlobalVariableByName("player.scoreBonus", 50000);
+
                     Engine.SetGlobalVariableByName("specialStage.emeralds", 0);
                     Engine.SetGlobalVariableByName("specialStage.listPos", 0);
+
                     Engine.SetGlobalVariableByName("stage.player2Enabled", 0);
+
                     Engine.SetGlobalVariableByName("lampPostID", 0); // For S1
                     Engine.SetGlobalVariableByName("starPostID", 0); // For S2
+
                     Engine.SetGlobalVariableByName("options.vsMode", 0);
+
                     Engine.SetGlobalVariableByName("specialStage.nextZone", 0);
 
                     Scene.InitFirstStage();
@@ -151,7 +153,6 @@ public class RSDKv4Game : Game
                     Scene.ProcessStage();
                     loadPercent = 1f;
 
-                    Renderer.UpdateSurfaces();
                 }
             }
         }
@@ -163,7 +164,7 @@ public class RSDKv4Game : Game
     /// </summary>
     protected override void UnloadContent()
     {
-        // TODO: Unload any non ContentManager content here
+
     }
 
     /// <summary>
@@ -190,20 +191,11 @@ public class RSDKv4Game : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             this.Exit();
 
-        if (!isLoaded) return;
-
-        Drawing.indexCount = 0;
-        Drawing.vertexCount = 0;
-
-        Drawing.drawBlendStates[0] = new DrawBlendState();
-        Drawing.drawBlendStateIdx = 0;
-
-        Palette.activePalettes[0] = new PaletteEntry(0, 0, Renderer.SCREEN_YSIZE);
-        Palette.activePaletteCount = 0;
+        if (!isLoaded) 
+            return;
 
         Input.ProcessInput();
         Scene.ProcessStage();
-        Renderer.Draw();
     }
 
     /// <summary>
@@ -225,6 +217,7 @@ public class RSDKv4Game : Game
         else
         {
             Engine.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Renderer.Draw();
             Renderer.Present();
 
             // Objects.ProcessNativeObjects();

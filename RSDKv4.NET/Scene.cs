@@ -159,6 +159,18 @@ internal class Scene
 
     public static void ProcessStage()
     {
+        Drawing.indexCount = 0;
+        Drawing.vertexCount = 0;
+
+        Scene3D.vertexCount = 0;
+        Scene3D.faceCount = 0;
+
+        Drawing.drawBlendStates[0] = new DrawBlendState();
+        Drawing.drawBlendStateIdx = 0;
+
+        Palette.activePalettes[0] = new PaletteEntry(0, 0, Renderer.SCREEN_YSIZE);
+        Palette.activePaletteCount = 0;
+
         switch (stageMode)
         {
             case STAGEMODE.LOAD:
@@ -169,9 +181,6 @@ internal class Scene
                     Text.gameMenu[1].selectionCount = 0;
 
                     Palette.fadeMode = 0;
-
-                    Scene3D.vertexCount = 0;
-                    Scene3D.faceCount = 0;
 
                     cameraEnabled = true;
                     cameraTarget = -1;
@@ -191,7 +200,6 @@ internal class Scene
                     stageMilliseconds = 0;
                     stageSeconds = 0;
                     stageMinutes = 0;
-                    stageMode = STAGEMODE.NORMAL;
 
                     ResetBackgroundSettings();
                     LoadStageFiles();
@@ -1426,10 +1434,5 @@ internal class Scene
                     bgDeformationData3[index2] = bgDeformationData3[index2 - 256];
                 break;
         }
-    }
-
-    internal static void Copy16x16Tile(int dest, int src)
-    {
-        Array.Copy(Drawing.tileUVList, src << 2, Drawing.tileUVList, dest << 2, 4);
     }
 }

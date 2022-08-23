@@ -117,6 +117,7 @@ public static class Drawing
             if (stageLayouts[i].type == LAYER.THREEDSKY)
                 textureBufferMode = 1;
         }
+
         for (int i = 0; i < hParallax.entryCount; i++)
         {
             if (hParallax.deform[i] != 0)
@@ -162,8 +163,6 @@ public static class Drawing
         vertexCount = 0;
         drawBlendStateIdx = 0;
         drawListEntries[0] = new DrawListEntry();
-        //indexCountOpaque = 0;
-        //vertexCountOpaque = 0;
     }
 
     public static void EnsureBlendMode(BlendMode mode)
@@ -173,6 +172,7 @@ public static class Drawing
             drawBlendStates[drawBlendStateIdx].vertexCount = vertexCount - drawBlendStates[drawBlendStateIdx].vertexOffset;
             drawBlendStates[drawBlendStateIdx].indexCount = indexCount - drawBlendStates[drawBlendStateIdx].indexOffset;
             drawBlendStateIdx++;
+
             drawBlendStates[drawBlendStateIdx].vertexOffset = vertexCount;
             drawBlendStates[drawBlendStateIdx].indexOffset = indexCount;
             drawBlendStates[drawBlendStateIdx].blendMode = mode;
@@ -191,10 +191,10 @@ public static class Drawing
         return (ushort)((a << 15) + (r >> 3 << 10) + (g >> 3 << 5) + (b >> 3));
     }
 
-    //public static ushort RGB888_TO_RGB5551(byte r, byte g, byte b)
-    //{
-    //    return (ushort)((0 << 15) + (r >> 3 << 10) + (g >> 3 << 5) + (b >> 3));
-    //}
+    public static void Copy16x16Tile(int dest, int src)
+    {
+        Array.Copy(tileUVList, src << 2, tileUVList, dest << 2, 4);
+    }
 
     public static void UpdateTextureBufferWithTiles()
     {
@@ -838,8 +838,6 @@ public static class Drawing
                     default: break;
                 }
             }
-            //indexCountOpaque = indexCount;
-            //vertexCountOpaque = vertexCount;
 
             EnsureBlendMode(BlendMode.Alpha);
 

@@ -164,8 +164,6 @@ public static class Renderer
     public static void UpdateSurfaces()
     {
 #if FAST_PALETTE
-        _device.Textures[0] = null;
-        _device.Textures[1] = null;
         UpdateTextureBufferWithTiles();
         UpdateTextureBufferWithSortedSprites();
         _surface.SetData(textureBuffer);
@@ -177,7 +175,6 @@ public static class Renderer
         }
 
 #else
-        _device.Textures[0] = null;
         SetActivePalette(0, 0, SCREEN_YSIZE);
         UpdateTextureBufferWithTiles();
         UpdateTextureBufferWithSortedSprites();
@@ -203,13 +200,9 @@ public static class Renderer
             _palettes[palette.paletteNum].SetData(fullPalette[palette.paletteNum]);
         }
 #else
-        _device.Textures[0] = null;
-
         UpdateTextureBufferWithTiles();
         UpdateTextureBufferWithSprites();
         _surfaces[texPaletteNum].SetData(textureBuffer);
-
-        _device.Textures[0] = _surfaces[texPaletteNum];
 #endif
     }
 
