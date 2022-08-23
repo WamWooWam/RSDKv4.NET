@@ -145,7 +145,7 @@ public class RSDKv4Game : Game
                     Script.ClearScriptData();
                     loadPercent = 0.9f;
 
-                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 5, 0);
+                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 0);
                     loadPercent = 0.95f;
 
                     Scene.ProcessStage();

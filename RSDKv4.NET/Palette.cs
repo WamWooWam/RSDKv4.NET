@@ -39,15 +39,11 @@ public class Palette
         if (paletteIndex != 0xFF)
         {
             fullPalette[paletteIndex][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
-        //if (index != 0)
-        //        fullPalette[paletteIndex][index] |= 1;
             fullPalette32[paletteIndex][index] = new Color(r, g, b);
         }
         else
         {
             fullPalette[texPaletteNum][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
-            //if (index != 0)
-            //    fullPalette[texPaletteNum][index] |= 1;
             fullPalette32[texPaletteNum][index] = new Color(r, g, b);
         }
     }
@@ -126,7 +122,8 @@ public class Palette
             activePaletteCount++;
         }
 
-        texPaletteNum = newActivePal;
+        if (startLine == 0)
+            texPaletteNum = newActivePal;
     }
 
     internal static void SetPaletteFade(byte destPaletteID, byte srcPaletteA, byte srcPaletteB, ushort blendAmount, int startIndex, int endIndex)

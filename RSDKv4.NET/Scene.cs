@@ -417,7 +417,7 @@ internal class Scene
             Audio.SetMusicTrack("", (byte)i, false, 0);
 
         Helpers.Memset(
-            Objects.objectEntityList, 
+            Objects.objectEntityList,
             () => new Entity() { drawOrder = 3, scale = 512, objectInteractions = true, visible = true, tileCollisions = true });
 
         LoadActLayout();
@@ -1430,7 +1430,6 @@ internal class Scene
 
     internal static void Copy16x16Tile(int dest, int src)
     {
-        Array.Copy(tilesetGFXData, src, tilesetGFXData, dest, TILE_DATASIZE);
-        //throw new NotImplementedException();
+        Array.Copy(Drawing.tileUVList, src << 2, Drawing.tileUVList, dest << 2, 4);
     }
 }

@@ -975,168 +975,176 @@ public static class Drawing
         int[] gfxDataPos = tiles128x128.gfxDataPos;
         byte[] direction = tiles128x128.direction;
         byte[] visualPlane = tiles128x128.visualPlane;
-        int num2 = (int)stageLayouts[activeTileLayers[layerNum]].xsize;
-        int num3 = (int)stageLayouts[activeTileLayers[layerNum]].ysize;
+        TileLayer layer = stageLayouts[activeTileLayers[layerNum]];
+
+        int layerWidth = (int)layer.xsize;
+        int layerHeight = (int)layer.ysize;
+
         int num4 = (SCREEN_XSIZE >> 4) + 3;
-        byte num5 = layerNum < tLayerMidPoint ? (byte)0 : (byte)1;
-        ushort[] tileMap;
+        byte aboveMidPoint = layerNum < tLayerMidPoint ? (byte)0 : (byte)1;
+
+        ushort[] tileMap = layer.tiles;
         byte[] lineScrollRef;
-        int num6;
-        int num7;
-        int[] numArray1;
-        int[] numArray2;
-        int num8;
-        if (activeTileLayers[layerNum] == 0)
-        {
-            tileMap = stageLayouts[0].tiles;
-            lastXSize = num2;
-            int yScrollOffset = Scene.yScrollOffset;
-            lineScrollRef = stageLayouts[0].lineScroll;
-            hParallax.linePos[0] = xScrollOffset;
-            num6 = stageLayouts[0].deformationOffset + yScrollOffset & byte.MaxValue;
-            num7 = stageLayouts[0].deformationOffsetW + yScrollOffset & byte.MaxValue;
-            numArray1 = bgDeformationData0;
-            numArray2 = bgDeformationData1;
-            num8 = yScrollOffset % (num3 << 7);
+        int deformationDataOffset;
+        int deformationDataWOffset;
+        int[] deformationData;
+        int[] deformationDataW;
+        int yscrollOffset;
+
+        if (activeTileLayers[layerNum] != 0)
+        { 
+            // BG Layer
+            int yScroll = Scene.yScrollOffset * layer.parallaxFactor >> 8;
+            int fullheight = layerHeight << 7;
+            layer.scrollPos += layer.scrollSpeed;
+            if (layer.scrollPos > fullheight << 16)
+                layer.scrollPos -= fullheight << 16;
+            yscrollOffset = (yScroll + (layer.scrollPos >> 16)) % fullheight;
+            layerHeight = fullheight >> 7;
+            lineScrollRef = layer.lineScroll;
+            deformationDataOffset = (byte)(yscrollOffset + layer.deformationOffset);
+            deformationDataWOffset = (byte)(yscrollOffset + waterDrawPos + layer.deformationOffsetW);
+            deformationData = bgDeformationData2;
+            deformationDataW = bgDeformationData3;
         }
         else
-        {
-            tileMap = stageLayouts[activeTileLayers[layerNum]].tiles;
-            int num9 = stageLayouts[activeTileLayers[layerNum]].parallaxFactor * yScrollOffset >> 8;
-            int num10 = num3 << 7;
-            stageLayouts[activeTileLayers[layerNum]].scrollPos += stageLayouts[activeTileLayers[layerNum]].scrollSpeed;
-            if (stageLayouts[activeTileLayers[layerNum]].scrollPos > num10 << 16)
-                stageLayouts[activeTileLayers[layerNum]].scrollPos -= num10 << 16;
-            num8 = (num9 + (stageLayouts[activeTileLayers[layerNum]].scrollPos >> 16)) % num10;
-            num3 = num10 >> 7;
-            lineScrollRef = stageLayouts[activeTileLayers[layerNum]].lineScroll;
-            num6 = stageLayouts[activeTileLayers[layerNum]].deformationOffset + num8 & byte.MaxValue;
-            num7 = stageLayouts[activeTileLayers[layerNum]].deformationOffsetW + num8 & byte.MaxValue;
-            numArray1 = bgDeformationData2;
-            numArray2 = bgDeformationData3;
+        { 
+            // FG Layer
+            lastXSize = layer.xsize;
+            yscrollOffset = yScrollOffset;
+            lineScrollRef = layer.lineScroll;
+            for (int i = 0; i < PARALLAX_COUNT; ++i) hParallax.linePos[i] = xScrollOffset;
+            deformationDataOffset = (byte)(yscrollOffset + layer.deformationOffset);
+            deformationDataWOffset = (byte)(yscrollOffset + waterDrawPos + layer.deformationOffsetW);
+            deformationData = bgDeformationData0;
+            deformationDataW = bgDeformationData1;
         }
-        switch (stageLayouts[activeTileLayers[layerNum]].type)
+
+        if (layer.type == LAYER.HSCROLL)
         {
-            case 1:
-                if (lastXSize != num2)
-                {
-                    int num9 = num2 << 7;
-                    for (int index = 0; index < hParallax.entryCount; ++index)
-                    {
-                        hParallax.linePos[index] = hParallax.parallaxFactor[index] * xScrollOffset >> 8;
-                        hParallax.scrollPos[index] += hParallax.scrollSpeed[index];
-                        if (hParallax.scrollPos[index] > num9 << 16)
-                            hParallax.scrollPos[index] -= num9 << 16;
-                        hParallax.linePos[index] += hParallax.scrollPos[index] >> 16;
-                        hParallax.linePos[index] %= num9;
-                    }
-                    num2 = num9 >> 7;
-                }
-                lastXSize = num2;
-                break;
-        }
-        if (num8 < 0)
-            num8 += num3 << 7;
-        int num11 = num8 >> 4 << 4;
-        int index1 = num1 + num11;
-        int index2 = num6 + (num11 - num8);
-        int index3 = num7 + (num11 - num8);
-        if (index2 < 0)
-            index2 += 256;
-        if (index3 < 0)
-            index3 += 256;
-        int num12 = -(num8 & 15);
-        int num13 = num8 >> 7;
-        int num14 = (num8 & sbyte.MaxValue) >> 4;
-        int num15 = num12 != 0 ? 272 : 256;
-        waterDrawPos <<= 4;
-        int num16 = num12 << 4;
-        for (int index4 = num15; index4 > 0; index4 -= 16)
-        {
-            int num9 = hParallax.linePos[lineScrollRef[index1]] - 16;
-            int index5 = index1 + 8;
-            bool flag;
-            if (num9 == hParallax.linePos[lineScrollRef[index5]] - 16)
+            if (lastXSize != layerWidth)
             {
-                if (hParallax.deform[(int)lineScrollRef[index5]] == (byte)1)
+                int fullLayerwidth = layerWidth << 7;
+                for (int i = 0; i < hParallax.entryCount; ++i)
                 {
-                    int num10 = num16 < waterDrawPos ? numArray1[index2] : numArray2[index3];
-                    int index6 = index2 + 8;
-                    int index7 = index3 + 8;
-                    int num17 = num16 + 64 <= waterDrawPos ? numArray1[index6] : numArray2[index7];
-                    flag = num10 != num17;
-                    index2 = index6 - 8;
-                    index3 = index7 - 8;
+                    hParallax.linePos[i] = xScrollOffset * hParallax.parallaxFactor[i] >> 8;
+                    if (hParallax.scrollPos[i] > fullLayerwidth << 16)
+                        hParallax.scrollPos[i] -= fullLayerwidth << 16;
+                    if (hParallax.scrollPos[i] < 0)
+                        hParallax.scrollPos[i] += fullLayerwidth << 16;
+                    hParallax.linePos[i] += hParallax.scrollPos[i] >> 16;
+                    hParallax.linePos[i] %= fullLayerwidth;
+                }
+            }
+            int w = -1;
+            if (activeTileLayers[layerNum] != 0)
+                w = layerWidth;
+            lastXSize = w;
+        }
+
+        if (yscrollOffset < 0)
+            yscrollOffset += layerHeight << 7;
+
+        int deformY = yscrollOffset >> 4 << 4;
+        int lineIdx = num1 + deformY;
+        int deformOffset = deformationDataOffset + (deformY - yscrollOffset);
+        int deformOffsetW = deformationDataWOffset + (deformY - yscrollOffset);
+        if (deformOffset < 0)
+            deformOffset += 256;
+        if (deformOffsetW < 0)
+            deformOffsetW += 256;
+        deformY = -(yscrollOffset & 15);
+        int num13 = yscrollOffset >> 7;
+        int num14 = (yscrollOffset & sbyte.MaxValue) >> 4;
+        waterDrawPos <<= 4;
+        deformY = deformY << 4;
+        for (int i1 = deformY != 0 ? 272 : 256; i1 > 0; i1 -= 16)
+        {
+            int parallaxLinePos = hParallax.linePos[lineScrollRef[lineIdx]] - 16;
+            int lineIdx1 = lineIdx + 8;
+            bool flag;
+            if (parallaxLinePos == hParallax.linePos[lineScrollRef[lineIdx1]] - 16)
+            {
+                if (hParallax.deform[(int)lineScrollRef[lineIdx1]] == (byte)1)
+                {
+                    int deformX1 = deformY < waterDrawPos ? deformationData[deformOffset] : deformationDataW[deformOffsetW];
+                    int deformX1Offset = deformOffset + 8;
+                    int deformY1Offset = deformOffsetW + 8;
+                    int deformY1 = deformY + 64 <= waterDrawPos ? deformationData[deformX1Offset] : deformationDataW[deformY1Offset];
+                    flag = deformX1 != deformY1;
+                    deformOffset = deformX1Offset - 8;
+                    deformOffsetW = deformY1Offset - 8;
                 }
                 else
                     flag = false;
             }
             else
                 flag = true;
-            int index8 = index5 - 8;
+
+            int lineIdx2 = lineIdx1 - 8;
             if (flag)
             {
-                int num10 = num2 << 7;
-                if (num9 < 0)
-                    num9 += num10;
-                if (num9 >= num10)
-                    num9 -= num10;
-                int num17 = num9 >> 7;
-                int num18 = (num9 & sbyte.MaxValue) >> 4;
-                int num19 = -((num9 & 15) << 4) - 256;
-                int num20 = num19;
+                int num10 = layerWidth << 7;
+                if (parallaxLinePos < 0)
+                    parallaxLinePos += num10;
+                if (parallaxLinePos >= num10)
+                    parallaxLinePos -= num10;
+                int chunkPosX = parallaxLinePos >> 7;
+                int chunkTileX = (parallaxLinePos & sbyte.MaxValue) >> 4;
+                int deformX1 = -((parallaxLinePos & 15) << 4) - 256;
+                int deformX2 = deformX1;
                 int index6;
                 int index7;
-                if (hParallax.deform[lineScrollRef[index8]] == 1)
+                if (hParallax.deform[lineScrollRef[lineIdx2]] == 1)
                 {
-                    if (num16 >= waterDrawPos)
-                        num19 -= numArray2[index3];
+                    if (deformY >= waterDrawPos)
+                        deformX1 -= deformationDataW[deformOffsetW];
                     else
-                        num19 -= numArray1[index2];
-                    index6 = index2 + 8;
-                    index7 = index3 + 8;
-                    if (num16 + 64 > waterDrawPos)
-                        num20 -= numArray2[index7];
+                        deformX1 -= deformationData[deformOffset];
+                    index6 = deformOffset + 8;
+                    index7 = deformOffsetW + 8;
+                    if (deformY + 64 > waterDrawPos)
+                        deformX2 -= deformationDataW[index7];
                     else
-                        num20 -= numArray1[index6];
+                        deformX2 -= deformationData[index6];
                 }
                 else
                 {
-                    index6 = index2 + 8;
-                    index7 = index3 + 8;
+                    index6 = deformOffset + 8;
+                    index7 = deformOffsetW + 8;
                 }
-                int index9 = index8 + 8;
-                int index10 = (num17 <= -1 || num13 <= -1 ? 0 : tileMap[num17 + (num13 << 8)] << 6) + (num18 + (num14 << 3));
-                for (int index11 = num4; index11 > 0; --index11)
+                int index9 = lineIdx2 + 8;
+                int index10 = (chunkPosX <= -1 || num13 <= -1 ? 0 : tileMap[chunkPosX + (num13 << 8)] << 6) + (chunkTileX + (num14 << 3));
+                for (int i2 = num4; i2 > 0; --i2)
                 {
-                    if (visualPlane[index10] == num5 && gfxDataPos[index10] > 0)
+                    if (visualPlane[index10] == aboveMidPoint && gfxDataPos[index10] > 0)
                     {
                         int num21 = 0;
                         switch (direction[index10])
                         {
                             case 0:
-                                vertexList[vertexCount].position.X = num19;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.X = deformX1;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num21];
                                 int num22 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num22];
                                 int num23 = num22 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num19 + 256;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.X = deformX1 + 256;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num23];
                                 int num24 = num23 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num20;
-                                vertexList[vertexCount].position.Y = num16 + 128;
+                                vertexList[vertexCount].position.X = deformX2;
+                                vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num24] - 1f / 128f;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num20 + 256;
+                                vertexList[vertexCount].position.X = deformX2 + 256;
                                 vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
@@ -1145,28 +1153,28 @@ public static class Drawing
                                 indexCount += 2;
                                 break;
                             case 1:
-                                vertexList[vertexCount].position.X = num19 + 256;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.X = deformX1 + 256;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num21];
                                 int num25 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num25];
                                 int num26 = num25 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num19;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.X = deformX1;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num26];
                                 int num27 = num26 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num20 + 256;
-                                vertexList[vertexCount].position.Y = num16 + 128;
+                                vertexList[vertexCount].position.X = deformX2 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num27] - 1f / 128f;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num20;
+                                vertexList[vertexCount].position.X = deformX2;
                                 vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
@@ -1175,28 +1183,28 @@ public static class Drawing
                                 indexCount += 2;
                                 break;
                             case 2:
-                                vertexList[vertexCount].position.X = num20;
-                                vertexList[vertexCount].position.Y = num16 + 128;
+                                vertexList[vertexCount].position.X = deformX2;
+                                vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num21];
                                 int num28 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num28] + 1f / 128f;
                                 int num29 = num28 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num20 + 256;
-                                vertexList[vertexCount].position.Y = num16 + 128;
+                                vertexList[vertexCount].position.X = deformX2 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num29];
                                 int num30 = num29 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num19;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.X = deformX1;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num30];
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num19 + 256;
+                                vertexList[vertexCount].position.X = deformX1 + 256;
                                 vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
@@ -1205,28 +1213,28 @@ public static class Drawing
                                 indexCount += 2;
                                 break;
                             case 3:
-                                vertexList[vertexCount].position.X = num20 + 256;
-                                vertexList[vertexCount].position.Y = num16 + 128;
+                                vertexList[vertexCount].position.X = deformX2 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num21];
                                 int num31 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num31] + 1f / 128f;
                                 int num32 = num31 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num20;
-                                vertexList[vertexCount].position.Y = num16 + 128;
+                                vertexList[vertexCount].position.X = deformX2;
+                                vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num32];
                                 int num33 = num32 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num19 + 256;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.X = deformX1 + 256;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num33];
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
-                                vertexList[vertexCount].position.X = num19;
+                                vertexList[vertexCount].position.X = deformX1;
                                 vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
@@ -1236,23 +1244,23 @@ public static class Drawing
                                 break;
                         }
                     }
-                    num19 += 256;
-                    num20 += 256;
-                    ++num18;
-                    if (num18 > 7)
+                    deformX1 += 256;
+                    deformX2 += 256;
+                    ++chunkTileX;
+                    if (chunkTileX > 7)
                     {
-                        ++num17;
-                        if (num17 == num2)
-                            num17 = 0;
-                        num18 = 0;
-                        index10 = (tileMap[num17 + (num13 << 8)] << 6) + (num18 + (num14 << 3));
+                        ++chunkPosX;
+                        if (chunkPosX == layerWidth)
+                            chunkPosX = 0;
+                        chunkTileX = 0;
+                        index10 = (tileMap[chunkPosX + (num13 << 8)] << 6) + (chunkTileX + (num14 << 3));
                     }
                     else
                         ++index10;
                 }
-                int num34 = num16 + 128;
+                int num34 = deformY + 128;
                 int num35 = hParallax.linePos[lineScrollRef[index9]] - 16;
-                int num36 = num2 << 7;
+                int num36 = layerWidth << 7;
                 if (num35 < 0)
                     num35 += num36;
                 if (num35 >= num36)
@@ -1264,26 +1272,26 @@ public static class Drawing
                 if (hParallax.deform[lineScrollRef[index9]] == 1)
                 {
                     if (num34 >= waterDrawPos)
-                        num39 -= numArray2[index7];
+                        num39 -= deformationDataW[index7];
                     else
-                        num39 -= numArray1[index6];
-                    index2 = index6 + 8;
-                    index3 = index7 + 8;
+                        num39 -= deformationData[index6];
+                    deformOffset = index6 + 8;
+                    deformOffsetW = index7 + 8;
                     if (num34 + 64 > waterDrawPos)
-                        num40 -= numArray2[index3];
+                        num40 -= deformationDataW[deformOffsetW];
                     else
-                        num40 -= numArray1[index2];
+                        num40 -= deformationData[deformOffset];
                 }
                 else
                 {
-                    index2 = index6 + 8;
-                    index3 = index7 + 8;
+                    deformOffset = index6 + 8;
+                    deformOffsetW = index7 + 8;
                 }
-                index1 = index9 + 8;
+                lineIdx = index9 + 8;
                 int index12 = (num37 <= -1 || num13 <= -1 ? 0 : tileMap[num37 + (num13 << 8)] << 6) + (num38 + (num14 << 3));
                 for (int index11 = num4; index11 > 0; --index11)
                 {
-                    if (visualPlane[index12] == num5 && gfxDataPos[index12] > 0)
+                    if (visualPlane[index12] == aboveMidPoint && gfxDataPos[index12] > 0)
                     {
                         int num21 = 0;
                         switch (direction[index12])
@@ -1416,7 +1424,7 @@ public static class Drawing
                     if (num38 > 7)
                     {
                         ++num37;
-                        if (num37 == num2)
+                        if (num37 == layerWidth)
                             num37 = 0;
                         num38 = 0;
                         index12 = (tileMap[num37 + (num13 << 8)] << 6) + (num38 + (num14 << 3));
@@ -1424,49 +1432,49 @@ public static class Drawing
                     else
                         ++index12;
                 }
-                num16 = num34 + 128;
+                deformY = num34 + 128;
             }
             else
             {
-                int num10 = num2 << 7;
-                if (num9 < 0)
-                    num9 += num10;
-                if (num9 >= num10)
-                    num9 -= num10;
-                int num17 = num9 >> 7;
-                int num18 = (num9 & sbyte.MaxValue) >> 4;
-                int num19 = -((num9 & 15) << 4) - 256;
+                int num10 = layerWidth << 7;
+                if (parallaxLinePos < 0)
+                    parallaxLinePos += num10;
+                if (parallaxLinePos >= num10)
+                    parallaxLinePos -= num10;
+                int num17 = parallaxLinePos >> 7;
+                int num18 = (parallaxLinePos & sbyte.MaxValue) >> 4;
+                int num19 = -((parallaxLinePos & 15) << 4) - 256;
                 int num20 = num19;
-                if (hParallax.deform[lineScrollRef[index8]] == 1)
+                if (hParallax.deform[lineScrollRef[lineIdx2]] == 1)
                 {
-                    if (num16 >= waterDrawPos)
-                        num19 -= numArray2[index3];
+                    if (deformY >= waterDrawPos)
+                        num19 -= deformationDataW[deformOffsetW];
                     else
-                        num19 -= numArray1[index2];
-                    index2 += 16;
-                    index3 += 16;
-                    if (num16 + 128 > waterDrawPos)
-                        num20 -= numArray2[index3];
+                        num19 -= deformationData[deformOffset];
+                    deformOffset += 16;
+                    deformOffsetW += 16;
+                    if (deformY + 128 > waterDrawPos)
+                        num20 -= deformationDataW[deformOffsetW];
                     else
-                        num20 -= numArray1[index2];
+                        num20 -= deformationData[deformOffset];
                 }
                 else
                 {
-                    index2 += 16;
-                    index3 += 16;
+                    deformOffset += 16;
+                    deformOffsetW += 16;
                 }
-                index1 = index8 + 16;
+                lineIdx = lineIdx2 + 16;
                 int index6 = (num17 <= -1 || num13 <= -1 ? 0 : tileMap[num17 + (num13 << 8)] << 6) + (num18 + (num14 << 3));
                 for (int index7 = num4; index7 > 0; --index7)
                 {
-                    if (visualPlane[index6] == num5 && gfxDataPos[index6] > 0)
+                    if (visualPlane[index6] == aboveMidPoint && gfxDataPos[index6] > 0)
                     {
                         int num21 = 0;
                         switch (direction[index6])
                         {
                             case 0:
                                 vertexList[vertexCount].position.X = num19;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num21];
                                 int num22 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num22];
@@ -1474,14 +1482,14 @@ public static class Drawing
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num19 + 256;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num23];
                                 int num24 = num23 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num20;
-                                vertexList[vertexCount].position.Y = num16 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 256;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num24];
                                 vertexList[vertexCount].color = MAX_COLOR;
@@ -1496,7 +1504,7 @@ public static class Drawing
                                 break;
                             case 1:
                                 vertexList[vertexCount].position.X = num19 + 256;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num21];
                                 int num25 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num25];
@@ -1504,14 +1512,14 @@ public static class Drawing
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num19;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num26];
                                 int num27 = num26 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num20 + 256;
-                                vertexList[vertexCount].position.Y = num16 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 256;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num27];
                                 vertexList[vertexCount].color = MAX_COLOR;
@@ -1526,7 +1534,7 @@ public static class Drawing
                                 break;
                             case 2:
                                 vertexList[vertexCount].position.X = num20;
-                                vertexList[vertexCount].position.Y = num16 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 256;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num21];
                                 int num28 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num28];
@@ -1534,14 +1542,14 @@ public static class Drawing
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num20 + 256;
-                                vertexList[vertexCount].position.Y = num16 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 256;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num29];
                                 int num30 = num29 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num19;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num30];
                                 vertexList[vertexCount].color = MAX_COLOR;
@@ -1556,7 +1564,7 @@ public static class Drawing
                                 break;
                             case 3:
                                 vertexList[vertexCount].position.X = num20 + 256;
-                                vertexList[vertexCount].position.Y = num16 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 256;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num21];
                                 int num31 = num21 + 1;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num31];
@@ -1564,14 +1572,14 @@ public static class Drawing
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num20;
-                                vertexList[vertexCount].position.Y = num16 + 256;
+                                vertexList[vertexCount].position.Y = deformY + 256;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index6] + num32];
                                 int num33 = num32 + 1;
                                 vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num19 + 256;
-                                vertexList[vertexCount].position.Y = num16;
+                                vertexList[vertexCount].position.Y = deformY;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
                                 vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index6] + num33];
                                 vertexList[vertexCount].color = MAX_COLOR;
@@ -1592,7 +1600,7 @@ public static class Drawing
                     if (num18 > 7)
                     {
                         ++num17;
-                        if (num17 == num2)
+                        if (num17 == layerWidth)
                             num17 = 0;
                         num18 = 0;
                         index6 = (tileMap[num17 + (num13 << 8)] << 6) + (num18 + (num14 << 3));
@@ -1600,16 +1608,16 @@ public static class Drawing
                     else
                         ++index6;
                 }
-                num16 += 256;
+                deformY += 256;
             }
             ++num14;
             if (num14 > 7)
             {
                 ++num13;
-                if (num13 == num3)
+                if (num13 == layerHeight)
                 {
                     num13 = 0;
-                    index1 -= num3 << 7;
+                    lineIdx -= layerHeight << 7;
                 }
                 num14 = 0;
             }

@@ -28,11 +28,7 @@ public static class Renderer
     public const int SURFACE_LIMIT = 8;
     public const int SURFACE_SIZE = 1024;
 
-#if FAST_PALETTE
     public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
-#else
-    public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
-#endif
 
     private static Game _game;
     private static GraphicsDevice _device;
@@ -223,7 +219,7 @@ public static class Renderer
         _device.Clear(Color.Red);
 
 #if FAST_PALETTE
-        Renderer.UpdateActivePalettes();
+        UpdateActivePalettes();
 #endif
 
 #if FAST_PALETTE
