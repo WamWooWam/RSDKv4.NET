@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.External;
 using System.IO;
 
+namespace RSDKv4.Utility;
+
 public class GifReader
 {
     private static GifDecoder gifDecoder = new GifDecoder();

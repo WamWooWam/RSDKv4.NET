@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP3_1
+﻿#if !SILVERLIGHT
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +9,9 @@ public partial class Program
 {
     public static void Main(string[] args)
     {
+#if FNA
+        //DllMap.Initialise();
+#endif
         using (var game = new RSDKv4Game())
             game.Run();
     }

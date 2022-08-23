@@ -46,7 +46,7 @@ public class OggSong : IDisposable
     {
         get
         {
-#if SILVERLIGHT
+#if !NETCOREAPP
             return reader.DecodedTime;
 #else
             return reader.TimePosition;
@@ -93,7 +93,7 @@ public class OggSong : IDisposable
     {
         Stop();
 
-#if SILVERLIGHT
+#if !NETCOREAPP
         reader.DecodedTime = timeSpan;
 #else
         if(reader.TimePosition != timeSpan)
@@ -133,7 +133,7 @@ public class OggSong : IDisposable
                 effect.Stop();
             }
         }
-#if SILVERLIGHT
+#if !NETCOREAPP
         reader.DecodedTime = TimeSpan.Zero;
 #else
         if (reader.TimePosition != TimeSpan.Zero)
@@ -186,7 +186,7 @@ public class OggSong : IDisposable
             // out of data and looping? reset the reader and read again
             if (samplesRead == 0 && IsLooped)
             {
-#if SILVERLIGHT
+#if !NETCOREAPP
                 reader.DecodedTime = LoopPoint;
 #else
                 reader.TimePosition = LoopPoint;
@@ -196,7 +196,7 @@ public class OggSong : IDisposable
 
             if (samplesRead > 0)
             {
-#if NETCOREAPP3_1
+#if NETCOREAPP
                 // submit our buffers
                 lock (effect)
                 {

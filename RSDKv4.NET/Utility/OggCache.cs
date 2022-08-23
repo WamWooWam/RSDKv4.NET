@@ -11,7 +11,7 @@ namespace RSDKv4.Utility
     {
         public static bool TryGetCachedSfx(string name, out Stream stream)
         {
-            MD5.GenerateFromString(name, out var digest);
+            MD5Hash.GenerateFromString(name, out var digest);
 
             try
             {
@@ -33,7 +33,7 @@ namespace RSDKv4.Utility
 
         public static void CacheSfx(string name, float[] data, byte[] pcmData, int sampleRate, int channels)
         {
-            MD5.GenerateFromString(name, out var digest);
+            MD5Hash.GenerateFromString(name, out var digest);
 
             try
             {
@@ -48,7 +48,7 @@ namespace RSDKv4.Utility
 #endif
                 using (var writer = new BinaryWriter(stream, Encoding.UTF8))
                 {
-#if SILVERLIGHT
+#if !NETCOREAPP
                     // XNA on Windows Phone doesn't support floating point PCM
                     const ushort wFormat = 1; // 16 bit signed 
                     const ushort bitsPerSample = 16;
@@ -71,7 +71,7 @@ namespace RSDKv4.Utility
                     writer.Write(bitsPerSample);
                     writer.Write(new char[] { 'd', 'a', 't', 'a' });
                     writer.Write(data.Length * bytesPerSample);
-#if SILVERLIGHT
+#if !NETCOREAPP
                     writer.Write(pcmData);
 #else
                     for (int i = 0; i < data.Length; i++)

@@ -18,7 +18,7 @@ public enum BlendMode
     Subtractive
 }
 
-public struct DrawList
+public struct DrawBlendState
 {
     public int vertexOffset;
     public int vertexCount;
@@ -51,7 +51,11 @@ public static class Drawing
 
     public const int GFXDATA_MAX = 0x800 * 0x800;
 
+#if FAST_PALETTE
+    public static byte[] textureBuffer = new byte[SURFACE_SIZE * SURFACE_SIZE];
+#else
     public static ushort[] textureBuffer = new ushort[SURFACE_SIZE * SURFACE_SIZE];
+#endif
     public static byte textureBufferMode = 0;
 
     public static byte[] graphicsBuffer = new byte[SURFACE_DATASIZE];
@@ -71,8 +75,8 @@ public static class Drawing
     //public static ushort vertexCountOpaque = 0;
     //public static ushort indexCountOpaque = 0;
 
-    public static DrawList[] drawLists = new DrawList[32];
-    public static int drawListIdx = 0;
+    public static DrawBlendState[] drawBlendStates = new DrawBlendState[256];
+    public static int drawBlendStateIdx = 0;
 
     public static SurfaceDesc[] _surfaces = new SurfaceDesc[SURFACE_MAX];
 
@@ -156,7 +160,7 @@ public static class Drawing
 
         indexCount = 0;
         vertexCount = 0;
-        drawListIdx = 0;
+        drawBlendStateIdx = 0;
         drawListEntries[0] = new DrawListEntry();
         //indexCountOpaque = 0;
         //vertexCountOpaque = 0;
@@ -164,22 +168,22 @@ public static class Drawing
 
     public static void EnsureBlendMode(BlendMode mode)
     {
-        if (drawLists[drawListIdx].blendMode != mode)
+        if (drawBlendStates[drawBlendStateIdx].blendMode != mode)
         {
-            drawLists[drawListIdx].vertexCount = vertexCount - drawLists[drawListIdx].vertexOffset;
-            drawLists[drawListIdx].indexCount = indexCount - drawLists[drawListIdx].indexOffset;
-            drawListIdx++;
-            drawLists[drawListIdx].vertexOffset = vertexCount;
-            drawLists[drawListIdx].indexOffset = indexCount;
-            drawLists[drawListIdx].blendMode = mode;
+            drawBlendStates[drawBlendStateIdx].vertexCount = vertexCount - drawBlendStates[drawBlendStateIdx].vertexOffset;
+            drawBlendStates[drawBlendStateIdx].indexCount = indexCount - drawBlendStates[drawBlendStateIdx].indexOffset;
+            drawBlendStateIdx++;
+            drawBlendStates[drawBlendStateIdx].vertexOffset = vertexCount;
+            drawBlendStates[drawBlendStateIdx].indexOffset = indexCount;
+            drawBlendStates[drawBlendStateIdx].blendMode = mode;
         }
     }
 
     public static void FinishDraw()
     {
-        drawLists[drawListIdx].vertexCount = vertexCount - drawLists[drawListIdx].vertexOffset;
-        drawLists[drawListIdx].indexCount = indexCount - drawLists[drawListIdx].indexOffset;
-        drawListIdx++;
+        drawBlendStates[drawBlendStateIdx].vertexCount = vertexCount - drawBlendStates[drawBlendStateIdx].vertexOffset;
+        drawBlendStates[drawBlendStateIdx].indexCount = indexCount - drawBlendStates[drawBlendStateIdx].indexOffset;
+        drawBlendStateIdx++;
     }
 
     public static ushort RGB_16BIT5551(byte r, byte g, byte b, byte a)
@@ -187,17 +191,10 @@ public static class Drawing
         return (ushort)((a << 15) + (r >> 3 << 10) + (g >> 3 << 5) + (b >> 3));
     }
 
-    public static ushort RGB888_TO_RGB5551(byte r, byte g, byte b)
-    {
-        return (ushort)((1 << 15) + (r >> 3 << 10) + (g >> 3 << 5) + (b >> 3));
-    }
-
-    public static void SetActivePalette(byte paletteNum, int minY, int maxY)
-    {
-        if (paletteNum >= 8)
-            return;
-        texPaletteNum = paletteNum;
-    }
+    //public static ushort RGB888_TO_RGB5551(byte r, byte g, byte b)
+    //{
+    //    return (ushort)((0 << 15) + (r >> 3 << 10) + (g >> 3 << 5) + (b >> 3));
+    //}
 
     public static void UpdateTextureBufferWithTiles()
     {
@@ -217,14 +214,11 @@ public static class Drawing
                     {
                         for (int x = 0; x < TILE_SIZE; x++)
                         {
-                            if (tilesetGFXData[dataPos] > 0)
-                            {
-                                textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                            }
-                            else
-                            {
-                                textureBuffer[bufPos] = 0;
-                            }
+#if FAST_PALETTE
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                            textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                             bufPos++;
                             dataPos++;
                         }
@@ -245,35 +239,37 @@ public static class Drawing
                         cnt = 1023;
 
                     bufPos = w + (h << 10);
-                    if (tilesetGFXData[dataPos] > 0)
-                    {
-                        textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                    }
-                    else
-                    {
-                        textureBuffer[bufPos] = 0;
-                    }
+#if FAST_PALETTE
+                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                    textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                     bufPos++;
 
                     for (int l = 0; l < 15; l++)
                     {
-                        if (tilesetGFXData[dataPos] > 0)
-                        {
-                            textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                        }
-                        else
-                        {
-                            textureBuffer[bufPos] = 0;
-                        }
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                        textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                         bufPos++;
                         dataPos++;
                     }
 
                     if (tilesetGFXData[dataPos] > 0)
                     {
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                         bufPos++;
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                     }
                     else
                     {
@@ -287,33 +283,35 @@ public static class Drawing
 
                     for (int k = 0; k < 16; k++)
                     {
-                        if (tilesetGFXData[dataPos] > 0)
-                        {
-                            textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                        }
-                        else
-                        {
-                            textureBuffer[bufPos] = 0;
-                        }
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                        textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                         bufPos++;
                         for (int l = 0; l < 15; l++)
                         {
-                            if (tilesetGFXData[dataPos] > 0)
-                            {
-                                textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                            }
-                            else
-                            {
-                                textureBuffer[bufPos] = 0;
-                            }
+#if FAST_PALETTE
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                            textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                             bufPos++;
                             dataPos++;
                         }
                         if (tilesetGFXData[dataPos] > 0)
                         {
+#if FAST_PALETTE
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
                             textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                             bufPos++;
+#if FAST_PALETTE
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
                             textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                         }
                         else
                         {
@@ -326,36 +324,37 @@ public static class Drawing
                         bufPos += 1006;
                     }
                     dataPos -= 16;
-
-                    if (tilesetGFXData[dataPos] > 0)
-                    {
-                        textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                    }
-                    else
-                    {
-                        textureBuffer[bufPos] = 0;
-                    }
+#if FAST_PALETTE
+                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                    textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                     bufPos++;
 
                     for (int l = 0; l < 15; l++)
                     {
-                        if (tilesetGFXData[dataPos] > 0)
-                        {
-                            textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
-                        }
-                        else
-                        {
-                            textureBuffer[bufPos] = 0;
-                        }
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
+                        textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                         bufPos++;
                         dataPos++;
                     }
 
                     if (tilesetGFXData[dataPos] > 0)
                     {
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                         bufPos++;
+#if FAST_PALETTE
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+#else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+#endif
                     }
                     else
                     {
@@ -374,8 +373,11 @@ public static class Drawing
         {
             for (int l = 0; l < TILE_SIZE; l++)
             {
-                textureBuffer[bufPos] = RGB888_TO_RGB5551(0xFF, 0xFF, 0xFF);
-                textureBuffer[bufPos] |= 1;
+#if FAST_PALETTE
+                textureBuffer[bufPos] = 255;
+#else
+                textureBuffer[bufPos] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
+#endif
                 bufPos++;
             }
             bufPos += 1008;
@@ -395,10 +397,11 @@ public static class Drawing
                 {
                     for (int k = 0; k < surface.width; k++)
                     {
-                        if (graphicsBuffer[pos] > 0)
-                            textureBuffer[teXPos] = fullPalette[texPaletteNum][graphicsBuffer[pos]];
-                        else
-                            textureBuffer[teXPos] = 0;
+#if FAST_PALETTE
+                        textureBuffer[teXPos] = graphicsBuffer[pos];
+#else
+                        textureBuffer[teXPos] = fullPalette[texPaletteNum][graphicsBuffer[pos]];
+#endif
 
                         teXPos++;
                         pos++;
@@ -543,14 +546,11 @@ public static class Drawing
                 {
                     for (int w = 0; w < curSurface.width; w++)
                     {
-                        if (graphicsBuffer[gfXPos] > 0)
-                        {
-                            textureBuffer[dataPos] = fullPalette[texPaletteNum][graphicsBuffer[gfXPos]];
-                        }
-                        else
-                        {
-                            textureBuffer[dataPos] = 0;
-                        }
+#if FAST_PALETTE
+                        textureBuffer[dataPos] = graphicsBuffer[gfXPos];
+#else
+                        textureBuffer[dataPos] = fullPalette[texPaletteNum][graphicsBuffer[gfXPos]];
+#endif
                         dataPos++;
                         gfXPos++;
                     }
@@ -690,7 +690,7 @@ public static class Drawing
             index1 -= surface.width << 1;
         }
         graphicsBufferPos += surface.width * surface.height;
-        if (graphicsBufferPos >= 4194304)
+        if (graphicsBufferPos >= SURFACE_DATASIZE)
             graphicsBufferPos = 0;
 
         FileIO.CloseFile();
@@ -743,7 +743,7 @@ public static class Drawing
             surface.height = height;
             surface.dataPosition = graphicsBufferPos;
             graphicsBufferPos += surface.width * surface.height;
-            if (graphicsBufferPos >= GFXDATA_MAX)
+            if (graphicsBufferPos >= SURFACE_DATASIZE)
                 graphicsBufferPos = 0;
             else
                 GifLoader.ReadGifPictureData(width, height, interlaced, ref graphicsBuffer, surface.dataPosition);
@@ -815,11 +815,11 @@ public static class Drawing
             waterDrawPos = SCREEN_YSIZE + TILE_SIZE;
 
 #if RETRO_SOFTWARE_RENDER
-    if (waterDrawPos < 0)
-        waterDrawPos = 0;
+        if (waterDrawPos < 0)
+            waterDrawPos = 0;
 
-    if (waterDrawPos > SCREEN_YSIZE)
-        waterDrawPos = SCREEN_YSIZE;
+        if (waterDrawPos > SCREEN_YSIZE)
+            waterDrawPos = SCREEN_YSIZE;
 #endif
 
         if (tLayerMidPoint < 3)
@@ -3380,28 +3380,19 @@ public static class Drawing
         ++vertexCount;
         vertexList[vertexCount].position.X = face.vertex[1].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[1].y << 4;
-        vertexList[vertexCount].color.R = vertexList[vertexCount - 1].color.R;
-        vertexList[vertexCount].color.G = vertexList[vertexCount - 1].color.G;
-        vertexList[vertexCount].color.B = vertexList[vertexCount - 1].color.B;
-        vertexList[vertexCount].color.A = vertexList[vertexCount - 1].color.A;
+        vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;
         ++vertexCount;
         vertexList[vertexCount].position.X = face.vertex[2].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[2].y << 4;
-        vertexList[vertexCount].color.R = vertexList[vertexCount - 1].color.R;
-        vertexList[vertexCount].color.G = vertexList[vertexCount - 1].color.G;
-        vertexList[vertexCount].color.B = vertexList[vertexCount - 1].color.B;
-        vertexList[vertexCount].color.A = vertexList[vertexCount - 1].color.A;
+        vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;
         ++vertexCount;
         vertexList[vertexCount].position.X = face.vertex[3].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[3].y << 4;
-        vertexList[vertexCount].color.R = vertexList[vertexCount - 1].color.R;
-        vertexList[vertexCount].color.G = vertexList[vertexCount - 1].color.G;
-        vertexList[vertexCount].color.B = vertexList[vertexCount - 1].color.B;
-        vertexList[vertexCount].color.A = vertexList[vertexCount - 1].color.A;
+        vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;
         ++vertexCount;
@@ -3410,6 +3401,7 @@ public static class Drawing
 
     public static void DrawTexturedQuad(Quad2D face, int surfaceNum)
     {
+
         if (vertexCount >= VERTEX_LIMIT)
             return;
         SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
@@ -3475,6 +3467,8 @@ public static class Drawing
 
     public static void DrawFadedQuad(Quad2D face, uint colour, uint fogColour, int alpha)
     {
+        EnsureBlendMode(BlendMode.Alpha);
+
         if (vertexCount >= VERTEX_LIMIT)
             return;
 
@@ -3490,9 +3484,9 @@ public static class Drawing
 
         vertexList[vertexCount].position.X = face.vertex[0].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[0].y << 4;
-        vertexList[vertexCount].color.R = cr;
-        vertexList[vertexCount].color.G = cg;
-        vertexList[vertexCount].color.B = cb;
+        vertexList[vertexCount].color.R = (byte)((ushort)(fr * (0xFF - alpha) + alpha * cr) >> 8);
+        vertexList[vertexCount].color.G = (byte)((ushort)(fg * (0xFF - alpha) + alpha * cg) >> 8);
+        vertexList[vertexCount].color.B = (byte)((ushort)(fb * (0xFF - alpha) + alpha * cb) >> 8);
         vertexList[vertexCount].color.A = 0xFF;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;

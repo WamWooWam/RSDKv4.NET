@@ -20,7 +20,7 @@ namespace RSDKv4;
 /// <summary>
 /// This is the main type for your game
 /// </summary>
-public class RSDKv4Game : Microsoft.Xna.Framework.Game
+public class RSDKv4Game : Game
 {
     GraphicsDeviceManager graphics;
     SpriteBatch spriteBatch;
@@ -46,6 +46,10 @@ public class RSDKv4Game : Microsoft.Xna.Framework.Game
         graphics.PreparingDeviceSettings += OnPreparingDeviceSettings;
 #if SILVERLIGHT
         graphics.IsFullScreen = true;
+        graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
+#endif
+#if FAST_PALETTE
+        graphics.GraphicsProfile = GraphicsProfile.HiDef;
 #endif
         Content.RootDirectory = "Content";
         TargetElapsedTime = TimeSpan.FromTicks(166666);
@@ -106,8 +110,6 @@ public class RSDKv4Game : Microsoft.Xna.Framework.Game
 
     private void LoadRetroEngine()
     {
-        Thread.Sleep(3000);
-
         NativeRenderer.InitRenderDevice(this, GraphicsDevice);
         FastMath.CalculateTrigAngles();
         FileIO.CheckRSDKFile("Data.rsdk");
@@ -143,7 +145,7 @@ public class RSDKv4Game : Microsoft.Xna.Framework.Game
                     Script.ClearScriptData();
                     loadPercent = 0.9f;
 
-                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 1, 0);
+                    Scene.InitStartingStage(STAGELIST.SPECIAL, 0, 0);
                     loadPercent = 0.95f;
 
                     Scene.ProcessStage();
@@ -192,12 +194,16 @@ public class RSDKv4Game : Microsoft.Xna.Framework.Game
 
         Drawing.indexCount = 0;
         Drawing.vertexCount = 0;
-        Drawing.drawListIdx = 0;
-        Drawing.drawLists[0] = new DrawList();
-        //Drawing.indexCountOpaque = 0;
-        //Drawing.vertexCountOpaque = 0;
 
+        Drawing.drawBlendStates[0] = new DrawBlendState();
+        Drawing.drawBlendStateIdx = 0;
+
+        Palette.activePalettes[0] = new PaletteEntry(0, 0, Renderer.SCREEN_YSIZE);
+        Palette.activePaletteCount = 0;
+
+#if FAST_PALETTE
         Renderer.UpdateActivePalette();
+#endif
 
         Input.ProcessInput();
         Scene.ProcessStage();
@@ -222,18 +228,10 @@ public class RSDKv4Game : Microsoft.Xna.Framework.Game
         }
         else
         {
-            //Drawing.__drawnObjects.Clear();
-            //Engine.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Engine.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             Renderer.Present();
 
             // Objects.ProcessNativeObjects();
-
-            //Debug.WriteLine("-- TYPES LIST --");
-            //foreach (var objectType in Drawing.__drawnObjects.Distinct())
-            //{
-            //    Debug.WriteLine(Objects.typeNames[objectType]);
-            //}
-            //Debug.WriteLine("-- END TYPES LIST --");
         }
     }
 }

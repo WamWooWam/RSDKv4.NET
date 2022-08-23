@@ -22,23 +22,11 @@ public static class FileIO
     private static RSDKFileStream rsdkStream;
     private static byte[] readBuffer = new byte[8];
 
-    public static void CopyFilePath(char[] dest, char[] src)
-    {
-        CString.StrCopy(ref dest, ref src);
-        for (int i = 0; ; i++)
-        {
-            if (i >= CString.StrLen(ref dest)) break;
-
-            if (dest[i] == '/')
-                dest[i] = '\\';
-        }
-    }
-
     public static bool CheckRSDKFile(string filePath)
     {
         try
         {
-            fileName = $"Content\\{filePath}";
+            fileName = $"Content/{filePath}";
             fileHandle = TitleContainer.OpenStream(fileName);
             fileReader = new BinaryReader(fileHandle);
 

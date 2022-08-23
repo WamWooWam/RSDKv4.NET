@@ -193,7 +193,7 @@ internal class RSDKFileStream : Stream
         if (usingDataFile)
         {
             fileName = fileInfo.fileName = filePath.ToLowerInvariant();
-            MD5.GenerateFromString(fileInfo.fileName, out var digest);
+            MD5Hash.GenerateFromString(fileInfo.fileName, out var digest);
 
             for (int f = 0; f < rsdkContainer.fileCount; ++f)
             {
@@ -410,13 +410,13 @@ internal class RSDKFileStream : Stream
 
     public void GenerateELoadKeys(uint key1, uint key2)
     {
-        MD5.GenerateFromString(key1.ToString(), out var hash);
+        MD5Hash.GenerateFromString(key1.ToString(), out var hash);
         BitHelper.SwapAndCopyTo(hash.u1, encryptionStringA, 0);
         BitHelper.SwapAndCopyTo(hash.u2, encryptionStringA, 4);
         BitHelper.SwapAndCopyTo(hash.u3, encryptionStringA, 8);
         BitHelper.SwapAndCopyTo(hash.u4, encryptionStringA, 12);
 
-        MD5.GenerateFromString(key2.ToString(), out hash);
+        MD5Hash.GenerateFromString(key2.ToString(), out hash);
         BitHelper.SwapAndCopyTo(hash.u1, encryptionStringB, 0);
         BitHelper.SwapAndCopyTo(hash.u2, encryptionStringB, 4);
         BitHelper.SwapAndCopyTo(hash.u3, encryptionStringB, 8);

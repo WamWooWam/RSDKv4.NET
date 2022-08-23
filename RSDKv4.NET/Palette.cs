@@ -6,10 +6,25 @@ using static RSDKv4.Drawing;
 
 namespace RSDKv4;
 
+public struct PaletteEntry
+{
+    public int palette;
+    public int startLine;
+    public int endLine;
+
+    public PaletteEntry(int palette, int startLine, int endLine)
+    {
+        this.palette = palette;
+        this.startLine = startLine;
+        this.endLine = endLine;
+    }
+}
+
 public class Palette
 {
-    public const int PALETTE_COUNT = (0x8);
-    public const int PALETTE_SIZE = (0x100);
+    public static PaletteEntry[] activePalettes
+        = new PaletteEntry[8];
+    public static int activePaletteCount = 0;
 
     public static int fadeMode;
     public static byte fadeA = 0;
@@ -19,19 +34,19 @@ public class Palette
 
     public static void SetPaletteEntry(byte paletteIndex, byte index, byte r, byte g, byte b)
     {
-        Console.WriteLine($"{paletteIndex} {index}: {r} {g} {b} ({RGB888_TO_RGB5551(r, g, b)})");
+        Console.WriteLine($"{paletteIndex},{index} (#{r:X2}{g:X2}{b:X2}, {(RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0))})");
 
         if (paletteIndex != 0xFF)
         {
-            fullPalette[paletteIndex][index] = RGB888_TO_RGB5551(r, g, b);
-            //if (paletteIndex != 0)
-            //    fullPalette[paletteIndex][index] |= 1;
+            fullPalette[paletteIndex][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
+        //if (index != 0)
+        //        fullPalette[paletteIndex][index] |= 1;
             fullPalette32[paletteIndex][index] = new Color(r, g, b);
         }
         else
         {
-            fullPalette[texPaletteNum][index] = RGB888_TO_RGB5551(r, g, b);
-            //if (paletteIndex != 0)
+            fullPalette[texPaletteNum][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
+            //if (index != 0)
             //    fullPalette[texPaletteNum][index] |= 1;
             fullPalette32[texPaletteNum][index] = new Color(r, g, b);
         }
@@ -100,8 +115,18 @@ public class Palette
 
     internal static void SetActivePalette(byte newActivePal, int startLine, int endLine)
     {
-        if (newActivePal < PALETTE_COUNT)
-            texPaletteNum = newActivePal;
+        if (newActivePal >= PALETTE_COUNT)
+            return;
+
+        //Console.WriteLine($"{newActivePal}: {startLine}-{endLine}");
+
+        if (activePaletteCount < 8)
+        {
+            activePalettes[activePaletteCount] = new PaletteEntry(newActivePal, startLine, endLine);
+            activePaletteCount++;
+        }
+
+        texPaletteNum = newActivePal;
     }
 
     internal static void SetPaletteFade(byte destPaletteID, byte srcPaletteA, byte srcPaletteB, ushort blendAmount, int startIndex, int endIndex)
@@ -122,16 +147,14 @@ public class Palette
             var srcB = fullPalette32[srcPaletteB][l];
             var srcA = fullPalette32[srcPaletteA][l];
 
-            fullPalette[destPaletteID][idx] = RGB888_TO_RGB5551(
+            fullPalette[destPaletteID][idx] = RGB_16BIT5551(
                 (byte)((ushort)(srcB.R * blendAmount + blendA * srcA.R) >> 8),
                 (byte)((ushort)(srcB.G * blendAmount + blendA * srcA.G) >> 8),
-                (byte)((ushort)(srcB.B * blendAmount + blendA * srcA.B) >> 8));
+                (byte)((ushort)(srcB.B * blendAmount + blendA * srcA.B) >> 8),
+                idx != 0 ? (byte)1 : (byte)0);
             fullPalette32[destPaletteID][idx].R = (byte)((ushort)(srcB.R * blendAmount + blendA * srcA.R) >> 8);
             fullPalette32[destPaletteID][idx].G = (byte)((ushort)(srcB.G * blendAmount + blendA * srcA.G) >> 8);
             fullPalette32[destPaletteID][idx].B = (byte)((ushort)(srcB.B * blendAmount + blendA * srcA.B) >> 8);
-            //#if RETRO_HARDWARE_RENDER
-            fullPalette[destPaletteID][idx] |= 1;
-            //#endif
 
             idx++;
         }
@@ -145,9 +168,7 @@ public class Palette
         var fullPalette = Drawing.fullPalette;
         var fullPalette32 = Drawing.fullPalette32;
 
-        fullPalette[paletteIndex][index] = RGB888_TO_RGB5551((byte)(colour >> 16), (byte)(colour >> 8), (byte)(colour >> 0));
-        if (index != 0)
-            fullPalette[paletteIndex][index] |= 1;
+        fullPalette[paletteIndex][index] = RGB_16BIT5551((byte)(colour >> 16), (byte)(colour >> 8), (byte)(colour >> 0), index != 0 ? (byte)1 : (byte)0);
         fullPalette32[paletteIndex][index].R = (byte)(colour >> 16);
         fullPalette32[paletteIndex][index].G = (byte)(colour >> 8);
         fullPalette32[paletteIndex][index].B = (byte)(colour >> 0);

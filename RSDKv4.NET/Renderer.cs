@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 
 using static RSDKv4.Drawing;
+using static RSDKv4.Palette;
 
 namespace RSDKv4;
 
@@ -24,18 +25,34 @@ public static class Renderer
     public static int GFX_LINESIZE_MINUSONE = 0;
     public static int GFX_LINESIZE_DOUBLE = SCREEN_YSIZE / 2;
 
-    public const int SURFACE_LIMIT = 6;
+    public const int SURFACE_LIMIT = 8;
     public const int SURFACE_SIZE = 1024;
+
+#if FAST_PALETTE
     public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
+#else
+    public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
+#endif
 
     private static Game _game;
     private static GraphicsDevice _device;
+
+#if FAST_PALETTE
+    private static Effect _effect;
+#else
     private static BasicEffect _effect;
+#endif
     private static RenderTarget2D _renderTarget;
-    private static RasterizerState _rasterizerState;
+    private static RasterizerState _noScissorState;
+    private static RasterizerState _scissorState;
 
     // 1024x1024 atlases
+#if FAST_PALETTE
+    private static Texture2D _surface;
+    private static Texture2D[] _palettes = new Texture2D[PALETTE_COUNT];
+#else
     private static Texture2D[] _surfaces = new Texture2D[SURFACE_LIMIT];
+#endif
 
     // only used to flip the display
     private static SpriteBatch _spriteBatch;
@@ -60,17 +77,23 @@ public static class Renderer
     public static bool InitRenderDevice(Game game, GraphicsDevice device)
     {
         _game = game;
-        _game.Window.Title = Engine.gameWindowText;
 
         _device = device;
+#if FAST_PALETTE
+        _effect = game.Content.Load<Effect>("Shaders/Palette");
+        _surface = new Texture2D(device, SURFACE_SIZE, SURFACE_SIZE, false, SurfaceFormat.Alpha8);
+        for (int i = 0; i < PALETTE_COUNT; i++)
+            _palettes[i] = new Texture2D(device, 16, 16, false, SurfaceFormat.Bgra5551);
+#else
         _effect = new BasicEffect(device) { TextureEnabled = true };
-
-        for (int index = 0; index < 6; ++index)
+        for (int index = 0; index < SURFACE_LIMIT; ++index)
             _surfaces[index] = new Texture2D(device, SURFACE_SIZE, SURFACE_SIZE, false, SurfaceFormat.Bgra5551);
+#endif
 
-        _renderTarget = new RenderTarget2D(device, SCREEN_XSIZE, SCREEN_YSIZE, false, SurfaceFormat.Bgr565, DepthFormat.Depth16, 0, RenderTargetUsage.PlatformContents);
-        _rasterizerState = new RasterizerState() { CullMode = CullMode.None };
-        _device.RasterizerState = _rasterizerState;
+        _renderTarget = new RenderTarget2D(device, SCREEN_XSIZE, SCREEN_YSIZE, false, SurfaceFormat.Bgr565, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
+        _noScissorState = new RasterizerState() { CullMode = CullMode.None };
+        _scissorState = new RasterizerState() { CullMode = CullMode.None, ScissorTestEnable = true };
+        _device.RasterizerState = _noScissorState;
 
         _spriteBatch = new SpriteBatch(device);
 
@@ -144,23 +167,45 @@ public static class Renderer
 
     public static void UpdateSurfaces()
     {
+#if FAST_PALETTE
         _device.Textures[0] = null;
-        SetActivePalette(0, 0, 240);
+        _device.Textures[1] = null;
+        UpdateTextureBufferWithTiles();
+        UpdateTextureBufferWithSortedSprites();
+        _surface.SetData(textureBuffer);
+
+        for (byte paletteNum = 0; paletteNum < PALETTE_COUNT; ++paletteNum)
+        {
+            fullPalette[paletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
+            _palettes[paletteNum].SetData(fullPalette[paletteNum]);
+        }
+
+#else
+        _device.Textures[0] = null;
+        SetActivePalette(0, 0, SCREEN_YSIZE);
         UpdateTextureBufferWithTiles();
         UpdateTextureBufferWithSortedSprites();
         _surfaces[0].SetData(textureBuffer);
         for (byte paletteNum = 1; paletteNum < 6; ++paletteNum)
         {
-            SetActivePalette(paletteNum, 0, 240);
+            Palette.SetActivePalette(paletteNum, 0, 240);
             UpdateTextureBufferWithTiles();
             UpdateTextureBufferWithSprites();
             _surfaces[paletteNum].SetData(textureBuffer);
         }
-        SetActivePalette((byte)0, 0, 240);
+        SetActivePalette((byte)0, 0, SCREEN_YSIZE);
+#endif
     }
 
     internal static void UpdateActivePalette()
     {
+#if FAST_PALETTE
+        fullPalette[texPaletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
+
+        _device.Textures[0] = null;
+        _palettes[texPaletteNum].SetData(fullPalette[texPaletteNum]);
+        _device.Textures[0] = _palettes[texPaletteNum];
+#else
         _device.Textures[0] = null;
 
         UpdateTextureBufferWithTiles();
@@ -168,20 +213,53 @@ public static class Renderer
         _surfaces[texPaletteNum].SetData(textureBuffer);
 
         _device.Textures[0] = _surfaces[texPaletteNum];
+#endif
     }
 
     public static void Draw()
     {
         _device.SetRenderTarget(_renderTarget);
 
+        _device.Clear(Color.Red);
+
+#if FAST_PALETTE
+        _effect.Parameters["Texture"].SetValue(_surface);
+        _effect.Parameters["Palette"].SetValue(_palettes[texPaletteNum]);
+        _effect.Parameters["MatrixTransform"].SetValue(_projection2D);
+
+        _device.SamplerStates[0] = SamplerState.PointClamp;
+        _device.SamplerStates[1] = SamplerState.PointWrap;
+#else
         _effect.Texture = _surfaces[texPaletteNum];
+        _device.SamplerStates[0] = SamplerState.PointClamp;
+
         _effect.World = Matrix.Identity;
         _effect.View = Matrix.Identity;
         _effect.Projection = _projection2D;
         _effect.LightingEnabled = false;
         _effect.VertexColorEnabled = true;
+#endif
 
-        _device.RasterizerState = _rasterizerState;
+        _device.BlendState = BlendState.Opaque;
+        _device.RasterizerState = activePaletteCount > 1 ? _scissorState : _noScissorState;
+
+        for (int i = 0; i < Math.Max(activePaletteCount, 1); i++)
+        {
+            if (activePaletteCount > 0)
+            {
+                var palette = activePalettes[i];
+
+                if ((palette.endLine - palette.startLine) == 0)
+                    continue;
+
+                _device.ScissorRectangle = new Rectangle(0, palette.startLine, SCREEN_XSIZE, palette.endLine - palette.startLine);
+
+#if FAST_PALETTE
+                _device.Textures[1] = _palettes[palette.palette];
+#else
+                _device.Textures[0] = _surfaces[palette.palette];
+#endif
+            }
 
 #if ENABLE_3D
         if (Drawing.isRender3DEnabled)
@@ -216,14 +294,10 @@ public static class Renderer
         else
         {
 #endif
-        _device.SamplerStates[0] = SamplerState.PointClamp;
-        foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
-        {
-            pass.Apply();
 
-            for (int i = 0; i < drawListIdx; i++)
+            for (int j = 0; j < drawBlendStateIdx; j++)
             {
-                var drawList = drawLists[i];
+                var drawList = drawBlendStates[j];
 
                 if (drawList.vertexCount == 0 || drawList.indexCount == 0)
                     continue;
@@ -235,15 +309,25 @@ public static class Renderer
                 else if (drawList.blendMode == BlendMode.Additive)
                     _device.BlendState = BlendState.Additive;
 
-                _device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertexList, drawList.vertexOffset, drawList.vertexCount, indexList, 0,  drawList.indexCount);
+                foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    _device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertexList, drawList.vertexOffset, drawList.vertexCount, indexList, 0, drawList.indexCount);
+                }
             }
-        }
 
 #if ENABLE_3D
         }
 #endif
+        }
 
+
+#if FAST_PALETTE
+        _device.Textures[0] = null;
+        _device.Textures[1] = null;
+#else
         _effect.Texture = null;
+#endif
         _device.SetRenderTarget(null);
     }
 

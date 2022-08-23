@@ -7,7 +7,6 @@ using System.Text;
 
 namespace RSDKv4;
 
-
 internal class Scene
 {
     public const int LAYER_COUNT = (9);
@@ -129,7 +128,7 @@ internal class Scene
         Drawing.ClearGraphicsData();
         Animation.ClearAnimationData();
 
-        Drawing.SetActivePalette(0, 0, 0);
+        Palette.SetActivePalette(0, 0, 0);
         stageMode = STAGEMODE.LOAD;
         Engine.gameMode = ENGINE.MAINGAME;
         activeStageList = 0;
@@ -151,7 +150,7 @@ internal class Scene
 
         Objects.playerListPos = player;
 
-        Drawing.SetActivePalette(0, 0, 0);
+        Palette.SetActivePalette(0, 0, 0);
         stageMode = STAGEMODE.LOAD;
         Engine.gameMode = ENGINE.MAINGAME;
 
@@ -164,7 +163,7 @@ internal class Scene
         {
             case STAGEMODE.LOAD:
                 {
-                    Palette.SetActivePalette(0, 0, 256);
+                    Palette.SetActivePalette(0, 0, Renderer.SCREEN_YSIZE);
                     Text.gameMenu[0].visibleRowOffset = 0;
                     Text.gameMenu[1].alignment = 0;
                     Text.gameMenu[1].selectionCount = 0;
@@ -321,7 +320,7 @@ internal class Scene
     {
         Audio.StopAllSfx(); // ?
 
-        int scriptID = 1;
+        int scriptId = 1;
         FileInfo infoStore;
         if (!CheckCurrentStageFolder(stageListPosition))
         {
@@ -353,13 +352,13 @@ internal class Scene
                 byte globalObjectCount = FileIO.ReadByte();
                 for (byte i = 0; i < globalObjectCount; ++i)
                 {
-                    Objects.SetObjectTypeName(FileIO.ReadLengthPrefixedString(), scriptID + i);
+                    Objects.SetObjectTypeName(FileIO.ReadLengthPrefixedString(), scriptId + i);
                 }
 
                 FileIO.GetFileInfo(out infoStore);
                 FileIO.CloseFile();
-                Script.LoadBytecode(4, scriptID);
-                scriptID += globalObjectCount;
+                Script.LoadBytecode(4, scriptId);
+                scriptId += globalObjectCount;
                 FileIO.SetFileInfo(infoStore);
                 FileIO.CloseFile();
             }
@@ -393,7 +392,7 @@ internal class Scene
 
                 var stageObjectCount = FileIO.ReadByte();
                 for (int i = 0; i < stageObjectCount; i++)
-                    Objects.SetObjectTypeName(FileIO.ReadLengthPrefixedString(), scriptID + i);
+                    Objects.SetObjectTypeName(FileIO.ReadLengthPrefixedString(), scriptId + i);
 
 
                 for (int i = 0; i < stageObjectCount; i++)
@@ -401,7 +400,7 @@ internal class Scene
 
                 FileIO.GetFileInfo(out infoStore);
                 FileIO.CloseFile();
-                Script.LoadBytecode(activeStageList, scriptID);
+                Script.LoadBytecode(activeStageList, scriptId);
                 FileIO.SetFileInfo(infoStore);
 
                 FileIO.CloseFile();
@@ -417,10 +416,11 @@ internal class Scene
         for (int i = 0; i < Audio.TRACK_COUNT; ++i)
             Audio.SetMusicTrack("", (byte)i, false, 0);
 
-        Helpers.Memset(Objects.objectEntityList, () => new Entity() { drawOrder = 3, scale = 512, objectInteractions = true, visible = true, tileCollisions = true });
+        Helpers.Memset(
+            Objects.objectEntityList, 
+            () => new Entity() { drawOrder = 3, scale = 512, objectInteractions = true, visible = true, tileCollisions = true });
 
         LoadActLayout();
-        // Init3DFloorBuffer(0);
         Objects.ProcessStartupObjects();
     }
 
@@ -441,7 +441,6 @@ internal class Scene
         FileInfo info;
         if (LoadStageFile("Backgrounds.bin", stageListPosition, out info))
         {
-            byte fileBuffer = 0;
             byte layerCount = FileIO.ReadByte();
             hParallax.entryCount = FileIO.ReadByte();
             for (byte i = 0; i < hParallax.entryCount; ++i)
@@ -532,13 +531,12 @@ internal class Scene
     {
         if (LoadStageFile("CollisionMasks.bin", stageListPosition, out var info))
         {
-            byte fileBuffer = 0;
             int tileIndex = 0;
             for (int t = 0; t < TILE_COUNT; ++t)
             {
                 for (int p = 0; p < CPATH_COUNT; ++p)
                 {
-                    fileBuffer = FileIO.ReadByte();
+                    byte fileBuffer = FileIO.ReadByte();
                     bool isCeiling = (fileBuffer >> 4) != 0;
                     collisionMasks[p].flags[t] = (byte)(fileBuffer & 0xF);
 
@@ -750,7 +748,7 @@ internal class Scene
 
                 tiles128x128.tileIndex[i] = (ushort)(entry[1] + (entry[0] << 8));
 #if RETRO_SOFTWARE_RENDER
-            tiles128x128.gfxDataPos[i] = tiles128x128.tileIndex[i] << 8;
+                tiles128x128.gfxDataPos[i] = tiles128x128.tileIndex[i] << 8;
 #endif
                 tiles128x128.gfxDataPos[i] = tiles128x128.tileIndex[i] << 2;
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -36,6 +37,14 @@ public struct SortList
 {
     public int z;
     public int index;
+}
+
+public struct SortListComparer : IComparer<SortList>
+{
+    public int Compare(SortList x, SortList y)
+    {
+        return y.z - x.z;
+    }
 }
 
 public class Quad2D
@@ -256,60 +265,29 @@ public class Scene3D
 
     public static void MatrixInverse(ref int[] matrix)
     {
-        double[] inv = new double[16];
-        double det;
-        double[] m = new double[16];
-        for (int y = 0; y < 16; ++y)
-        {
-            //for (int x = 0; x < 4; ++x)
-            //{
-            //    m[(y << 2) + x] = matrix.values[y][x] / 256.0;
-            //}
+        var m = new Matrix(matrix[0] / 256.0f, matrix[1] / 256.0f, matrix[2] / 256.0f, matrix[3] / 256.0f,
+                           matrix[4] / 256.0f, matrix[5] / 256.0f, matrix[6] / 256.0f, matrix[7] / 256.0f,
+                           matrix[8] / 256.0f, matrix[9] / 256.0f, matrix[10] / 256.0f, matrix[11] / 256.0f,
+                           matrix[12] / 256.0f, matrix[13] / 256.0f, matrix[14] / 256.0f, matrix[15] / 256.0f);
 
-            m[y] = matrix[y] / 256.0;
-        }
+        var inv = Matrix.Invert(m);
 
-        inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
-
-        inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
-
-        inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
-
-        inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
-
-        inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
-
-        inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
-
-        inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
-
-        inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
-
-        inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
-
-        inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
-
-        inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
-
-        inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
-
-        inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
-
-        inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
-
-        inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
-
-        inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
-
-        det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-
-        if (det == 0)
-            return;
-
-        det = 1.0 / det;
-
-        for (int i = 0; i < 0x10; ++i) inv[i] = (int)((inv[i] * det) * 256);
-        for (int i = 0; i < 0x10; ++i) matrix[i] = (int)inv[i];
+        matrix[0] = (int)(inv.M11 * 256);
+        matrix[1] = (int)(inv.M12 * 256);
+        matrix[2] = (int)(inv.M13 * 256);
+        matrix[3] = (int)(inv.M14 * 256);
+        matrix[4] = (int)(inv.M21 * 256);
+        matrix[5] = (int)(inv.M22 * 256);
+        matrix[6] = (int)(inv.M23 * 256);
+        matrix[7] = (int)(inv.M24 * 256);
+        matrix[8] = (int)(inv.M31 * 256);
+        matrix[9] = (int)(inv.M32 * 256);
+        matrix[10] = (int)(inv.M33 * 256);
+        matrix[11] = (int)(inv.M34 * 256);
+        matrix[12] = (int)(inv.M41 * 256);
+        matrix[13] = (int)(inv.M42 * 256);
+        matrix[14] = (int)(inv.M43 * 256);
+        matrix[15] = (int)(inv.M44 * 256);
     }
 
     public static void TransformVertexBuffer()
@@ -357,6 +335,7 @@ public class Scene3D
             drawList[index].z = vertexBufferT[faceBuffer[index].a].z + vertexBufferT[faceBuffer[index].b].z + vertexBufferT[faceBuffer[index].c].z + vertexBufferT[faceBuffer[index].d].z >> 2;
             drawList[index].index = index;
         }
+
         //for (int index1 = 0; index1 < faceCount; ++index1)
         //{
         //    for (int index2 = faceCount - 1; index2 > index1; --index2)
@@ -372,6 +351,8 @@ public class Scene3D
         //        }
         //    }
         //}
+
+        Array.Sort(drawList, 0, faceCount, new SortListComparer());
     }
 
     public static void Draw3DScene(int surfaceNum)
@@ -386,13 +367,13 @@ public class Scene3D
                     if (vertexBufferT[face3D.a].z > 256 && vertexBufferT[face3D.b].z > 256 && (vertexBufferT[face3D.c].z > 256 && vertexBufferT[face3D.d].z > 256))
                     {
                         face.vertex[0].x = SCREEN_CENTERX + vertexBufferT[face3D.a].x * projectionX / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = 120 - vertexBufferT[face3D.a].y * projectionY / vertexBufferT[face3D.a].z;
+                        face.vertex[0].y = SCREEN_CENTERY - vertexBufferT[face3D.a].y * projectionY / vertexBufferT[face3D.a].z;
                         face.vertex[1].x = SCREEN_CENTERX + vertexBufferT[face3D.b].x * projectionX / vertexBufferT[face3D.b].z;
-                        face.vertex[1].y = 120 - vertexBufferT[face3D.b].y * projectionY / vertexBufferT[face3D.b].z;
+                        face.vertex[1].y = SCREEN_CENTERY - vertexBufferT[face3D.b].y * projectionY / vertexBufferT[face3D.b].z;
                         face.vertex[2].x = SCREEN_CENTERX + vertexBufferT[face3D.c].x * projectionX / vertexBufferT[face3D.c].z;
-                        face.vertex[2].y = 120 - vertexBufferT[face3D.c].y * projectionY / vertexBufferT[face3D.c].z;
+                        face.vertex[2].y = SCREEN_CENTERY - vertexBufferT[face3D.c].y * projectionY / vertexBufferT[face3D.c].z;
                         face.vertex[3].x = SCREEN_CENTERX + vertexBufferT[face3D.d].x * projectionX / vertexBufferT[face3D.d].z;
-                        face.vertex[3].y = 120 - vertexBufferT[face3D.d].y * projectionY / vertexBufferT[face3D.d].z;
+                        face.vertex[3].y = SCREEN_CENTERY - vertexBufferT[face3D.d].y * projectionY / vertexBufferT[face3D.d].z;
                         face.vertex[0].u = vertexBuffer[face3D.a].u;
                         face.vertex[0].v = vertexBuffer[face3D.a].v;
                         face.vertex[1].u = vertexBuffer[face3D.b].u;
@@ -425,16 +406,16 @@ public class Scene3D
                     Drawing.DrawTexturedQuad(face, surfaceNum);
                     break;
                 case 2:
-                    if (vertexBufferT[face3D.a].z > 256 && vertexBufferT[face3D.b].z > 256 && (vertexBufferT[face3D.c].z > 256 && vertexBufferT[face3D.d].z > 256))
+                    if (vertexBufferT[face3D.a].z > 0 && vertexBufferT[face3D.b].z > 0 && vertexBufferT[face3D.c].z > 0 && vertexBufferT[face3D.d].z > 0)
                     {
-                        face.vertex[0].x = SCREEN_CENTERX + vertexBufferT[face3D.a].x * projectionX / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = 120 - vertexBufferT[face3D.a].y * projectionY / vertexBufferT[face3D.a].z;
-                        face.vertex[1].x = SCREEN_CENTERX + vertexBufferT[face3D.b].x * projectionX / vertexBufferT[face3D.b].z;
-                        face.vertex[1].y = 120 - vertexBufferT[face3D.b].y * projectionY / vertexBufferT[face3D.b].z;
-                        face.vertex[2].x = SCREEN_CENTERX + vertexBufferT[face3D.c].x * projectionX / vertexBufferT[face3D.c].z;
-                        face.vertex[2].y = 120 - vertexBufferT[face3D.c].y * projectionY / vertexBufferT[face3D.c].z;
-                        face.vertex[3].x = SCREEN_CENTERX + vertexBufferT[face3D.d].x * projectionX / vertexBufferT[face3D.d].z;
-                        face.vertex[3].y = 120 - vertexBufferT[face3D.d].y * projectionY / vertexBufferT[face3D.d].z;
+                        face.vertex[0].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.a].x / vertexBufferT[face3D.a].z;
+                        face.vertex[0].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.a].y / vertexBufferT[face3D.a].z;
+                        face.vertex[1].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.b].x / vertexBufferT[face3D.b].z;
+                        face.vertex[1].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.b].y / vertexBufferT[face3D.b].z;
+                        face.vertex[2].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.c].x / vertexBufferT[face3D.c].z;
+                        face.vertex[2].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.c].y / vertexBufferT[face3D.c].z;
+                        face.vertex[3].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.d].x / vertexBufferT[face3D.d].z;
+                        face.vertex[3].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.d].y / vertexBufferT[face3D.d].z;
                         Drawing.DrawQuad(face, face3D.color);
                         break;
                     }
@@ -468,7 +449,7 @@ public class Scene3D
                         if (fogStr > fogStrength)
                             fogStr = fogStrength;
 
-                        Drawing.DrawFadedQuad(face, (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
+                        Drawing.DrawFadedQuad(face,  (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C:
