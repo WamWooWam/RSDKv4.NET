@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using static RSDKv4.Renderer;
+using static RSDKv4.Drawing;
 
 namespace RSDKv4;
 

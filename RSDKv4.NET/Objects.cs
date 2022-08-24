@@ -31,14 +31,14 @@ internal class Objects
     public static string[] typeNames = new string[OBJECT_COUNT];
 
     public static int OBJECT_BORDER_X1 = 0x80;
-    public static int OBJECT_BORDER_X2 = Renderer.SCREEN_XSIZE + 0x80;
+    public static int OBJECT_BORDER_X2 = Drawing.SCREEN_XSIZE + 0x80;
     public static int OBJECT_BORDER_X3 = 0x20;
-    public static int OBJECT_BORDER_X4 = Renderer.SCREEN_XSIZE + 0x20;
+    public static int OBJECT_BORDER_X4 = Drawing.SCREEN_XSIZE + 0x20;
 
     public static readonly int OBJECT_BORDER_Y1 = 0x100;
-    public static readonly int OBJECT_BORDER_Y2 = Renderer.SCREEN_YSIZE + 0x100;
+    public static readonly int OBJECT_BORDER_Y2 = Drawing.SCREEN_YSIZE + 0x100;
     public static readonly int OBJECT_BORDER_Y3 = 0x80;
-    public static readonly int OBJECT_BORDER_Y4 = Renderer.SCREEN_YSIZE + 0x80;
+    public static readonly int OBJECT_BORDER_Y4 = Drawing.SCREEN_YSIZE + 0x80;
 
     public const int OBJ_TYPE_BLANKOBJECT = 0;
 
@@ -56,8 +56,8 @@ internal class Objects
 
         OBJECT_BORDER_X1 = 0x80;
         OBJECT_BORDER_X3 = 0x20;
-        OBJECT_BORDER_X2 = Renderer.SCREEN_XSIZE + 0x80;
-        OBJECT_BORDER_X4 = Renderer.SCREEN_XSIZE + 0x20;
+        OBJECT_BORDER_X2 = Drawing.SCREEN_XSIZE + 0x80;
+        OBJECT_BORDER_X4 = Drawing.SCREEN_XSIZE + 0x20;
 
         Entity entity = objectEntityList[TEMPENTITY_START];
         objectEntityList[TEMPENTITY_START + 1].type = objectEntityList[0].type;

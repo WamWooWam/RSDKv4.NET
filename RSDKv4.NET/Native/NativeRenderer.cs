@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.Utility;
 
-using static RSDKv4.Renderer;
+using static RSDKv4.Drawing;
 
 namespace RSDKv4.Native;
 
@@ -108,8 +108,8 @@ internal class NativeRenderer
     public static float SCREEN_XSIZE_F = 400;
     public static float SCREEN_CENTERX_F = 400 / 2;
 
-    public static float SCREEN_YSIZE_F = Renderer.SCREEN_YSIZE;
-    public static float SCREEN_CENTERY_F = Renderer.SCREEN_YSIZE / 2;
+    public static float SCREEN_YSIZE_F = SCREEN_YSIZE;
+    public static float SCREEN_CENTERY_F = SCREEN_YSIZE / 2;
 
     public const int DRAWFACE_LIMIT = 0x1000;
     public const int DRAWVERTEX_LIMIT = DRAWFACE_LIMIT * 4;
@@ -287,7 +287,7 @@ internal class NativeRenderer
         textures[0].format = TEXFMT.RETROBUFFER;
         textures[0].widthN = 1.0f / texWidth;
         textures[0].heightN = 1.0f / texHeight;
-        textures[0].id = RenderTarget;
+        //textures[0].id = RenderTarget;
     }
 
     public static void SetRenderMatrix(Matrix? matrix)
@@ -539,7 +539,7 @@ internal class NativeRenderer
         //_device.SamplerStates[0] = SamplerState.PointClamp;
 
         _effect.TextureEnabled = true;
-        _effect.Texture = RenderTarget;
+        //_effect.Texture = RenderTarget;
         _effect.VertexColorEnabled = false;
         _effect.LightingEnabled = false;
 

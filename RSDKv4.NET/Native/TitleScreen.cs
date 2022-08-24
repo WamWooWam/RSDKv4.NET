@@ -261,7 +261,7 @@ internal class TitleScreen : NativeEntity
             case TITLESCREEN_STATE.TITLE:
                 {
                     SetRenderBlendMode(RENDER_BLEND.NONE);
-                    RenderRect(-SCREEN_CENTERX_F, Renderer.SCREEN_CENTERY, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
+                    RenderRect(-SCREEN_CENTERX_F, Drawing.SCREEN_CENTERY, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
                     RenderRect(-SCREEN_CENTERX_F, rectY + 240.0f, 160.0f, SCREEN_XSIZE_F, 256.0f, 160, 192, 255, 255);
                     RenderRect(-SCREEN_CENTERX_F, rectY, 160.0f, SCREEN_XSIZE_F, 16.0f, 0, 0, 0, 255);
 

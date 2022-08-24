@@ -1627,10 +1627,10 @@ public class Script
                         case VAR.SCREENCAMERAX: scriptEng.operands[i] = Scene.cameraXPos; break;
                         case VAR.SCREENCAMERAY: scriptEng.operands[i] = Scene.cameraYPos; break;
                         case VAR.SCREENDRAWLISTSIZE: scriptEng.operands[i] = Scene.drawListEntries[arrayVal].entityRefs.Count; break;
-                        case VAR.SCREENXCENTER: scriptEng.operands[i] = Renderer.SCREEN_CENTERX; break;
-                        case VAR.SCREENYCENTER: scriptEng.operands[i] = Renderer.SCREEN_CENTERY; break;
-                        case VAR.SCREENXSIZE: scriptEng.operands[i] = Renderer.SCREEN_XSIZE; break;
-                        case VAR.SCREENYSIZE: scriptEng.operands[i] = Renderer.SCREEN_YSIZE; break;
+                        case VAR.SCREENXCENTER: scriptEng.operands[i] = Drawing.SCREEN_CENTERX; break;
+                        case VAR.SCREENYCENTER: scriptEng.operands[i] = Drawing.SCREEN_CENTERY; break;
+                        case VAR.SCREENXSIZE: scriptEng.operands[i] = Drawing.SCREEN_XSIZE; break;
+                        case VAR.SCREENYSIZE: scriptEng.operands[i] = Drawing.SCREEN_YSIZE; break;
                         case VAR.SCREENXOFFSET: scriptEng.operands[i] = Scene.xScrollOffset; break;
                         case VAR.SCREENYOFFSET: scriptEng.operands[i] = Scene.yScrollOffset; break;
                         case VAR.SCREENSHAKEX: scriptEng.operands[i] = Scene.cameraShakeX; break;
@@ -3132,7 +3132,7 @@ public class Script
                 case FUNC.SETOBJECTRANGE:
                     {
                         opcodeSize = 0;
-                        int offset = (scriptEng.operands[0] >> 1) - Renderer.SCREEN_CENTERX;
+                        int offset = (scriptEng.operands[0] >> 1) - Drawing.SCREEN_CENTERX;
                         Objects.OBJECT_BORDER_X1 = offset + 0x80;
                         Objects.OBJECT_BORDER_X2 = scriptEng.operands[0] + 0x80 - offset;
                         Objects.OBJECT_BORDER_X3 = offset + 0x20;

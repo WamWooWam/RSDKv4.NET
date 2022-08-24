@@ -62,8 +62,8 @@ internal class Scene
 
     public static int SCREEN_SCROLL_LEFT;
     public static int SCREEN_SCROLL_RIGHT;
-    public static int SCREEN_SCROLL_UP => ((Renderer.SCREEN_YSIZE / 2) - 16);
-    public static int SCREEN_SCROLL_DOWN => ((Renderer.SCREEN_YSIZE / 2) + 16);
+    public static int SCREEN_SCROLL_UP => ((Drawing.SCREEN_YSIZE / 2) - 16);
+    public static int SCREEN_SCROLL_DOWN => ((Drawing.SCREEN_YSIZE / 2) + 16);
 
     public static int lastXSize;
     public static int lastYSize;
@@ -99,9 +99,6 @@ internal class Scene
 
     public static Tiles128x128 tiles128x128 = new Tiles128x128();
     public static CollisionMasks[] collisionMasks = new CollisionMasks[2];
-
-    public static byte[] tilesetGFXData = new byte[TILESET_SIZE];
-
     public static DrawListEntry[] drawListEntries = new DrawListEntry[DRAWLAYER_COUNT];
 
     //public static ushort tile3DFloorBuffer[0x100 * 0x100];
@@ -159,23 +156,17 @@ internal class Scene
 
     public static void ProcessStage()
     {
-        Drawing.indexCount = 0;
-        Drawing.vertexCount = 0;
-
         Scene3D.vertexCount = 0;
         Scene3D.faceCount = 0;
 
-        Drawing.drawBlendStates[0] = new DrawBlendState();
-        Drawing.drawBlendStateIdx = 0;
-
-        Palette.activePalettes[0] = new PaletteEntry(0, 0, Renderer.SCREEN_YSIZE);
+        Palette.activePalettes[0] = new PaletteEntry(0, 0, Drawing.SCREEN_YSIZE);
         Palette.activePaletteCount = 0;
 
         switch (stageMode)
         {
             case STAGEMODE.LOAD:
                 {
-                    Palette.SetActivePalette(0, 0, Renderer.SCREEN_YSIZE);
+                    Palette.SetActivePalette(0, 0, Drawing.SCREEN_YSIZE);
                     Text.gameMenu[0].visibleRowOffset = 0;
                     Text.gameMenu[1].alignment = 0;
                     Text.gameMenu[1].selectionCount = 0;
@@ -204,7 +195,7 @@ internal class Scene
                     ResetBackgroundSettings();
                     LoadStageFiles();
 
-                    Drawing.ResetHardware();
+                    Drawing.Reset();
 
                     stageMode = STAGEMODE.NORMAL;
                     break;
@@ -979,14 +970,14 @@ internal class Scene
         }
         if (newYBoundary2 < curYBoundary2)
         {
-            if (curYBoundary2 <= yScrollOffset + Renderer.SCREEN_YSIZE || newYBoundary2 >= yScrollOffset + Renderer.SCREEN_YSIZE)
+            if (curYBoundary2 <= yScrollOffset + Drawing.SCREEN_YSIZE || newYBoundary2 >= yScrollOffset + Drawing.SCREEN_YSIZE)
                 --curYBoundary2;
             else
-                curYBoundary2 = yScrollOffset + Renderer.SCREEN_YSIZE;
+                curYBoundary2 = yScrollOffset + Drawing.SCREEN_YSIZE;
         }
         if (newYBoundary2 > curYBoundary2)
         {
-            if (yScrollOffset + Renderer.SCREEN_YSIZE >= curYBoundary2)
+            if (yScrollOffset + Drawing.SCREEN_YSIZE >= curYBoundary2)
             {
                 ++curYBoundary2;
                 if (target.yvel > 0)
@@ -1031,14 +1022,14 @@ internal class Scene
         }
         if (newXBoundary2 < curXBoundary2)
         {
-            if (newXBoundary2 > Renderer.SCREEN_XSIZE + xScrollOffset)
+            if (newXBoundary2 > Drawing.SCREEN_XSIZE + xScrollOffset)
                 curXBoundary2 = newXBoundary2;
             else
-                curXBoundary2 = Renderer.SCREEN_XSIZE + xScrollOffset;
+                curXBoundary2 = Drawing.SCREEN_XSIZE + xScrollOffset;
         }
         if (newXBoundary2 > curXBoundary2)
         {
-            if (Renderer.SCREEN_XSIZE + xScrollOffset >= curXBoundary2)
+            if (Drawing.SCREEN_XSIZE + xScrollOffset >= curXBoundary2)
             {
                 ++curXBoundary2;
                 if (target.xvel > 0)
@@ -1083,13 +1074,13 @@ internal class Scene
 
         int centeredXBound1 = cameraXPos + xPosDif;
         cameraXPos = centeredXBound1;
-        if (centeredXBound1 < Renderer.SCREEN_CENTERX + curXBoundary1)
+        if (centeredXBound1 < Drawing.SCREEN_CENTERX + curXBoundary1)
         {
-            cameraXPos = Renderer.SCREEN_CENTERX + curXBoundary1;
-            centeredXBound1 = Renderer.SCREEN_CENTERX + curXBoundary1;
+            cameraXPos = Drawing.SCREEN_CENTERX + curXBoundary1;
+            centeredXBound1 = Drawing.SCREEN_CENTERX + curXBoundary1;
         }
 
-        int centeredXBound2 = curXBoundary2 - Renderer.SCREEN_CENTERX;
+        int centeredXBound2 = curXBoundary2 - Drawing.SCREEN_CENTERX;
         if (centeredXBound2 < centeredXBound1)
         {
             cameraXPos = centeredXBound2;
@@ -1187,7 +1178,7 @@ internal class Scene
             cameraYPos = curYBoundary2 - SCREEN_SCROLL_DOWN;
         }
 
-        xScrollOffset = cameraShakeX + centeredXBound1 - Renderer.SCREEN_CENTERX;
+        xScrollOffset = cameraShakeX + centeredXBound1 - Drawing.SCREEN_CENTERX;
 
         int pos = cameraYPos + target.lookPosY - SCREEN_SCROLL_UP;
         if (pos < curYBoundary1)
@@ -1199,8 +1190,8 @@ internal class Scene
             yScrollOffset = cameraYPos + target.lookPosY - SCREEN_SCROLL_UP;
         }
 
-        int y = curYBoundary2 - Renderer.SCREEN_YSIZE;
-        if (curYBoundary2 - (Renderer.SCREEN_YSIZE - 1) > yScrollOffset)
+        int y = curYBoundary2 - Drawing.SCREEN_YSIZE;
+        if (curYBoundary2 - (Drawing.SCREEN_YSIZE - 1) > yScrollOffset)
             y = yScrollOffset;
         yScrollOffset = cameraShakeY + y;
 
@@ -1247,14 +1238,14 @@ internal class Scene
         }
         if (newYBoundary2 < curYBoundary2)
         {
-            if (curYBoundary2 <= yScrollOffset + Renderer.SCREEN_YSIZE || newYBoundary2 >= yScrollOffset + Renderer.SCREEN_YSIZE)
+            if (curYBoundary2 <= yScrollOffset + Drawing.SCREEN_YSIZE || newYBoundary2 >= yScrollOffset + Drawing.SCREEN_YSIZE)
                 --curYBoundary2;
             else
-                curYBoundary2 = yScrollOffset + Renderer.SCREEN_YSIZE;
+                curYBoundary2 = yScrollOffset + Drawing.SCREEN_YSIZE;
         }
         if (newYBoundary2 > curYBoundary2)
         {
-            if (yScrollOffset + Renderer.SCREEN_YSIZE >= curYBoundary2)
+            if (yScrollOffset + Drawing.SCREEN_YSIZE >= curYBoundary2)
                 ++curYBoundary2;
             else
                 curYBoundary2 = newYBoundary2;
@@ -1285,14 +1276,14 @@ internal class Scene
         }
         if (newXBoundary2 < curXBoundary2)
         {
-            if (newXBoundary2 > Renderer.SCREEN_XSIZE + xScrollOffset)
+            if (newXBoundary2 > Drawing.SCREEN_XSIZE + xScrollOffset)
                 curXBoundary2 = newXBoundary2;
             else
-                curXBoundary2 = Renderer.SCREEN_XSIZE + xScrollOffset;
+                curXBoundary2 = Drawing.SCREEN_XSIZE + xScrollOffset;
         }
         if (newXBoundary2 > curXBoundary2)
         {
-            if (Renderer.SCREEN_XSIZE + xScrollOffset >= curXBoundary2)
+            if (Drawing.SCREEN_XSIZE + xScrollOffset >= curXBoundary2)
             {
                 ++curXBoundary2;
                 if (target.xvel > 0)

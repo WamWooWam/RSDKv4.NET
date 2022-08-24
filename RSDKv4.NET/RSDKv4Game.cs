@@ -108,12 +108,12 @@ public class RSDKv4Game : Game
     {
         NativeRenderer.InitRenderDevice(this, GraphicsDevice);
         FastMath.CalculateTrigAngles();
-        FileIO.CheckRSDKFile("DataS1.rsdk");
+        FileIO.CheckRSDKFile("Data.rsdk");
 
         if (Engine.LoadGameConfig("Data/Game/GameConfig.bin"))
         {
             loadPercent = 0.05f;
-            if (Renderer.InitRenderDevice(this, GraphicsDevice))
+            if (Drawing.InitRenderDevice(this, GraphicsDevice))
             {
                 loadPercent = 0.10f;
                 if (Audio.InitAudioPlayback())
@@ -146,7 +146,7 @@ public class RSDKv4Game : Game
                     Script.ClearScriptData();
                     loadPercent = 0.9f;
 
-                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 0);
+                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 5, 0);
                     loadPercent = 0.95f;
 
                     Scene.ProcessStage();
@@ -180,7 +180,7 @@ public class RSDKv4Game : Game
             graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
             graphics.ApplyChanges();
 
-            Renderer.SetScreenDimensions(Window.ClientBounds.Width, Window.ClientBounds.Height);
+            Drawing.SetScreenDimensions(Window.ClientBounds.Width, Window.ClientBounds.Height);
 
             needsResize = false;
         }
@@ -215,8 +215,8 @@ public class RSDKv4Game : Game
         else
         {
             Engine.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            Renderer.Draw();
-            Renderer.Present();
+            Drawing.Draw();
+            Drawing.Present();
 
             // Objects.ProcessNativeObjects();
         }
