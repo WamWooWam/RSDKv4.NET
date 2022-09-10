@@ -8,5 +8,5 @@ public class RSDKFileInfo
     public int offset;
     public int fileSize;
     public bool encrypted;
-    public byte packID;
+    public byte packId;
 }

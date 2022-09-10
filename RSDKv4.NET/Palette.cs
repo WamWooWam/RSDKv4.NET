@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using static RSDKv4.Drawing;
 
@@ -36,7 +37,7 @@ public class Palette
 
     public static void SetPaletteEntry(byte paletteIndex, byte index, byte r, byte g, byte b)
     {
-        Console.WriteLine($"{paletteIndex},{index} (#{r:X2}{g:X2}{b:X2}, {(RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0))})");
+        Debug.WriteLine($"{paletteIndex},{index} (#{r:X2}{g:X2}{b:X2}, {(RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0))})");
 
         if (paletteIndex != 0xFF)
         {

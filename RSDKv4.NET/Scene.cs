@@ -166,6 +166,8 @@ internal class Scene
         {
             case STAGEMODE.LOAD:
                 {
+                    Engine.hooks.OnStageWillLoad();
+
                     Palette.SetActivePalette(0, 0, Drawing.SCREEN_YSIZE);
                     Text.gameMenu[0].visibleRowOffset = 0;
                     Text.gameMenu[1].alignment = 0;
@@ -195,13 +197,16 @@ internal class Scene
                     ResetBackgroundSettings();
                     LoadStageFiles();
 
-                    Drawing.Reset();
+                    Engine.hooks.OnStageDidLoad();
 
+                    Drawing.Reset();
                     stageMode = STAGEMODE.NORMAL;
                     break;
                 }
             case STAGEMODE.NORMAL:
                 {
+                    Engine.hooks.OnStageWillStep();
+
                     //drawStageGFXHQ = false;
                     if (Palette.fadeMode > 0)
                         Palette.fadeMode--;
@@ -263,6 +268,8 @@ internal class Scene
 
                     ProcessParallaxAutoScroll();
                     Drawing.DrawStageGFX();
+
+                    Engine.hooks.OnStageDidStep();
                     break;
                 }
             case STAGEMODE.FROZEN:

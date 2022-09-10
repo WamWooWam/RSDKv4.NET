@@ -1,0 +1,2 @@
+﻿This folder contains patches that can be applied to the game at runtime through hooks into the engine's code. These should be avoided generally
+but may be nessecary for some functionality on some platforms. Here be dragons.

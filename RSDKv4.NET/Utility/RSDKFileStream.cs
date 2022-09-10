@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
 namespace RSDKv4.Utility;
 
-internal class RSDKFileStream : Stream
+public class RSDKFileStream : Stream
 {
     public string fileName;
     public byte[] fileBuffer = new byte[0x2000];
@@ -18,7 +19,7 @@ internal class RSDKFileStream : Stream
     public int bufferPosition;
     public int vFileOffset;
     public bool useEncryption;
-    public byte packID;
+    public byte packId;
     public byte eStringPosA;
     public byte eStringPosB;
     public byte eStringNo;
@@ -203,7 +204,7 @@ internal class RSDKFileStream : Stream
 
                 try
                 {
-                    packID = file.packID;
+                    packId = file.packId;
                     vFileSize = file.fileSize;
                     vFileOffset = file.offset;
                     readPos = file.offset;
@@ -212,18 +213,15 @@ internal class RSDKFileStream : Stream
                     fileHandle.Seek(vFileOffset, SeekOrigin.Begin);
 
                     useEncryption = file.encrypted;
-                    fileInfo.encryptionStringA = new byte[0x10];
-                    fileInfo.encryptionStringB = new byte[0x10];
+                    fileInfo.encryptionKeyA = new byte[0x10];
+                    fileInfo.encryptionKeyB = new byte[0x10];
                     if (useEncryption)
                     {
-                        GenerateELoadKeys((uint)vFileSize, (uint)((vFileSize >> 1) + 1));
+                        GenerateELoadKeys(fileInfo, fileName, (uint)vFileSize);
                         eStringNo = (byte)((vFileSize & 0x1FC) >> 2);
                         eStringPosA = 0;
                         eStringPosB = 8;
                         eNybbleSwap = 0;
-
-                        Buffer.BlockCopy(encryptionStringA, 0, fileInfo.encryptionStringA, 0, 0x10);
-                        Buffer.BlockCopy(encryptionStringB, 0, fileInfo.encryptionStringB, 0, 0x10);
                     }
 
                     fileInfo.readPos = readPos;
@@ -236,7 +234,9 @@ internal class RSDKFileStream : Stream
                     fileInfo.eNybbleSwap = eNybbleSwap;
                     fileInfo.bufferPosition = bufferPosition;
                     fileInfo.useEncryption = useEncryption;
-                    fileInfo.packID = packID;
+                    fileInfo.packId = packId;
+                    Buffer.BlockCopy(fileInfo.encryptionKeyA, 0, encryptionStringA, 0, 0x10);
+                    Buffer.BlockCopy(fileInfo.encryptionKeyB, 0, encryptionStringB, 0, 0x10);
 
                     Debug.WriteLine("Loaded data file {0}", (object)filePath);
 
@@ -244,7 +244,7 @@ internal class RSDKFileStream : Stream
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Couldn't load data file {0}", (object)filePath);
+                    Debug.WriteLine("Error while trying to read data file {0}\n{1}", filePath, ex);
                 }
             }
         }
@@ -264,7 +264,7 @@ internal class RSDKFileStream : Stream
     public void SetPosition(int newPos)
     {
         var oldPos = GetPosition();
-        if (newPos == oldPos) 
+        if (newPos == oldPos)
             return;
 
         if (useEncryption)
@@ -379,9 +379,9 @@ internal class RSDKFileStream : Stream
         fileInfo.eStringNo = eStringNo;
         fileInfo.eNybbleSwap = eNybbleSwap;
         fileInfo.useEncryption = useEncryption;
-        fileInfo.packID = packID;
-        Buffer.BlockCopy(encryptionStringA, 0, fileInfo.encryptionStringA, 0, 0x10);
-        Buffer.BlockCopy(encryptionStringB, 0, fileInfo.encryptionStringB, 0, 0x10);
+        fileInfo.packId = packId;
+        Buffer.BlockCopy(encryptionStringA, 0, fileInfo.encryptionKeyA, 0, 0x10);
+        Buffer.BlockCopy(encryptionStringB, 0, fileInfo.encryptionKeyB, 0, 0x10);
     }
 
     public void SetFileInfo(FileInfo fileInfo)
@@ -400,26 +400,38 @@ internal class RSDKFileStream : Stream
         eStringNo = fileInfo.eStringNo;
         eNybbleSwap = fileInfo.eNybbleSwap;
         useEncryption = fileInfo.useEncryption;
-        packID = fileInfo.packID;
-
-        if (useEncryption)
-        {
-            GenerateELoadKeys((uint)vFileSize, (uint)((vFileSize >> 1) + 1));
-        }
+        packId = fileInfo.packId;
+        Buffer.BlockCopy(fileInfo.encryptionKeyA, 0, encryptionStringA, 0, 0x10);
+        Buffer.BlockCopy(fileInfo.encryptionKeyB, 0, encryptionStringB, 0, 0x10);
     }
 
-    public void GenerateELoadKeys(uint key1, uint key2)
+    public void GenerateELoadKeys(FileInfo info, string fileName, uint fileSize)
     {
-        MD5Hash.GenerateFromString(key1.ToString(), out var hash);
-        BitHelper.SwapAndCopyTo(hash.u1, encryptionStringA, 0);
-        BitHelper.SwapAndCopyTo(hash.u2, encryptionStringA, 4);
-        BitHelper.SwapAndCopyTo(hash.u3, encryptionStringA, 8);
-        BitHelper.SwapAndCopyTo(hash.u4, encryptionStringA, 12);
+        string key1;
+        string key2;
 
-        MD5Hash.GenerateFromString(key2.ToString(), out hash);
-        BitHelper.SwapAndCopyTo(hash.u1, encryptionStringB, 0);
-        BitHelper.SwapAndCopyTo(hash.u2, encryptionStringB, 4);
-        BitHelper.SwapAndCopyTo(hash.u3, encryptionStringB, 8);
-        BitHelper.SwapAndCopyTo(hash.u4, encryptionStringB, 12);
+        if (rsdkContainer.dataVersion == RSDKVersion.vU)
+        {
+            key1 = fileName.ToUpperInvariant();
+            key2 = fileSize.ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            key1 = fileSize.ToString(CultureInfo.InvariantCulture);
+            key2 = ((uint)((vFileSize >> 1) + 1)).ToString(CultureInfo.InvariantCulture);
+        }
+
+        MD5Hash.GenerateFromString(key1, out var hash);
+        BitHelper.SwapAndCopyTo(hash.u1, info.encryptionKeyA, 0);
+        BitHelper.SwapAndCopyTo(hash.u2, info.encryptionKeyA, 4);
+        BitHelper.SwapAndCopyTo(hash.u3, info.encryptionKeyA, 8);
+        BitHelper.SwapAndCopyTo(hash.u4, info.encryptionKeyA, 12);
+
+
+        MD5Hash.GenerateFromString(key2, out hash);
+        BitHelper.SwapAndCopyTo(hash.u1, info.encryptionKeyB, 0);
+        BitHelper.SwapAndCopyTo(hash.u2, info.encryptionKeyB, 4);
+        BitHelper.SwapAndCopyTo(hash.u3, info.encryptionKeyB, 8);
+        BitHelper.SwapAndCopyTo(hash.u4, info.encryptionKeyB, 12);
     }
 }

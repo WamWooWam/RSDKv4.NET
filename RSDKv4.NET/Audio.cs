@@ -26,7 +26,7 @@ internal class Audio
 
     public static int sfxVolume = 50;
     public static int bgmVolume = 100;
-    public static int masterVolume;
+    public static int masterVolume = 100;
     public static int trackId;
     public static int musicPosition;
     public static int musicRatio;
@@ -56,6 +56,7 @@ internal class Audio
 
     public static void LoadSfx(string filePath, byte sfxId)
     {
+        //Thread.Sleep(100);
         Debug.WriteLine("Load SFX ({0}) from {1}", sfxId, filePath);
 
         var fullPath = "Data/SoundFX/" + filePath;
@@ -154,9 +155,10 @@ internal class Audio
             musicStatus = MUSIC.PLAYING;
 
             var position = TimeSpan.Zero;
-            if (musStartPos != 0)            
-                position = TimeSpan.FromSeconds(lastTime.TotalSeconds * (musicRatio * 0.0001));            
+            if (musStartPos != 0)
+                position = TimeSpan.FromSeconds(lastTime.TotalSeconds * (musicRatio * 0.0001));
 
+            musicTracks[track].song.Volume = bgmVolume * 0.01f;
             musicTracks[track].song.Play(position);
         }
         else
@@ -178,12 +180,13 @@ internal class Audio
 
     internal static void PauseSound()
     {
-        //throw new NotImplementedException();
+        musicTracks[currentTrack].song.Pause();
     }
 
     internal static void ResumeSound()
     {
-        //throw new NotImplementedException();
+        if (currentTrack >= 0 && currentTrack < musicTracks.Length)
+            musicTracks[currentTrack].song.Resume();
     }
 
     internal static void SwapMusicTrack(string filePath, byte trackId, uint loopPoint, int ratio)
@@ -209,19 +212,7 @@ internal class Audio
 
     internal static void PlaySfx(int sfx, bool loop)
     {
-        var sfxChannel = currentChannel;
-        if (sfxChannel >= SFX_CHANNELS)
-            sfxChannel = 0;
-        currentChannel = sfxChannel + 1;
-
-        var channel = soundChannels[sfxChannel];
-        if (channel.instance != null)
-            channel.instance.Dispose();
-
-        channel.instance = soundEffects[sfx].soundEffect?.CreateInstance();
-        channel.instance.IsLooped = loop;
-        channel.instance.Volume = sfxVolume / 100.0f;
-        channel.instance.Play();
+        PlaySfxWithAttributes(sfx, sfxVolume, 0, loop);
     }
 
     internal static void StopSfx(int sfx)
@@ -256,22 +247,62 @@ internal class Audio
         }
         return false;
     }
-    internal static void SetSfxAttributes(int v1, int v2, int v3)
+
+    public static void SetSfxAttributes(int sfx, int volume, int pan)
+    {
+        PlaySfxWithAttributes(sfx, volume, pan, false);
+    }
+
+    private static void PlaySfxWithAttributes(int sfx, int volume, int pan, bool loop)
+    {
+        for (int index = 0; index < SFX_CHANNELS; ++index)
+        {
+            if (soundChannels[index].sfx == sfx)
+            {
+                if (soundChannels[index].instance != null && !soundChannels[index].instance.IsDisposed)
+                    soundChannels[index].instance.Stop();
+                currentChannel = index;
+                break;
+            }
+        }
+
+        var instance = soundEffects[sfx].soundEffect?.CreateInstance();
+        instance.IsLooped = loop;
+        instance.Pan = pan * 0.01f;
+        instance.Volume = sfxVolume / 100.0f;
+        soundChannels[currentChannel].instance = instance;
+        soundChannels[currentChannel].sfx = sfx;
+
+        instance.Play();
+
+        ++currentChannel;
+        if (currentChannel != SFX_CHANNELS)
+            return;
+        currentChannel = 0;
+    }
+
+    public static void SetGameVolumes(int bgmVolume, int sfxVolume)
     {
         //throw new NotImplementedException();
     }
 
-    internal static void SetGameVolumes(int bgmVolume, int sfxVolume)
+    public static void SetMusicVolume(int volume)
     {
-        //throw new NotImplementedException();
+        if (volume < 0)
+            volume = 0;
+        if (volume > 100)
+            volume = 100;
+        bgmVolume = volume;
+        var vol = volume * 0.01f * masterVolume;
+
+        foreach (var song in musicTracks)
+        {
+            if (song.song != null)
+                song.song.Volume = vol;
+        }
     }
 
-    internal static void SetMusicVolume(int v)
-    {
-
-    }
-
-    internal static void SetSfxName(string name, int index)
+    public static void SetSfxName(string name, int index)
     {
         Debug.WriteLine("Set SFX ({0}) name to: {1}", index, name);
     }

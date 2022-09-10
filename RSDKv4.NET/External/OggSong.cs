@@ -10,6 +10,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+#if NETSTANDARD1_6
+using System.Threading.Tasks;
+#endif
+
 namespace RSDKv4.External;
 
 public class OggSong : IDisposable
@@ -17,7 +21,11 @@ public class OggSong : IDisposable
     private VorbisReader reader;
     private DynamicSoundEffectInstance effect;
 
+#if NETSTANDARD1_6
+    private Task thread;
+#else
     private Thread thread;
+#endif
     private bool threadRun = false;
     private bool needBuffer = false;
     private bool hasPlayed = false;
@@ -47,7 +55,7 @@ public class OggSong : IDisposable
     {
         get
         {
-#if !NETCOREAPP
+#if SILVERLIGHT
             return reader.DecodedTime;
 #else
             return reader.TimePosition;
@@ -61,11 +69,7 @@ public class OggSong : IDisposable
             Debug.WriteLine("RSDK file stream is encrypted!! This will be slow and shit!!");
 
         reader = new VorbisReader(oggFile, true);
-#if NETCOREAPP3_1
         effect = new DynamicSoundEffectInstance(reader.SampleRate, (AudioChannels)reader.Channels);
-#else
-        effect = new DynamicSoundEffectInstance(reader.SampleRate, (AudioChannels)reader.Channels);
-#endif
         buffer = new byte[effect.GetSampleSizeInBytes(TimeSpan.FromMilliseconds(150))];
         nvBuffer = new float[buffer.Length / 2];
 
@@ -94,10 +98,9 @@ public class OggSong : IDisposable
     {
         Stop();
 
-#if !NETCOREAPP
-        reader.DecodedTime = timeSpan;
+#if SILVERLIGHT
 #else
-        if(reader.TimePosition != timeSpan)
+        if (reader.TimePosition != timeSpan)
             reader.TimePosition = timeSpan;
 #endif
 
@@ -129,8 +132,7 @@ public class OggSong : IDisposable
                 effect.Stop();
             }
         }
-#if !NETCOREAPP
-        reader.DecodedTime = TimeSpan.Zero;
+#if SILVERLIGHT
 #else
         if (reader.TimePosition != TimeSpan.Zero)
             reader.TimePosition = TimeSpan.Zero;
@@ -150,21 +152,32 @@ public class OggSong : IDisposable
             threadRun = true;
             needBuffer = true;
             hasPlayed = false;
-
+#if NETSTANDARD1_6
+            thread = Task.Run(StreamThread);
+#else
             thread = new Thread(StreamThread);
             thread.IsBackground = true;
             thread.Start();
+#endif
         }
     }
 
     private void StreamThread()
     {
+#if NETSTANDARD1_6 || NETCOREAPP1_0_OR_GREATER
+        var wait = new SpinWait();
+#endif
+
         while (!effect.IsDisposed)
         {
             // sleep until we need a buffer
             while (!effect.IsDisposed && threadRun && !needBuffer)
             {
+#if NETSTANDARD1_6_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+                wait.SpinOnce();
+#else
                 Thread.Sleep(25);
+#endif
             }
 
             // if the thread is waiting to exit, leave
@@ -185,10 +198,11 @@ public class OggSong : IDisposable
             // out of data and looping? reset the reader and read again
             if (samplesRead == 0 && IsLooped)
             {
-#if !NETCOREAPP
+#if SILVERLIGHT
                 reader.DecodedTime = LoopPoint;
 #else
-                reader.TimePosition = LoopPoint;
+        if (reader.TimePosition != LoopPoint)
+            reader.TimePosition = LoopPoint;
 #endif
                 samplesRead = reader.ReadSamples(nvBuffer, 0, nvBuffer.Length);
             }
@@ -219,8 +233,8 @@ public class OggSong : IDisposable
                     // ensure the effect isn't disposed
                     if (effect.IsDisposed) { break; }
 
-                    effect.SubmitBuffer(buffer, 0, samplesRead);
-                    effect.SubmitBuffer(buffer, samplesRead, samplesRead);
+                    effect.SubmitBuffer(buffer, 0, samplesRead * 2);
+                    //effect.SubmitBuffer(buffer, samplesRead, samplesRead);
                 }
 #endif
             }

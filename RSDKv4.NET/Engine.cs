@@ -66,6 +66,8 @@ public static class Engine
     public static float deltaTime = 0.016f;
     public static int globalBoxRegion = 2;
 
+    public static Hooks hooks = new Hooks();
+
     public static bool LoadGameConfig(string filePath)
     {
         FileInfo info;
@@ -73,7 +75,7 @@ public static class Engine
 
         gameWindowText = "Retro-Engine";
         globalVariablesCount = 0;
-
+        
         if (FileIO.LoadFile(filePath, out info))
         {
             gameWindowText = FileIO.ReadLengthPrefixedString();
@@ -142,6 +144,9 @@ public static class Engine
             }
 
             FileIO.CloseFile();
+
+            hooks.OnGameConfigLoaded();
+
             return true;
         }
 

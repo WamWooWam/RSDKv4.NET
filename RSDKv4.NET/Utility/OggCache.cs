@@ -2,8 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.IsolatedStorage;
 using System.Text;
+
+#if SILVERLIGHT
+using System.IO.IsolatedStorage;
+#endif
 
 namespace RSDKv4.Utility
 {

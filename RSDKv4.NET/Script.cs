@@ -46,14 +46,14 @@ public class Script
     public static int foreachStackPos = 0;
 
     public static ScriptEngine scriptEng = new ScriptEngine();
-    public static char[] scriptTextBuffer = new char[0x4000];
+    public static char[] scriptTextBuffer = new char[0x4000]; // this is 32K, why
 
     public static int scriptDataPos = 0;
     public static int scriptDataOffset = 0;
     public static int jumpTableDataPos = 0;
     public static int jumpTableDataOffset = 0;
 
-    public static readonly FunctionInfo[] functions = new[] {
+    private static readonly FunctionInfo[] functions = new[] {
         new FunctionInfo("End", 0),      // End of Script
         new FunctionInfo("Equal", 2),    // Equal
         new FunctionInfo("Add", 2),      // Add
@@ -245,7 +245,8 @@ public class Script
 #endif
         new FunctionInfo("Print", 3),
     };
-    public enum ScriptVarTypes { SCRIPTVAR = 1, SCRIPTINTCONST = 2, SCRIPTSTRCONST = 3 };
+
+    public enum SRC { SCRIPTVAR = 1, SCRIPTINTCONST = 2, SCRIPTSTRCONST = 3 };
     public enum VARARR { NONE = 0, ARRAY = 1, ENTNOPLUS1 = 2, ENTNOMINUS1 = 3 };
     public enum VAR
     {
@@ -885,20 +886,20 @@ public class Script
         while (running)
         {
             int opcode = scriptData[scriptDataPtr++];
-            int opcodeSize = functions[opcode].opcodeSize;
+            int loadStoreSize = functions[opcode].opcodeSize;
             int scriptCodeOffset = scriptDataPtr;
 
             scriptTextBuffer[0] = '\0';
             string scriptText = "";
 
             // Get Values
-            for (int i = 0; i < opcodeSize; ++i)
+            for (int i = 0; i < loadStoreSize; ++i)
             {
-                ScriptVarTypes opcodeType = (ScriptVarTypes)scriptData[scriptDataPtr++];
+                var loadType = (SRC)scriptData[scriptDataPtr++];
 
                 //Debug.WriteLine("SCRIPT: Get value {0}", opcodeType);
 
-                if (opcodeType == ScriptVarTypes.SCRIPTVAR)
+                if (loadType == SRC.SCRIPTVAR)
                 {
                     int arrayVal = 0;
                     switch ((VARARR)scriptData[scriptDataPtr++])
@@ -1724,11 +1725,11 @@ public class Script
                         case VAR.HAPTICSENABLED: scriptEng.operands[i] = Engine.hapticsEnabled ? 1 : 0; break;
                     }
                 }
-                else if (opcodeType == ScriptVarTypes.SCRIPTINTCONST)
+                else if (loadType == SRC.SCRIPTINTCONST)
                 { // int constant
                     scriptEng.operands[i] = scriptData[scriptDataPtr++];
                 }
-                else if (opcodeType == ScriptVarTypes.SCRIPTSTRCONST)
+                else if (loadType == SRC.SCRIPTSTRCONST)
                 { // string constant
                     int strLen = scriptData[scriptDataPtr++];
                     scriptTextBuffer[strLen] = '\0';
@@ -1792,108 +1793,108 @@ public class Script
                 case FUNC.FLIPSIGN: scriptEng.operands[0] = -scriptEng.operands[0]; break;
                 case FUNC.CHECKEQUAL:
                     scriptEng.checkResult = scriptEng.operands[0] == scriptEng.operands[1] ? 1 : 0;
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.CHECKGREATER:
                     scriptEng.checkResult = scriptEng.operands[0] > scriptEng.operands[1] ? 1 : 0;
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.CHECKLOWER:
                     scriptEng.checkResult = scriptEng.operands[0] < scriptEng.operands[1] ? 1 : 0;
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.CHECKNOTEQUAL:
                     scriptEng.checkResult = scriptEng.operands[0] != scriptEng.operands[1] ? 1 : 0;
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.IFEQUAL:
                     if (scriptEng.operands[1] != scriptEng.operands[2])
                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0]];
                     jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.IFGREATER:
                     if (scriptEng.operands[1] <= scriptEng.operands[2])
                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0]];
                     jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.IFGREATEROREQUAL:
                     if (scriptEng.operands[1] < scriptEng.operands[2])
                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0]];
                     jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.IFLOWER:
                     if (scriptEng.operands[1] >= scriptEng.operands[2])
                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0]];
                     jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.IFLOWEROREQUAL:
                     if (scriptEng.operands[1] > scriptEng.operands[2])
                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0]];
                     jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.IFNOTEQUAL:
                     if (scriptEng.operands[1] == scriptEng.operands[2])
                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0]];
                     jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.ELSE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + jumpTableStack[jumpTableStackPos--] + 1];
                     break;
                 case FUNC.ENDIF:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     --jumpTableStackPos;
                     break;
                 case FUNC.WEQUAL:
-                    if (scriptEng.operands[1] != scriptEng.operands[2])
-                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
-                    else
+                    if (scriptEng.operands[1] == scriptEng.operands[2])
                         jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    else
+                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
+                    loadStoreSize = 0;
                     break;
                 case FUNC.WGREATER:
-                    if (scriptEng.operands[1] <= scriptEng.operands[2])
-                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
-                    else
+                    if (scriptEng.operands[1] > scriptEng.operands[2])
                         jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    else
+                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
+                    loadStoreSize = 0;
                     break;
                 case FUNC.WGREATEROREQUAL:
-                    if (scriptEng.operands[1] < scriptEng.operands[2])
-                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
-                    else
+                    if (scriptEng.operands[1] >= scriptEng.operands[2])
                         jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    else
+                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
+                    loadStoreSize = 0;
                     break;
                 case FUNC.WLOWER:
-                    if (scriptEng.operands[1] >= scriptEng.operands[2])
-                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
-                    else
+                    if (scriptEng.operands[1] < scriptEng.operands[2])
                         jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    else
+                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
+                    loadStoreSize = 0;
                     break;
                 case FUNC.WLOWEROREQUAL:
-                    if (scriptEng.operands[1] > scriptEng.operands[2])
-                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
-                    else
+                    if (scriptEng.operands[1] <= scriptEng.operands[2])
                         jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    else
+                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
+                    loadStoreSize = 0;
                     break;
                 case FUNC.WNOTEQUAL:
-                    if (scriptEng.operands[1] == scriptEng.operands[2])
-                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
-                    else
+                    if (scriptEng.operands[1] != scriptEng.operands[2])
                         jumpTableStack[++jumpTableStackPos] = scriptEng.operands[0];
-                    opcodeSize = 0;
+                    else
+                        scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
+                    loadStoreSize = 0;
                     break;
                 case FUNC.LOOP:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + jumpTableStack[jumpTableStackPos--]];
                     break;
                 case FUNC.FOREACHACTIVE:
@@ -1905,7 +1906,7 @@ public class Script
                             foreachStack[foreachStackPos] = loop;
                             if (loop >= Objects.objectTypeGroupList[groupID].listSize)
                             {
-                                opcodeSize = 0;
+                                loadStoreSize = 0;
                                 foreachStack[foreachStackPos--] = -1;
                                 scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
                                 break;
@@ -1918,7 +1919,7 @@ public class Script
                         }
                         else
                         {
-                            opcodeSize = 0;
+                            loadStoreSize = 0;
                             scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
                         }
                         break;
@@ -1937,7 +1938,7 @@ public class Script
                                 {
                                     if (loop >= Objects.TEMPENTITY_START)
                                     {
-                                        opcodeSize = 0;
+                                        loadStoreSize = 0;
                                         foreachStack[foreachStackPos--] = -1;
                                         int off = jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
                                         scriptDataPtr = scriptCodePtr + off;
@@ -1961,7 +1962,7 @@ public class Script
                                 {
                                     if (loop >= Objects.ENTITY_COUNT)
                                     {
-                                        opcodeSize = 0;
+                                        loadStoreSize = 0;
                                         foreachStack[foreachStackPos--] = -1;
                                         scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
                                         break;
@@ -1981,13 +1982,13 @@ public class Script
                         }
                         else
                         {
-                            opcodeSize = 0;
+                            loadStoreSize = 0;
                             scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 1];
                         }
                         break;
                     }
                 case FUNC.NEXT:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + jumpTableStack[jumpTableStackPos--]];
                     --foreachStackPos;
                     break;
@@ -2000,14 +2001,14 @@ public class Script
                         scriptDataPtr = scriptCodePtr
                                         + jumpTableData[jumpTablePtr + scriptEng.operands[0] + 4
                                                         + (scriptEng.operands[1] - jumpTableData[jumpTablePtr + scriptEng.operands[0]])];
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     break;
                 case FUNC.BREAK:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptDataPtr = scriptCodePtr + jumpTableData[jumpTablePtr + jumpTableStack[jumpTableStackPos--] + 3];
                     break;
                 case FUNC.ENDSWITCH:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     --jumpTableStackPos;
                     break;
                 case FUNC.RAND: scriptEng.operands[0] = FastMath.Rand(scriptEng.operands[1]); break;
@@ -2047,39 +2048,39 @@ public class Script
                         (scriptEng.operands[5] * (0x100 - scriptEng.operands[6]) >> 8) + (scriptEng.operands[6] * scriptEng.operands[4] >> 8);
                     break;
                 case FUNC.LOADSPRITESHEET:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptInfo.spriteSheetId = Drawing.AddGraphicsFile(scriptText);
                     break;
                 case FUNC.REMOVESPRITESHEET:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.RemoveGraphicsFile(scriptText, -1);
                     break;
                 case FUNC.DRAWSPRITE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     spriteFrame = Animation.scriptFrames[scriptInfo.frameListOffset + scriptEng.operands[0]];
                     Drawing.DrawSprite((entity.xpos >> 16) - Scene.xScrollOffset + spriteFrame.pivotX, (entity.ypos >> 16) - Scene.yScrollOffset + spriteFrame.pivotY,
                                spriteFrame.width, spriteFrame.height, spriteFrame.spriteX, spriteFrame.spriteY, scriptInfo.spriteSheetId);
                     break;
                 case FUNC.DRAWSPRITEXY:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     spriteFrame = Animation.scriptFrames[scriptInfo.frameListOffset + scriptEng.operands[0]];
                     Drawing.DrawSprite((scriptEng.operands[1] >> 16) - Scene.xScrollOffset + spriteFrame.pivotX,
                                (scriptEng.operands[2] >> 16) - Scene.yScrollOffset + spriteFrame.pivotY, spriteFrame.width, spriteFrame.height,
                                spriteFrame.spriteX, spriteFrame.spriteY, scriptInfo.spriteSheetId);
                     break;
                 case FUNC.DRAWSPRITESCREENXY:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     spriteFrame = Animation.scriptFrames[scriptInfo.frameListOffset + scriptEng.operands[0]];
                     Drawing.DrawSprite(scriptEng.operands[1] + spriteFrame.pivotX, scriptEng.operands[2] + spriteFrame.pivotY, spriteFrame.width,
                                spriteFrame.height, spriteFrame.spriteX, spriteFrame.spriteY, scriptInfo.spriteSheetId);
                     break;
                 case FUNC.DRAWTINTRECT:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.DrawTintRectangle(scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3]);
                     break;
                 case FUNC.DRAWNUMBERS:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         int i = 10;
                         if (scriptEng.operands[6] != 0)
                         {
@@ -2117,7 +2118,7 @@ public class Script
                     }
                 case FUNC.DRAWACTNAME:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         int charID = 0;
                         switch (scriptEng.operands[3])
                         { // Draw Mode
@@ -2287,11 +2288,11 @@ public class Script
                         break;
                     }
                 case FUNC.DRAWMENU:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.DrawTextMenu(Text.gameMenu[scriptEng.operands[0]], scriptEng.operands[1], scriptEng.operands[2], scriptInfo.spriteSheetId);
                     break;
                 case FUNC.SPRITEFRAME:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (scriptEvent == EVENT.SETUP && Animation.scriptFrameCount < Animation.SPRITEFRAME_COUNT)
                     {
                         Animation.scriptFrames[Animation.scriptFrameCount].pivotX = scriptEng.operands[0];
@@ -2305,7 +2306,7 @@ public class Script
                     break;
                 case FUNC.EDITFRAME:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         spriteFrame = Animation.scriptFrames[scriptInfo.frameListOffset + scriptEng.operands[0]];
 
                         spriteFrame.pivotX = scriptEng.operands[1];
@@ -2317,19 +2318,19 @@ public class Script
                     }
                     break;
                 case FUNC.LOADPALETTE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Palette.LoadPalette(scriptText, scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3], scriptEng.operands[4]);
                     break;
                 case FUNC.ROTATEPALETTE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Palette.RotatePalette(scriptEng.operands[0], (byte)scriptEng.operands[1], (byte)scriptEng.operands[2], scriptEng.operands[3] != 0);
                     break;
                 case FUNC.SETSCREENFADE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.SetFade((byte)scriptEng.operands[0], (byte)scriptEng.operands[1], (byte)scriptEng.operands[2], (ushort)scriptEng.operands[3]);
                     break;
                 case FUNC.SETACTIVEPALETTE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Palette.SetActivePalette((byte)scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2]);
                     break;
                 case FUNC.SETPALETTEFADE:
@@ -2344,15 +2345,15 @@ public class Script
                 case FUNC.SETPALETTEENTRY: Palette.SetPaletteEntryPacked((byte)scriptEng.operands[0], (byte)scriptEng.operands[1], (uint)scriptEng.operands[2]); break;
                 case FUNC.GETPALETTEENTRY: scriptEng.operands[2] = Palette.GetPaletteEntryPacked((byte)scriptEng.operands[0], (byte)scriptEng.operands[1]); break;
                 case FUNC.COPYPALETTE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Palette.CopyPalette((byte)scriptEng.operands[0], (byte)scriptEng.operands[1], (byte)scriptEng.operands[2], (byte)scriptEng.operands[3], (ushort)scriptEng.operands[4]);
                     break;
                 case FUNC.CLEARSCREEN:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.ClearScreen((byte)scriptEng.operands[0]);
                     break;
                 case FUNC.DRAWSPRITEFX:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     spriteFrame = Animation.scriptFrames[scriptInfo.frameListOffset + scriptEng.operands[0]];
                     switch (scriptEng.operands[1])
                     {
@@ -2455,7 +2456,7 @@ public class Script
                     }
                     break;
                 case FUNC.DRAWSPRITESCREENFX:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     int v = scriptInfo.frameListOffset + scriptEng.operands[0];
                     if (v > Animation.SPRITEFRAME_COUNT) break;
                     spriteFrame = Animation.scriptFrames[v];
@@ -2549,12 +2550,12 @@ public class Script
                     }
                     break;
                 case FUNC.LOADANIMATION:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptInfo.animFile = Animation.AddAnimationFile(scriptText);
                     break;
                 case FUNC.SETUPMENU:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
                         Text.SetupTextMenu(menu, scriptEng.operands[1]);
                         menu.selectionCount = (byte)scriptEng.operands[2];
@@ -2563,7 +2564,7 @@ public class Script
                     }
                 case FUNC.ADDMENUENTRY:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
                         menu.entryHighlight[menu.rowCount] = scriptEng.operands[2] != 0;
                         Text.AddTextMenuEntry(menu, scriptText);
@@ -2571,24 +2572,24 @@ public class Script
                     }
                 case FUNC.EDITMENUENTRY:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
                         Text.EditTextMenuEntry(menu, scriptText, scriptEng.operands[2]);
                         menu.entryHighlight[scriptEng.operands[2]] = scriptEng.operands[3] != 0;
                         break;
                     }
                 case FUNC.LOADSTAGE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Scene.stageMode = STAGEMODE.LOAD;
                     break;
                 case FUNC.DRAWRECT:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.DrawRectangle(scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3], scriptEng.operands[4],
                                    scriptEng.operands[5], scriptEng.operands[6], scriptEng.operands[7]);
                     break;
                 case FUNC.RESETOBJECTENTITY:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         Entity newEnt = Objects.objectEntityList[scriptEng.operands[0]] = new Entity();
                         newEnt.type = (byte)scriptEng.operands[1];
                         newEnt.propertyValue = (byte)scriptEng.operands[2];
@@ -2605,7 +2606,7 @@ public class Script
                         break;
                     }
                 case FUNC.BOXCOLLISIONTEST:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         default: break;
@@ -2633,7 +2634,7 @@ public class Script
                     break;
                 case FUNC.CREATETEMPOBJECT:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         if (Objects.objectEntityList[scriptEng.arrayPosition[8]].type > 0 && ++scriptEng.arrayPosition[8] == Objects.ENTITY_COUNT)
                             scriptEng.arrayPosition[8] = Objects.TEMPENTITY_START;
 
@@ -2653,7 +2654,7 @@ public class Script
                         break;
                     }
                 case FUNC.PROCESSOBJECTMOVEMENT:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (entity.tileCollisions)
                     {
                         Collision.ProcessTileCollisions(entity);
@@ -2665,62 +2666,62 @@ public class Script
                     }
                     break;
                 case FUNC.PROCESSOBJECTCONTROL:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Objects.ProcessObjectControl(entity);
                     break;
                 case FUNC.PROCESSANIMATION:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Animation.ProcessObjectAnimation(scriptInfo, entity);
                     break;
                 case FUNC.DRAWOBJECTANIMATION:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (entity.visible)
                         Drawing.DrawObjectAnimation(scriptInfo, entity, (entity.xpos >> 16) - Scene.xScrollOffset, (entity.ypos >> 16) - Scene.yScrollOffset);
                     break;
                 case FUNC.SETMUSICTRACK:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (scriptEng.operands[2] <= 1)
                         Audio.SetMusicTrack(scriptText, (byte)scriptEng.operands[1], scriptEng.operands[2] != 0, 0);
                     else
                         Audio.SetMusicTrack(scriptText, (byte)scriptEng.operands[1], true, (uint)scriptEng.operands[2]);
                     break;
                 case FUNC.PLAYMUSIC:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.PlayMusic(scriptEng.operands[0], 0);
                     break;
                 case FUNC.STOPMUSIC:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.StopMusic(true);
                     break;
                 case FUNC.PAUSEMUSIC:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.PauseSound();
                     break;
                 case FUNC.RESUMEMUSIC:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.ResumeSound();
                     break;
                 case FUNC.SWAPMUSICTRACK:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (scriptEng.operands[2] <= 1)
                         Audio.SwapMusicTrack(scriptText, (byte)scriptEng.operands[1], 0, (int)scriptEng.operands[3]);
                     else
                         Audio.SwapMusicTrack(scriptText, (byte)scriptEng.operands[1], (uint)scriptEng.operands[2], (int)scriptEng.operands[3]);
                     break;
                 case FUNC.PLAYSFX:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.PlaySfx(scriptEng.operands[0], scriptEng.operands[1] != 0);
                     break;
                 case FUNC.STOPSFX:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.StopSfx(scriptEng.operands[0]);
                     break;
                 case FUNC.SETSFXATTRIBUTES:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Audio.SetSfxAttributes(scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2]);
                     break;
                 case FUNC.OBJECTTILECOLLISION:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         default: break;
@@ -2731,7 +2732,7 @@ public class Script
                     }
                     break;
                 case FUNC.OBJECTTILEGRIP:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         default: break;
@@ -2743,13 +2744,13 @@ public class Script
                     break;
                 case FUNC.NOT: scriptEng.operands[0] = ~scriptEng.operands[0]; break;
                 case FUNC.DRAW3DSCENE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Scene3D.TransformVertexBuffer();
                     Scene3D.Sort3DDrawList();
                     Scene3D.Draw3DScene(scriptInfo.spriteSheetId);
                     break;
                 case FUNC.SETIDENTITYMATRIX:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.SetIdentityMatrix(ref Scene3D.matWorld); break;
@@ -2758,7 +2759,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXMULTIPLY:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD:
@@ -2788,7 +2789,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXTRANSLATEXYZ:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixTranslateXYZ(ref Scene3D.matWorld, scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3]); break;
@@ -2797,7 +2798,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXSCALEXYZ:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixScaleXYZ(ref Scene3D.matWorld, scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3]); break;
@@ -2806,7 +2807,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXROTATEX:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixRotateX(ref Scene3D.matWorld, scriptEng.operands[1]); break;
@@ -2815,7 +2816,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXROTATEY:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixRotateY(ref Scene3D.matWorld, scriptEng.operands[1]); break;
@@ -2824,7 +2825,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXROTATEZ:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixRotateZ(ref Scene3D.matWorld, scriptEng.operands[1]); break;
@@ -2833,7 +2834,7 @@ public class Script
                     }
                     break;
                 case FUNC.MATRIXROTATEXYZ:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixRotateXYZ(ref Scene3D.matWorld, scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3]); break;
@@ -2843,7 +2844,7 @@ public class Script
                     break;
 #if !RETRO_REV00
                 case FUNC.MATRIXINVERSE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.MatrixInverse(ref Scene3D.matWorld); break;
@@ -2853,7 +2854,7 @@ public class Script
                     break;
 #endif
                 case FUNC.TRANSFORMVERTICES:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     switch (scriptEng.operands[0])
                     {
                         case MAT.WORLD: Scene3D.TransformVertices(ref Scene3D.matWorld, scriptEng.operands[1], scriptEng.operands[2]); break;
@@ -2863,7 +2864,7 @@ public class Script
                     break;
                 case FUNC.CALLFUNCTION:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         functionStack[functionStackPos++] = scriptDataPtr;
                         functionStack[functionStackPos++] = jumpTablePtr;
                         functionStack[functionStackPos++] = scriptCodePtr;
@@ -2873,7 +2874,7 @@ public class Script
                         break;
                     }
                 case FUNC.RETURN:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (functionStackPos == 0)
                     { // event, stop running
                         running = false;
@@ -2886,12 +2887,12 @@ public class Script
                     }
                     break;
                 case FUNC.SETLAYERDEFORMATION:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Scene.SetLayerDeformation(scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3], scriptEng.operands[4],
                                         scriptEng.operands[5]);
                     break;
                 case FUNC.CHECKTOUCHRECT:
-                    opcodeSize = 0; scriptEng.checkResult = -1;
+                    loadStoreSize = 0; scriptEng.checkResult = -1;
 #if !RETRO_USE_ORIGINAL_CODE
                     //addDebugHitbox(H_TYPE_FINGER, NULL, scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3]);
 #endif
@@ -2918,18 +2919,18 @@ public class Script
                         scriptEng.operands[0] |= 1 << scriptEng.operands[1];
                     break;
                 case FUNC.CLEARDRAWLIST:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Scene.drawListEntries[scriptEng.operands[0]].entityRefs.Clear();
                     break;
                 case FUNC.ADDDRAWLISTENTITYREF:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         Scene.drawListEntries[scriptEng.operands[0]].entityRefs.Add(scriptEng.operands[1]);
                         break;
                     }
                 case FUNC.GETDRAWLISTENTITYREF: scriptEng.operands[0] = Scene.drawListEntries[scriptEng.operands[1]].entityRefs[scriptEng.operands[2]]; break;
                 case FUNC.SETDRAWLISTENTITYREF:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Scene.drawListEntries[scriptEng.operands[1]].entityRefs[scriptEng.operands[2]] = scriptEng.operands[0];
                     break;
                 case FUNC.GET16X16TILEINFO:
@@ -2977,7 +2978,7 @@ public class Script
                         break;
                     }
                 case FUNC.COPY16X16TILE:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     Drawing.Copy16x16Tile(scriptEng.operands[0], scriptEng.operands[1]);
                     break;
                 case FUNC.GETANIMATIONBYNAME:
@@ -2996,11 +2997,11 @@ public class Script
                         break;
                     }
                 case FUNC.READSAVERAM:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptEng.checkResult = SaveData.ReadSaveRAMData();
                     break;
                 case FUNC.WRITESAVERAM:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptEng.checkResult = SaveData.WriteSaveRAMData();
                     break;
 #if RETRO_REV00 || RETRO_REV01
@@ -3012,7 +3013,7 @@ public class Script
 #endif
                 case FUNC.LOADTEXTFILE:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
 #if RETRO_REV00 || RETRO_REV01
                         Text.LoadTextFile(menu, scriptText, scriptEng.operands[2] != 0);
@@ -3046,7 +3047,7 @@ public class Script
 #endif
                 case FUNC.GETVERSIONNUMBER:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
                         menu.entryHighlight[menu.rowCount] = scriptEng.operands[1] != 0;
                         Text.AddTextMenuEntry(menu, Engine.gameVersion);
@@ -3066,7 +3067,7 @@ public class Script
                     }
                 case FUNC.SETTABLEVALUE:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         int arrPos = scriptEng.operands[1];
                         if (arrPos >= 0)
                         {
@@ -3078,7 +3079,7 @@ public class Script
                         break;
                     }
                 case FUNC.CHECKCURRENTSTAGEFOLDER:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     scriptEng.checkResult = Engine.stageList[Scene.activeStageList][Scene.stageListPosition].folder == scriptText ? 1 : 0;
                     break;
                 case FUNC.ABS:
@@ -3087,7 +3088,7 @@ public class Script
                         break;
                     }
                 case FUNC.CALLNATIVEFUNCTION:
-                    opcodeSize = 0;
+                    loadStoreSize = 0;
                     if (scriptEng.operands[0] >= 0 && scriptEng.operands[0] < Engine.NATIVEFUNCTION_MAX)
                     {
                         var func = (NativeFunction1)Engine.nativeFunctions[scriptEng.operands[0]];
@@ -3131,7 +3132,7 @@ public class Script
                     break;
                 case FUNC.SETOBJECTRANGE:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         int offset = (scriptEng.operands[0] >> 1) - Drawing.SCREEN_CENTERX;
                         Objects.OBJECT_BORDER_X1 = offset + 0x80;
                         Objects.OBJECT_BORDER_X2 = scriptEng.operands[0] + 0x80 - offset;
@@ -3148,7 +3149,7 @@ public class Script
                     }
                 case FUNC.SETOBJECTVALUE:
                     {
-                        opcodeSize = 0;
+                        loadStoreSize = 0;
                         if (scriptEng.operands[1] < 48)
                             Objects.objectEntityList[scriptEng.operands[2]].values[scriptEng.operands[1]] = scriptEng.operands[0];
                         break;
@@ -3176,16 +3177,16 @@ public class Script
                     }
             }
 
-            // Set Values
-            if (opcodeSize > 0)
+            // Store Values
+            if (loadStoreSize > 0)
                 scriptDataPtr -= scriptDataPtr - scriptCodeOffset;
-            for (int i = 0; i < opcodeSize; ++i)
+            for (int i = 0; i < loadStoreSize; ++i)
             {
-                ScriptVarTypes opcodeType = (ScriptVarTypes)scriptData[scriptDataPtr++];
+                SRC storeType = (SRC)scriptData[scriptDataPtr++];
 
                 //Debug.WriteLine("SCRIPT: Set value {0}", opcodeType);
 
-                if (opcodeType == ScriptVarTypes.SCRIPTVAR)
+                if (storeType == SRC.SCRIPTVAR)
                 {
                     int arrayVal = 0;
                     switch ((VARARR)scriptData[scriptDataPtr++])
@@ -3911,11 +3912,11 @@ public class Script
                         case VAR.ENGINEDEVICETYPE: Engine.hapticsEnabled = scriptEng.operands[i] != 0; break;
                     }
                 }
-                else if (opcodeType == ScriptVarTypes.SCRIPTINTCONST)
+                else if (storeType == SRC.SCRIPTINTCONST)
                 { // int constant
                     scriptDataPtr++;
                 }
-                else if (opcodeType == ScriptVarTypes.SCRIPTSTRCONST)
+                else if (storeType == SRC.SCRIPTSTRCONST)
                 { // string constant
                     int strLen = scriptData[scriptDataPtr++];
                     for (int c = 0; c < strLen; ++c)
@@ -3973,17 +3974,17 @@ public class Script
             Objects.typeNames[o] = null;
         }
 
-        //for (int s = globalSFXCount; s < globalSFXCount + stageSFXCount; ++s)
-        //{
-        //    sfxNames[s][0] = 0;
-        //}
+        for (int s = Engine.globalSfxCount; s < Engine.globalSfxCount + Audio.stageSfxCount; ++s)
+        {
+            Audio.soundEffects[s] = new SfxInfo();
+        }
 
         for (int f = 0; f < FUNCTION_COUNT; ++f)
         {
             functionScriptList[f].scriptCodePtr = SCRIPTDATA_COUNT - 1;
             functionScriptList[f].jumpTablePtr = JUMPTABLE_COUNT - 1;
         }
-
-        Objects.SetObjectTypeName("Blank Object", 0 /*OBJ_TYPE_BLANKOBJECT*/);
+        
+        Objects.SetObjectTypeName("Blank Object", Objects.OBJ_TYPE_BLANKOBJECT);
     }
 }

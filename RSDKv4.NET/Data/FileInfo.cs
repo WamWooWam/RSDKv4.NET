@@ -16,18 +16,18 @@ public class FileInfo
     public byte eStringNo;
     public byte eNybbleSwap;
     public bool useEncryption;
-    public byte packID;
+    public byte packId;
 
-    public byte[] encryptionStringA = new byte[0x10];
-    public byte[] encryptionStringB = new byte[0x10];
+    public byte[] encryptionKeyA = new byte[0x10];
+    public byte[] encryptionKeyB = new byte[0x10];
 
     public void Clone()
     {
         var clone = (FileInfo)this.MemberwiseClone();
-        clone.encryptionStringA = new byte[0x10];
-        clone.encryptionStringB = new byte[0x10];
+        clone.encryptionKeyA = new byte[0x10];
+        clone.encryptionKeyB = new byte[0x10];
 
-        Buffer.BlockCopy(encryptionStringA, 0, clone.encryptionStringA, 0, 0x10);
-        Buffer.BlockCopy(encryptionStringB, 0, clone.encryptionStringB, 0, 0x10);
+        Buffer.BlockCopy(encryptionKeyA, 0, clone.encryptionKeyA, 0, 0x10);
+        Buffer.BlockCopy(encryptionKeyB, 0, clone.encryptionKeyB, 0, 0x10);
     }
 }

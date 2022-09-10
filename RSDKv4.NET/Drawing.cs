@@ -38,7 +38,7 @@ public static class Drawing
     public static int GFX_LINESIZE_MINUSONE = 0;
     public static int GFX_LINESIZE_DOUBLE = SCREEN_YSIZE / 2;
 
-    public const int SURFACE_LIMIT = 8;
+    public const int SURFACE_LIMIT = PALETTE_COUNT;
     public const int SURFACE_SIZE = 1024;
 
     public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
@@ -368,10 +368,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[0]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(0); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(0); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(0); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(0); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(0); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(0); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(0); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(0); break;
                     default: break;
                 }
             }
@@ -383,10 +383,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[1]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(1); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(1); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(1); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(1); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(1); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(1); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(1); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(1); break;
                     default: break;
                 }
             }
@@ -398,10 +398,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[2]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(2); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(2); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(2); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(2); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(2); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(2); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(2); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(2); break;
                     default: break;
                 }
             }
@@ -414,10 +414,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[0]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(0); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(0); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(0); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(0); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(0); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(0); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(0); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(0); break;
                     default: break;
                 }
             }
@@ -429,10 +429,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[1]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(1); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(1); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(1); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(1); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(1); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(1); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(1); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(1); break;
                     default: break;
                 }
             }
@@ -442,10 +442,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[2]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(2); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(2); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(2); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(2); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(2); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(2); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(2); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(2); break;
                     default: break;
                 }
             }
@@ -459,10 +459,10 @@ public static class Drawing
             {
                 switch (stageLayouts[activeTileLayers[3]].type)
                 {
-                    case LAYER.HSCROLL: DrawHLineScrollLayer(3); break;
-                    case LAYER.VSCROLL: DrawVLineScrollLayer(3); break;
-                    case LAYER.THREEDFLOOR: Draw3DFloorLayer(3); break;
-                    case LAYER.THREEDSKY: Draw3DSkyLayer(3); break;
+                    case LAYER.HSCROLL: Instance.DrawHLineScrollLayer(3); break;
+                    case LAYER.VSCROLL: Instance.DrawVLineScrollLayer(3); break;
+                    case LAYER.THREEDFLOOR: Instance.Draw3DFloorLayer(3); break;
+                    case LAYER.THREEDSKY: Instance.Draw3DSkyLayer(3); break;
                     default: break;
                 }
             }
@@ -535,57 +535,147 @@ public static class Drawing
         Instance.ClearScreen(clearColour);
     }
 
-    public static void DrawSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public static void DrawSprite(int xPos,
+                                  int yPos,
+                                  int xSize,
+                                  int ySize,
+                                  int xBegin,
+                                  int yBegin,
+                                  int surfaceNum)
     {
         Instance.DrawSprite(xPos, yPos, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 
-    public static void DrawBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public static void DrawBlendedSprite(int xPos,
+                                         int yPos,
+                                         int xSize,
+                                         int ySize,
+                                         int xBegin,
+                                         int yBegin,
+                                         int surfaceNum)
     {
         Instance.DrawBlendedSprite(xPos, yPos, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 
-    public static void DrawSpriteFlipped(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int direction, int surfaceNum)
+    public static void DrawSpriteFlipped(int xPos,
+                                         int yPos,
+                                         int xSize,
+                                         int ySize,
+                                         int xBegin,
+                                         int yBegin,
+                                         int direction,
+                                         int surfaceNum)
     {
         Instance.DrawSpriteFlipped(xPos, yPos, xSize, ySize, xBegin, yBegin, direction, surfaceNum);
     }
 
-    public static void DrawAlphaBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
+    public static void DrawAlphaBlendedSprite(int xPos,
+                                              int yPos,
+                                              int xSize,
+                                              int ySize,
+                                              int xBegin,
+                                              int yBegin,
+                                              int alpha,
+                                              int surfaceNum)
     {
         Instance.DrawAlphaBlendedSprite(xPos, yPos, xSize, ySize, xBegin, yBegin, alpha, surfaceNum);
     }
 
-    public static void DrawAdditiveBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
+    public static void DrawAdditiveBlendedSprite(int xPos,
+                                                 int yPos,
+                                                 int xSize,
+                                                 int ySize,
+                                                 int xBegin,
+                                                 int yBegin,
+                                                 int alpha,
+                                                 int surfaceNum)
     {
         Instance.DrawAdditiveBlendedSprite(xPos, yPos, xSize, ySize, xBegin, yBegin, alpha, surfaceNum);
     }
 
-    public static void DrawSubtractiveBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
+    public static void DrawSubtractiveBlendedSprite(int xPos,
+                                                    int yPos,
+                                                    int xSize,
+                                                    int ySize,
+                                                    int xBegin,
+                                                    int yBegin,
+                                                    int alpha,
+                                                    int surfaceNum)
     {
         Instance.DrawSubtractiveBlendedSprite(xPos, yPos, xSize, ySize, xBegin, yBegin, alpha, surfaceNum);
     }
 
-    public static void DrawRectangle(int xPos, int yPos, int xSize, int ySize, int r, int g, int b, int a)
+    public static void DrawRectangle(int xPos,
+                                     int yPos,
+                                     int xSize,
+                                     int ySize,
+                                     int r,
+                                     int g,
+                                     int b,
+                                     int a)
     {
         Instance.DrawRectangle(xPos, yPos, xSize, ySize, r, g, b, a);
     }
 
-    public static void DrawScaledSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public static void DrawScaledSprite(byte direction,
+                                        int xPos,
+                                        int yPos,
+                                        int xPivot,
+                                        int yPivot,
+                                        int xScale,
+                                        int yScale,
+                                        int xSize,
+                                        int ySize,
+                                        int xBegin,
+                                        int yBegin,
+                                        int surfaceNum)
     {
         Instance.DrawScaledSprite(direction, xPos, yPos, xPivot, yPivot, xScale, yScale, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 
-    public static void DrawScaledChar(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public static void DrawScaledChar(byte direction,
+                                      int xPos,
+                                      int yPos,
+                                      int xPivot,
+                                      int yPivot,
+                                      int xScale,
+                                      int yScale,
+                                      int xSize,
+                                      int ySize,
+                                      int xBegin,
+                                      int yBegin,
+                                      int surfaceNum)
     {
         Instance.DrawScaledSprite(direction, xPos, yPos, xPivot, yPivot, xScale, yScale, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 
-    public static void DrawRotatedSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xBegin, int yBegin, int xSize, int ySize, int rotAngle, int surfaceNum)
+    public static void DrawRotatedSprite(byte direction,
+                                         int xPos,
+                                         int yPos,
+                                         int xPivot,
+                                         int yPivot,
+                                         int xBegin,
+                                         int yBegin,
+                                         int xSize,
+                                         int ySize,
+                                         int rotAngle,
+                                         int surfaceNum)
     {
         Instance.DrawRotatedSprite(direction, xPos, yPos, xPivot, yPivot, xBegin, yBegin, xSize, ySize, rotAngle, surfaceNum);
     }
 
-    public static void DrawRotoZoomSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xBegin, int yBegin, int xSize, int ySize, int rotAngle, int scale, int surfaceNum)
+    public static void DrawRotoZoomSprite(byte direction,
+                                          int xPos,
+                                          int yPos,
+                                          int xPivot,
+                                          int yPivot,
+                                          int xBegin,
+                                          int yBegin,
+                                          int xSize,
+                                          int ySize,
+                                          int rotAngle,
+                                          int scale,
+                                          int surfaceNum)
     {
         Instance.DrawRotoZoomSprite(direction, xPos, yPos, xPivot, yPivot, xBegin, yBegin, xSize, ySize, rotAngle, scale, surfaceNum);
     }
@@ -612,52 +702,50 @@ public static class Drawing
 
     public static void DrawVLineScrollLayer(int layer)
     {
-        Debug.WriteLine("DrawVLineScrollLayer({0})", layer);
+        Instance.DrawVLineScrollLayer(layer);
     }
 
     public static void Draw3DSkyLayer(int layer)
     {
-        Debug.WriteLine("Draw3DSkyLayer({0})", layer);
+        Instance.Draw3DSkyLayer(layer);
     }
 
     public static void Draw3DFloorLayer(int layer)
     {
-        Debug.WriteLine("Draw3DFloorLayer({0})", layer);
+        Instance.Draw3DFloorLayer(layer);
     }
 
     public static void DrawTintRectangle(int xPos, int yPos, int xSize, int ySize)
     {
-        Debug.WriteLine("DrawTintRectangle({0},{1},{2},{3})", xPos, yPos, xSize, ySize);
+        Instance.DrawTintRectangle(xPos, yPos, xSize, ySize);
     }
 
-    public static void DrawTintSpriteMask(
-      int xPos,
-      int yPos,
-      int xSize,
-      int ySize,
-      int xBegin,
-      int yBegin,
-      int tableNo,
-      int surfaceNum)
+    public static void DrawTintSpriteMask(int xPos,
+                                          int yPos,
+                                          int xSize,
+                                          int ySize,
+                                          int xBegin,
+                                          int yBegin,
+                                          int tableNo,
+                                          int surfaceNum)
     {
-        Debug.WriteLine("DrawTintSpriteMask({0},{1},{2},{3},{4},{5},{6},{7})", xPos, yPos, xSize, ySize, xBegin, yBegin, tableNo, surfaceNum);
+        Instance.DrawTintSpriteMask(xPos, yPos, xSize, ySize, xBegin, yBegin, tableNo, surfaceNum);
     }
 
-    public static void DrawScaledTintMask(
-      byte direction,
-      int xPos,
-      int yPos,
-      int xPivot,
-      int yPivot,
-      int xScale,
-      int yScale,
-      int xSize,
-      int ySize,
-      int xBegin,
-      int yBegin,
-      int surfaceNum)
+    public static void DrawScaledTintMask(byte direction,
+                                          int xPos,
+                                          int yPos,
+                                          int xPivot,
+                                          int yPivot,
+                                          int xScale,
+                                          int yScale,
+                                          int xSize,
+                                          int ySize,
+                                          int xBegin,
+                                          int yBegin,
+                                          int surfaceNum)
     {
-        Debug.WriteLine("DrawScaledTintMask({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11})", direction, xPos, yPos, xPivot, yPivot, xScale, yScale, xSize, ySize, xBegin, yBegin, surfaceNum);
+        Instance.DrawScaledTintMask(direction, xPos, yPos, xPivot, yPivot, xScale, yScale, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 
     public static void DrawTextMenuEntry(object menu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
@@ -666,48 +754,42 @@ public static class Drawing
         int id = tMenu.entryStart[rowID];
         for (int i = 0; i < tMenu.entrySize[rowID]; ++i)
         {
-            DrawSprite(XPos + (i << 3) - (((tMenu.entrySize[rowID] % 2) & (tMenu.alignment == TextMenuAlignment.CENTER ? 1 : 0)) * 4), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3),
+            Instance.DrawSprite(XPos + (i << 3) - (((tMenu.entrySize[rowID] % 2) & (tMenu.alignment == TextMenuAlignment.CENTER ? 1 : 0)) * 4), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3),
                        ((tMenu.textData[id] >> 4) << 3) + textHighlight, textMenuSurface);
             id++;
         }
     }
 
-    public static void DrawStageTextEntry(object menu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
+    public static void DrawStageTextEntry(TextMenu tMenu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
     {
-        TextMenu tMenu = (TextMenu)menu;
         int id = tMenu.entryStart[rowID];
         for (int i = 0; i < tMenu.entrySize[rowID]; ++i)
         {
             if (i == tMenu.entrySize[rowID] - 1)
             {
-                DrawSprite(XPos + (i << 3), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3), ((tMenu.textData[id] >> 4) << 3), textMenuSurface);
+                Instance.DrawSprite(XPos + (i << 3), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3), ((tMenu.textData[id] >> 4) << 3), textMenuSurface);
             }
             else
             {
-                DrawSprite(XPos + (i << 3), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3), ((tMenu.textData[id] >> 4) << 3) + textHighlight,
-                           textMenuSurface);
+                Instance.DrawSprite(XPos + (i << 3), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3), ((tMenu.textData[id] >> 4) << 3) + textHighlight, textMenuSurface);
             }
             id++;
         }
     }
 
-    public static void DrawBlendedTextMenuEntry(object menu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
+    public static void DrawBlendedTextMenuEntry(TextMenu tMenu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
     {
-        TextMenu tMenu = (TextMenu)menu;
         int id = tMenu.entryStart[rowID];
         for (int i = 0; i < tMenu.entrySize[rowID]; ++i)
         {
-            DrawBlendedSprite(XPos + (i << 3), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3), ((tMenu.textData[id] >> 4) << 3) + textHighlight,
-                              textMenuSurface);
+            Instance.DrawBlendedSprite(XPos + (i << 3), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3), ((tMenu.textData[id] >> 4) << 3) + textHighlight, textMenuSurface);
             id++;
         }
     }
 
-    public static void DrawTextMenu(object menu, int XPos, int YPos, int textMenuSurface)
+    public static void DrawTextMenu(TextMenu tMenu, int XPos, int YPos, int textMenuSurface)
     {
-        TextMenu tMenu = (TextMenu)menu;
         int cnt = 0;
-
         if (tMenu.visibleRowCount > 0)
         {
             cnt = (tMenu.visibleRowCount + tMenu.visibleRowOffset);
@@ -838,7 +920,6 @@ public static class Drawing
     {
         SpriteAnimation sprAnim = Animation.animationList[objectScript.animFile.animListOffset + entity.animation];
         SpriteFrame frame = Animation.animFrames[sprAnim.frameListOffset + entity.frame];
-        int rotation = 0;
 
         switch (sprAnim.rotationStyle)
         {
@@ -846,38 +927,39 @@ public static class Drawing
                 switch (entity.direction)
                 {
                     case FLIP.NONE:
-                        DrawSpriteFlipped(frame.pivotX + XPos, frame.pivotY + YPos, frame.width, frame.height, frame.spriteX, frame.spriteY, FLIP.NONE,
+                        Instance.DrawSpriteFlipped(frame.pivotX + XPos, frame.pivotY + YPos, frame.width, frame.height, frame.spriteX, frame.spriteY, FLIP.NONE,
                                           frame.sheetId);
                         break;
                     case FLIP.X:
-                        DrawSpriteFlipped(XPos - frame.width - frame.pivotX, frame.pivotY + YPos, frame.width, frame.height, frame.spriteX,
+                        Instance.DrawSpriteFlipped(XPos - frame.width - frame.pivotX, frame.pivotY + YPos, frame.width, frame.height, frame.spriteX,
                                           frame.spriteY, FLIP.X, frame.sheetId);
                         break;
                     case FLIP.Y:
-                        DrawSpriteFlipped(frame.pivotX + XPos, YPos - frame.height - frame.pivotY, frame.width, frame.height, frame.spriteX,
+                        Instance.DrawSpriteFlipped(frame.pivotX + XPos, YPos - frame.height - frame.pivotY, frame.width, frame.height, frame.spriteX,
                                           frame.spriteY, FLIP.Y, frame.sheetId);
                         break;
                     case FLIP.XY:
-                        DrawSpriteFlipped(XPos - frame.width - frame.pivotX, YPos - frame.height - frame.pivotY, frame.width, frame.height,
+                        Instance.DrawSpriteFlipped(XPos - frame.width - frame.pivotX, YPos - frame.height - frame.pivotY, frame.width, frame.height,
                                           frame.spriteX, frame.spriteY, FLIP.XY, frame.sheetId);
                         break;
                     default: break;
                 }
                 break;
             case ROTSTYLE.FULL:
-                DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width, frame.height,
+                Instance.DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width, frame.height,
                                   entity.rotation, frame.sheetId);
                 break;
             case ROTSTYLE.FORTYFIVEDEG:
                 if (entity.rotation >= 0x100)
-                    DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width,
+                    Instance.DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width,
                                       frame.height, 0x200 - ((0x214 - entity.rotation) >> 6 << 6), frame.sheetId);
                 else
-                    DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width,
+                    Instance.DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width,
                                       frame.height, (entity.rotation + 20) >> 6 << 6, frame.sheetId);
                 break;
             case ROTSTYLE.STATICFRAMES:
                 {
+                    int rotation = 0;
                     if (entity.rotation >= 0x100)
                         rotation = 8 - ((532 - entity.rotation) >> 6);
                     else
@@ -930,8 +1012,7 @@ public static class Drawing
                     }
 
                     frame = Animation.animFrames[sprAnim.frameListOffset + frameID];
-                    DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width, frame.height,
-                                      rotation, frame.sheetId);
+                    Instance.DrawRotatedSprite(entity.direction, XPos, YPos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY, frame.width, frame.height, rotation, frame.sheetId);
                     break;
                 }
             default: break;

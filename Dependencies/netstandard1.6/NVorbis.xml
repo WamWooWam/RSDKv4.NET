@@ -231,12 +231,12 @@
         </member>
         <member name="P:NVorbis.Contracts.IStreamDecoder.ClipSamples">
             <summary>
-            Gets or sets whether to clip samples returned by <see cref="M:NVorbis.Contracts.IStreamDecoder.Read(NVorbis.Span{System.Single},System.Int32,System.Int32)"/>.
+            Gets or sets whether to clip samples returned by <see cref="M:NVorbis.Contracts.IStreamDecoder.Read(System.Span{System.Single},System.Int32,System.Int32)"/>.
             </summary>
         </member>
         <member name="P:NVorbis.Contracts.IStreamDecoder.HasClipped">
             <summary>
-            Gets whether <see cref="M:NVorbis.Contracts.IStreamDecoder.Read(NVorbis.Span{System.Single},System.Int32,System.Int32)"/> has returned any clipped samples.
+            Gets whether <see cref="M:NVorbis.Contracts.IStreamDecoder.Read(System.Span{System.Single},System.Int32,System.Int32)"/> has returned any clipped samples.
             </summary>
         </member>
         <member name="P:NVorbis.Contracts.IStreamDecoder.IsEndOfStream">
@@ -263,7 +263,7 @@
             <param name="samplePosition">The relative sample position to seek to.</param>
             <param name="seekOrigin">The reference point used to obtain the new position.</param>
         </member>
-        <member name="M:NVorbis.Contracts.IStreamDecoder.Read(NVorbis.Span{System.Single},System.Int32,System.Int32)">
+        <member name="M:NVorbis.Contracts.IStreamDecoder.Read(System.Span{System.Single},System.Int32,System.Int32)">
             <summary>
             Reads samples into the specified buffer.
             </summary>
@@ -422,7 +422,7 @@
             Retrieves the values of a tag.
             </summary>
             <param name="key">The tag name to retrieve.</param>
-            <returns>An <see cref="T:NVorbis.IReadOnlyList`1"/> containing the values in the order read from the stream.</returns>
+            <returns>An <see cref="T:System.Collections.Generic.IReadOnlyList`1"/> containing the values in the order read from the stream.</returns>
         </member>
         <member name="T:NVorbis.Contracts.IVorbisReader">
             <summary>
@@ -997,7 +997,7 @@
             </summary>
             <param name="packetProvider">A <see cref="T:NVorbis.Contracts.IPacketProvider"/> instance for the decoder to read from.</param>
         </member>
-        <member name="M:NVorbis.StreamDecoder.Read(NVorbis.Span{System.Single},System.Int32,System.Int32)">
+        <member name="M:NVorbis.StreamDecoder.Read(System.Span{System.Single},System.Int32,System.Int32)">
             <summary>
             Reads samples into the specified buffer.
             </summary>
@@ -1079,12 +1079,12 @@
         </member>
         <member name="P:NVorbis.StreamDecoder.ClipSamples">
             <summary>
-            Gets or sets whether to clip samples returned by <see cref="M:NVorbis.StreamDecoder.Read(NVorbis.Span{System.Single},System.Int32,System.Int32)"/>.
+            Gets or sets whether to clip samples returned by <see cref="M:NVorbis.StreamDecoder.Read(System.Span{System.Single},System.Int32,System.Int32)"/>.
             </summary>
         </member>
         <member name="P:NVorbis.StreamDecoder.HasClipped">
             <summary>
-            Gets whether <see cref="M:NVorbis.StreamDecoder.Read(NVorbis.Span{System.Single},System.Int32,System.Int32)"/> has returned any clipped samples.
+            Gets whether <see cref="M:NVorbis.StreamDecoder.Read(System.Span{System.Single},System.Int32,System.Int32)"/> has returned any clipped samples.
             </summary>
         </member>
         <member name="P:NVorbis.StreamDecoder.IsEndOfStream">
@@ -1253,7 +1253,7 @@
             <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the buffer is too small or <paramref name="offset"/> is less than zero.</exception>
             <remarks>The data populated into <paramref name="buffer"/> is interleaved by channel in normal PCM fashion: Left, Right, Left, Right, Left, Right</remarks>
         </member>
-        <member name="M:NVorbis.VorbisReader.ReadSamples(NVorbis.Span{System.Single})">
+        <member name="M:NVorbis.VorbisReader.ReadSamples(System.Span{System.Single})">
             <summary>
             Reads samples into the specified buffer.
             </summary>

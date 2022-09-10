@@ -47,6 +47,52 @@ namespace RSDKv4.Utility
         public int animationSpeed;
         public int animationTimer;
         public int frame;
+
+        public Texture2D texture;
+
+        public void ProcessObjectAnimation()
+        {
+            MiniSpriteAnimation sprAnim = animation;
+
+            if (animationSpeed <= 0)
+            {
+                animationTimer += sprAnim.speed;
+            }
+            else
+            {
+                if (animationSpeed > 0xF0)
+                    animationSpeed = 0xF0;
+                animationTimer += animationSpeed;
+            }
+
+            if (animation != prevAnimation)
+            {
+                prevAnimation = animation;
+                frame = 0;
+                animationTimer = 0;
+                animationSpeed = 0;
+            }
+
+            if (animationTimer >= 0xF0)
+            {
+                animationTimer -= 0xF0;
+                ++frame;
+            }
+
+            if (frame >= sprAnim.frameCount)
+                frame = sprAnim.loopPoint;
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            ProcessObjectAnimation();
+
+            var frame = animation.spriteFrames[this.frame];
+            spriteBatch.Draw(texture,
+                new Rectangle(x + frame.pivotX, y + frame.pivotY, (int)(frame.width * 2.0), (int)(frame.height * 2.0)),
+                new Rectangle(frame.spriteX, frame.spriteY, frame.width, frame.height),
+                Color.White);
+        }
     }
 
 
@@ -78,9 +124,8 @@ namespace RSDKv4.Utility
 
         public MiniAnimationFile LoadAniFile(string fileName)
         {
-            FileInfo info;
             MiniAnimationFile animFile = null;
-            if (rsdkStream.LoadFile("Data/Animations/" + fileName, out info))
+            if (rsdkStream.LoadFile("Data/Animations/" + fileName, out _))
             {
                 var sheetIDs = new List<string>();
                 byte sheetCount = ReadByte();
@@ -133,11 +178,12 @@ namespace RSDKv4.Utility
 
         public void LoadAnimation(MiniSpriteAnimation spriteAnimation)
         {
-            var toLoad = new HashSet<string>();
+            var toLoad = new Dictionary<string, object>();
             for (int i = 0; i < spriteAnimation.frameCount; i++)
-                toLoad.Add(spriteAnimation.spriteFrames[i].sheetName);
+                if (!toLoad.ContainsKey(spriteAnimation.spriteFrames[i].sheetName))
+                    toLoad.Add(spriteAnimation.spriteFrames[i].sheetName, new object());
 
-            foreach (var spriteSheet in toLoad)
+            foreach (var spriteSheet in toLoad.Keys)
             {
                 var reader = new GifReader();
                 if (rsdkStream.LoadFile("Data/Sprites/" + spriteSheet, out _))
@@ -149,56 +195,13 @@ namespace RSDKv4.Utility
 
         public MiniEntity CreateEntity(string animationFile, string anim)
         {
-            var animation = LoadAniFile("Sonic.ani");
+            var animation = LoadAniFile(animationFile);
             var sheet = animation.spriteAnimations.FirstOrDefault(a => a.name == anim);
             LoadAnimation(sheet);
 
-            return new MiniEntity() { animation = sheet, frame = 0 };
+            return new MiniEntity() { animation = sheet, frame = 0, texture = texture };
         }
 
-        public void DrawEntity(MiniEntity entity)
-        {
-            ProcessObjectAnimation(entity);
-
-            var frame = entity.animation.spriteFrames[entity.frame];
-            spriteBatch.Draw(texture,
-                new Rectangle(entity.x + frame.pivotX, entity.y + frame.pivotY, (int)(frame.width * 2.0), (int)(frame.height * 2.0)),
-                new Rectangle(frame.spriteX, frame.spriteY, frame.width, frame.height),
-                Color.White);
-        }
-
-        public void ProcessObjectAnimation(MiniEntity entity)
-        {
-            MiniSpriteAnimation sprAnim = entity.animation;
-
-            if (entity.animationSpeed <= 0)
-            {
-                entity.animationTimer += sprAnim.speed;
-            }
-            else
-            {
-                if (entity.animationSpeed > 0xF0)
-                    entity.animationSpeed = 0xF0;
-                entity.animationTimer += entity.animationSpeed;
-            }
-
-            if (entity.animation != entity.prevAnimation)
-            {
-                entity.prevAnimation = entity.animation;
-                entity.frame = 0;
-                entity.animationTimer = 0;
-                entity.animationSpeed = 0;
-            }
-
-            if (entity.animationTimer >= 0xF0)
-            {
-                entity.animationTimer -= 0xF0;
-                ++entity.frame;
-            }
-
-            if (entity.frame >= sprAnim.frameCount)
-                entity.frame = sprAnim.loopPoint;
-        }
 
         public byte ReadByte()
         {

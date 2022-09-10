@@ -17,12 +17,15 @@ internal class FastMath
 
     public static byte[] atanVal256 = new byte[0x100 * 0x100];
 
-    private static Random _random;
+    private static Random _random = new Random();
+
+    public static void SetRandomSeed(int x)
+    {
+        _random = new Random(x);
+    }
 
     public static void CalculateTrigAngles()
     {
-        _random = new Random();
-
         for (int i = 0; i < 0x200; ++i)
         {
 #if NETCOREAPP3_1

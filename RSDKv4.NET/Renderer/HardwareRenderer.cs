@@ -217,7 +217,7 @@ internal class HardwareRenderer : IRenderer
 
         if (surfaceDirty)
         {
-            Console.WriteLine($"{frame} Updating surfaces");
+            Debug.WriteLine($"{frame} Updating surfaces");
             UpdateSurfaces();
             surfaceDirty = false;
         }
@@ -225,23 +225,23 @@ internal class HardwareRenderer : IRenderer
 #if !SILVERLIGHT
         if (paletteDirty)
         {
-            Console.WriteLine($"{frame} Updating palettes");
+            // Debug.WriteLine($"{frame} Updating palettes");
             UpdateActivePalettes();
             paletteDirty = false;
         }
 #endif
 
 #if FAST_PALETTE
+        _device.SamplerStates[0] = SamplerState.PointClamp;
+        _device.SamplerStates[1] = SamplerState.PointWrap;
+
         _effect.Parameters["Texture"].SetValue(_surface);
         _effect.Parameters["Palette"].SetValue(_palettes[texPaletteNum]);
         _effect.Parameters["MatrixTransform"].SetValue(_projection2D);
-
-        _device.SamplerStates[0] = SamplerState.PointClamp;
-        _device.SamplerStates[1] = SamplerState.PointWrap;
 #else
-        _effect.Texture = _textures[texPaletteNum];
         _device.SamplerStates[0] = SamplerState.PointClamp;
 
+        _effect.Texture = _textures[texPaletteNum];
         _effect.World = Matrix.Identity;
         _effect.View = Matrix.Identity;
         _effect.Projection = _projection2D;
@@ -335,7 +335,7 @@ internal class HardwareRenderer : IRenderer
         _device.Textures[0] = null;
         _device.Textures[1] = null;
 #else
-        _effect.Texture = null;
+        _device.Textures[0] = null;
 #endif
         _device.SetRenderTarget(null);
     }
@@ -344,6 +344,14 @@ internal class HardwareRenderer : IRenderer
     {
         _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
         _spriteBatch.Draw(_renderTarget, _screenRect, Color.White);
+
+#if FAST_PALETTE && false
+        for (int i = 0; i < PALETTE_COUNT; i++)
+        {
+            _spriteBatch.Draw(_palettes[i], new Rectangle(64 * i, _screenRect.Height - 64, 64, 64), Color.White);
+        }
+#endif
+
         _spriteBatch.End();
     }
 
@@ -439,7 +447,8 @@ internal class HardwareRenderer : IRenderer
 
     public void Copy16x16Tile(int dest, int src)
     {
-        Array.Copy(tileUVList, src << 2, tileUVList, dest << 2, 4);
+        if (src << 2 < tileUVList.Length && dest << 2 < tileUVList.Length)
+            Array.Copy(tileUVList, src << 2, tileUVList, dest << 2, 4);
     }
 
     public void UpdateTextureBufferWithTiles()
@@ -461,7 +470,7 @@ internal class HardwareRenderer : IRenderer
                         for (int x = 0; x < TILE_SIZE; x++)
                         {
 #if FAST_PALETTE
-                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                             textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -486,7 +495,7 @@ internal class HardwareRenderer : IRenderer
 
                     bufPos = w + (h << 10);
 #if FAST_PALETTE
-                textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                     textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -495,7 +504,7 @@ internal class HardwareRenderer : IRenderer
                     for (int l = 0; l < 15; l++)
                     {
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -506,13 +515,13 @@ internal class HardwareRenderer : IRenderer
                     if (tilesetGFXData[dataPos] > 0)
                     {
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
                         bufPos++;
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -530,31 +539,33 @@ internal class HardwareRenderer : IRenderer
                     for (int k = 0; k < 16; k++)
                     {
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
                         bufPos++;
+                        // TODO: is it worth unrolling these inner loops?
                         for (int l = 0; l < 15; l++)
                         {
 #if FAST_PALETTE
-                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                             textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
                             bufPos++;
                             dataPos++;
                         }
+
                         if (tilesetGFXData[dataPos] > 0)
                         {
 #if FAST_PALETTE
-                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                             textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
                             bufPos++;
 #if FAST_PALETTE
-                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                             textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -571,7 +582,7 @@ internal class HardwareRenderer : IRenderer
                     }
                     dataPos -= 16;
 #if FAST_PALETTE
-                textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                     textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -580,7 +591,7 @@ internal class HardwareRenderer : IRenderer
                     for (int l = 0; l < 15; l++)
                     {
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -591,13 +602,13 @@ internal class HardwareRenderer : IRenderer
                     if (tilesetGFXData[dataPos] > 0)
                     {
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
                         bufPos++;
 #if FAST_PALETTE
-                    textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
                         textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
 #endif
@@ -620,7 +631,7 @@ internal class HardwareRenderer : IRenderer
             for (int l = 0; l < TILE_SIZE; l++)
             {
 #if FAST_PALETTE
-            textureBuffer[bufPos] = 255;
+                textureBuffer[bufPos] = 255;
 #else
                 textureBuffer[bufPos] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
 #endif
@@ -644,7 +655,7 @@ internal class HardwareRenderer : IRenderer
                     for (int k = 0; k < surface.width; k++)
                     {
 #if FAST_PALETTE
-                    textureBuffer[teXPos] = graphicsBuffer[pos];
+                        textureBuffer[teXPos] = graphicsBuffer[pos];
 #else
                         textureBuffer[teXPos] = fullPalette[texPaletteNum][graphicsBuffer[pos]];
 #endif
@@ -793,7 +804,7 @@ internal class HardwareRenderer : IRenderer
                     for (int w = 0; w < curSurface.width; w++)
                     {
 #if FAST_PALETTE
-                    textureBuffer[dataPos] = graphicsBuffer[gfXPos];
+                        textureBuffer[dataPos] = graphicsBuffer[gfXPos];
 #else
                         textureBuffer[dataPos] = fullPalette[texPaletteNum][graphicsBuffer[gfXPos]];
 #endif
@@ -1031,30 +1042,29 @@ internal class HardwareRenderer : IRenderer
         byte fg = (byte)((fogColour >> 8) & 0xFF);
         byte fb = (byte)((fogColour >> 0) & 0xFF);
 
-        vertexList[vertexCount].position.X = face.vertex[0].x << 4;
-        vertexList[vertexCount].position.Y = face.vertex[0].y << 4;
-        vertexList[vertexCount].color.R = (byte)((ushort)(fr * (0xFF - alpha) + alpha * cr) >> 8);
-        vertexList[vertexCount].color.G = (byte)((ushort)(fg * (0xFF - alpha) + alpha * cg) >> 8);
-        vertexList[vertexCount].color.B = (byte)((ushort)(fb * (0xFF - alpha) + alpha * cb) >> 8);
-        vertexList[vertexCount].color.A = 0xFF;
-        vertexList[vertexCount].texCoord.X = 0.01f;
-        vertexList[vertexCount].texCoord.Y = 0.01f;
-        ++vertexCount;
-        vertexList[vertexCount].position.X = face.vertex[1].x << 4;
-        vertexList[vertexCount].position.Y = face.vertex[1].y << 4;
-        vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
+        var col = new Color(((ushort)(fr * (0xFF - alpha) + alpha * cr) >> 8), ((ushort)(fg * (0xFF - alpha) + alpha * cg) >> 8), ((ushort)(fb * (0xFF - alpha) + alpha * cb) >> 8), 0xff);
+
+        vertexList[vertexCount].position.X = face.vertex[3].x << 4;
+        vertexList[vertexCount].position.Y = face.vertex[3].y << 4;
+        vertexList[vertexCount].color = col;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;
         ++vertexCount;
         vertexList[vertexCount].position.X = face.vertex[2].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[2].y << 4;
-        vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
+        vertexList[vertexCount].color = col;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;
         ++vertexCount;
-        vertexList[vertexCount].position.X = face.vertex[3].x << 4;
-        vertexList[vertexCount].position.Y = face.vertex[3].y << 4;
-        vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
+        vertexList[vertexCount].position.X = face.vertex[0].x << 4;
+        vertexList[vertexCount].position.Y = face.vertex[0].y << 4;
+        vertexList[vertexCount].color = col;
+        vertexList[vertexCount].texCoord.X = 0.01f;
+        vertexList[vertexCount].texCoord.Y = 0.01f;
+        ++vertexCount;
+        vertexList[vertexCount].position.X = face.vertex[1].x << 4;
+        vertexList[vertexCount].position.Y = face.vertex[1].y << 4;
+        vertexList[vertexCount].color = col;
         vertexList[vertexCount].texCoord.X = 0.01f;
         vertexList[vertexCount].texCoord.Y = 0.01f;
         ++vertexCount;
@@ -1889,7 +1899,8 @@ internal class HardwareRenderer : IRenderer
             rotAngle = 512 - rotAngle;
         int num1 = FastMath.Sin512(rotAngle) * scale >> 9;
         int num2 = FastMath.Cos512(rotAngle) * scale >> 9;
-        if (_surfaces[surfaceNum].texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -8192 || xPos >= 13952) || (yPos <= -8192 || yPos >= 12032))
+        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -8192 || xPos >= 13952) || (yPos <= -8192 || yPos >= 12032))
             return;
         if (direction == 0)
         {
@@ -1897,43 +1908,31 @@ internal class HardwareRenderer : IRenderer
             int num4 = -yPivot;
             vertexList[vertexCount].position.X = xPos + (num3 * num2 + num4 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num4 * num2 - num3 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
-            vertexList[vertexCount].texCoord.X = (_surfaces[surfaceNum].texStartX + xBegin) * PIXEL_TO_UV;
-            vertexList[vertexCount].texCoord.Y = (_surfaces[surfaceNum].texStartY + yBegin) * PIXEL_TO_UV;
+            vertexList[vertexCount].color = MAX_COLOR;
+            vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin) * PIXEL_TO_UV;
+            vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin) * PIXEL_TO_UV;
             ++vertexCount;
             int num5 = xSize - xPivot;
             int num6 = -yPivot;
             vertexList[vertexCount].position.X = xPos + (num5 * num2 + num6 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num6 * num2 - num5 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
-            vertexList[vertexCount].texCoord.X = (_surfaces[surfaceNum].texStartX + xBegin + xSize) * PIXEL_TO_UV;
+            vertexList[vertexCount].color = MAX_COLOR;
+            vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin + xSize) * PIXEL_TO_UV;
             vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
             ++vertexCount;
             int num7 = -xPivot;
             int num8 = ySize - yPivot;
             vertexList[vertexCount].position.X = xPos + (num7 * num2 + num8 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num8 * num2 - num7 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
+            vertexList[vertexCount].color = MAX_COLOR;
             vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
-            vertexList[vertexCount].texCoord.Y = (_surfaces[surfaceNum].texStartY + yBegin + ySize) * PIXEL_TO_UV;
+            vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin + ySize) * PIXEL_TO_UV;
             ++vertexCount;
             int num9 = xSize - xPivot;
             int num10 = ySize - yPivot;
             vertexList[vertexCount].position.X = xPos + (num9 * num2 + num10 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num10 * num2 - num9 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
+            vertexList[vertexCount].color = MAX_COLOR;
             vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
             vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
             ++vertexCount;
@@ -1945,43 +1944,31 @@ internal class HardwareRenderer : IRenderer
             int num4 = -yPivot;
             vertexList[vertexCount].position.X = xPos + (num3 * num2 + num4 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num4 * num2 - num3 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
-            vertexList[vertexCount].texCoord.X = (_surfaces[surfaceNum].texStartX + xBegin) * PIXEL_TO_UV;
-            vertexList[vertexCount].texCoord.Y = (_surfaces[surfaceNum].texStartY + yBegin) * PIXEL_TO_UV;
+            vertexList[vertexCount].color = MAX_COLOR;
+            vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin) * PIXEL_TO_UV;
+            vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin) * PIXEL_TO_UV;
             ++vertexCount;
             int num5 = xPivot - xSize;
             int num6 = -yPivot;
             vertexList[vertexCount].position.X = xPos + (num5 * num2 + num6 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num6 * num2 - num5 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
-            vertexList[vertexCount].texCoord.X = (_surfaces[surfaceNum].texStartX + xBegin + xSize) * PIXEL_TO_UV;
+            vertexList[vertexCount].color = MAX_COLOR;
+            vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin + xSize) * PIXEL_TO_UV;
             vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
             ++vertexCount;
             int num7 = xPivot;
             int num8 = ySize - yPivot;
             vertexList[vertexCount].position.X = xPos + (num7 * num2 + num8 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num8 * num2 - num7 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
+            vertexList[vertexCount].color = MAX_COLOR;
             vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
-            vertexList[vertexCount].texCoord.Y = (_surfaces[surfaceNum].texStartY + yBegin + ySize) * PIXEL_TO_UV;
+            vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin + ySize) * PIXEL_TO_UV;
             ++vertexCount;
             int num9 = xPivot - xSize;
             int num10 = ySize - yPivot;
             vertexList[vertexCount].position.X = xPos + (num9 * num2 + num10 * num1 >> 5);
             vertexList[vertexCount].position.Y = yPos + (num10 * num2 - num9 * num1 >> 5);
-            vertexList[vertexCount].color.R = byte.MaxValue;
-            vertexList[vertexCount].color.G = byte.MaxValue;
-            vertexList[vertexCount].color.B = byte.MaxValue;
-            vertexList[vertexCount].color.A = byte.MaxValue;
+            vertexList[vertexCount].color = MAX_COLOR;
             vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
             vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
             ++vertexCount;
@@ -1998,7 +1985,7 @@ internal class HardwareRenderer : IRenderer
         yPos -= yPivot * yScale >> 5;
         yScale = ySize * yScale >> 5;
         SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= 4096)
+        if (surfaceDesc.texStartX <= -1)
             return;
         vertexList[vertexCount].position.X = xPos;
         vertexList[vertexCount].position.Y = yPos;
@@ -2106,7 +2093,7 @@ internal class HardwareRenderer : IRenderer
         EnsureBlendMode(BlendMode.Alpha);
 
         SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT)
             return;
         switch (direction)
         {

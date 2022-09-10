@@ -300,6 +300,7 @@ public class Scene3D
         for (int index3 = 0; index3 < vertexCount; ++index3)
         {
             Vertex3D vertex3D = vertexBuffer[index1];
+            vertexBufferT[index2] = vertex3D;
             vertexBufferT[index2].x = (matFinal[0] * vertex3D.x >> 8) + (matFinal[4] * vertex3D.y >> 8) + (matFinal[8] * vertex3D.z >> 8) + matFinal[12];
             vertexBufferT[index2].y = (matFinal[1] * vertex3D.x >> 8) + (matFinal[5] * vertex3D.y >> 8) + (matFinal[9] * vertex3D.z >> 8) + matFinal[13];
             vertexBufferT[index2].z = (matFinal[2] * vertex3D.x >> 8) + (matFinal[6] * vertex3D.y >> 8) + (matFinal[10] * vertex3D.z >> 8) + matFinal[14];
@@ -360,88 +361,93 @@ public class Scene3D
         Quad2D face = new Quad2D();
         for (int index = 0; index < faceCount; ++index)
         {
-            Face3D face3D = faceBuffer[drawList[index].index];
+            var face3D = faceBuffer[drawList[index].index];
+            var a = vertexBufferT[face3D.a];
+            var b = vertexBufferT[face3D.b];
+            var c = vertexBufferT[face3D.c];
+            var d = vertexBufferT[face3D.d];
+
             switch (face3D.flag)
             {
                 case 0:
-                    if (vertexBufferT[face3D.a].z > 256 && vertexBufferT[face3D.b].z > 256 && (vertexBufferT[face3D.c].z > 256 && vertexBufferT[face3D.d].z > 256))
+                    if (a.z > 256 && b.z > 256 && (c.z > 256 && d.z > 256))
                     {
-                        face.vertex[0].x = SCREEN_CENTERX + vertexBufferT[face3D.a].x * projectionX / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = SCREEN_CENTERY - vertexBufferT[face3D.a].y * projectionY / vertexBufferT[face3D.a].z;
-                        face.vertex[1].x = SCREEN_CENTERX + vertexBufferT[face3D.b].x * projectionX / vertexBufferT[face3D.b].z;
-                        face.vertex[1].y = SCREEN_CENTERY - vertexBufferT[face3D.b].y * projectionY / vertexBufferT[face3D.b].z;
-                        face.vertex[2].x = SCREEN_CENTERX + vertexBufferT[face3D.c].x * projectionX / vertexBufferT[face3D.c].z;
-                        face.vertex[2].y = SCREEN_CENTERY - vertexBufferT[face3D.c].y * projectionY / vertexBufferT[face3D.c].z;
-                        face.vertex[3].x = SCREEN_CENTERX + vertexBufferT[face3D.d].x * projectionX / vertexBufferT[face3D.d].z;
-                        face.vertex[3].y = SCREEN_CENTERY - vertexBufferT[face3D.d].y * projectionY / vertexBufferT[face3D.d].z;
-                        face.vertex[0].u = vertexBuffer[face3D.a].u;
-                        face.vertex[0].v = vertexBuffer[face3D.a].v;
-                        face.vertex[1].u = vertexBuffer[face3D.b].u;
-                        face.vertex[1].v = vertexBuffer[face3D.b].v;
-                        face.vertex[2].u = vertexBuffer[face3D.c].u;
-                        face.vertex[2].v = vertexBuffer[face3D.c].v;
-                        face.vertex[3].u = vertexBuffer[face3D.d].u;
-                        face.vertex[3].v = vertexBuffer[face3D.d].v;
-                        Drawing.DrawTexturedQuad(face, surfaceNum);
+                        face.vertex[0].x = SCREEN_CENTERX + a.x * projectionX / a.z;
+                        face.vertex[0].y = SCREEN_CENTERY - a.y * projectionY / a.z;
+                        face.vertex[1].x = SCREEN_CENTERX + b.x * projectionX / b.z;
+                        face.vertex[1].y = SCREEN_CENTERY - b.y * projectionY / b.z;
+                        face.vertex[2].x = SCREEN_CENTERX + c.x * projectionX / c.z;
+                        face.vertex[2].y = SCREEN_CENTERY - c.y * projectionY / c.z;
+                        face.vertex[3].x = SCREEN_CENTERX + d.x * projectionX / d.z;
+                        face.vertex[3].y = SCREEN_CENTERY - d.y * projectionY / d.z;
+                        face.vertex[0].u = a.u;
+                        face.vertex[0].v = a.v;
+                        face.vertex[1].u = b.u;
+                        face.vertex[1].v = b.v;
+                        face.vertex[2].u = c.u;
+                        face.vertex[2].v = c.v;
+                        face.vertex[3].u = d.u;
+                        face.vertex[3].v = d.v;
+                        DrawTexturedQuad(face, surfaceNum);
                         break;
                     }
                     break;
                 case 1:
-                    face.vertex[0].x = vertexBuffer[face3D.a].x;
-                    face.vertex[0].y = vertexBuffer[face3D.a].y;
-                    face.vertex[1].x = vertexBuffer[face3D.b].x;
-                    face.vertex[1].y = vertexBuffer[face3D.b].y;
-                    face.vertex[2].x = vertexBuffer[face3D.c].x;
-                    face.vertex[2].y = vertexBuffer[face3D.c].y;
-                    face.vertex[3].x = vertexBuffer[face3D.d].x;
-                    face.vertex[3].y = vertexBuffer[face3D.d].y;
-                    face.vertex[0].u = vertexBuffer[face3D.a].u;
-                    face.vertex[0].v = vertexBuffer[face3D.a].v;
-                    face.vertex[1].u = vertexBuffer[face3D.b].u;
-                    face.vertex[1].v = vertexBuffer[face3D.b].v;
-                    face.vertex[2].u = vertexBuffer[face3D.c].u;
-                    face.vertex[2].v = vertexBuffer[face3D.c].v;
-                    face.vertex[3].u = vertexBuffer[face3D.d].u;
-                    face.vertex[3].v = vertexBuffer[face3D.d].v;
-                    Drawing.DrawTexturedQuad(face, surfaceNum);
+                    face.vertex[0].x = a.x;
+                    face.vertex[0].y = a.y;
+                    face.vertex[1].x = b.x;
+                    face.vertex[1].y = b.y;
+                    face.vertex[2].x = c.x;
+                    face.vertex[2].y = c.y;
+                    face.vertex[3].x = d.x;
+                    face.vertex[3].y = d.y;
+                    face.vertex[0].u = a.u;
+                    face.vertex[0].v = a.v;
+                    face.vertex[1].u = b.u;
+                    face.vertex[1].v = b.v;
+                    face.vertex[2].u = c.u;
+                    face.vertex[2].v = c.v;
+                    face.vertex[3].u = d.u;
+                    face.vertex[3].v = d.v;
+                    DrawTexturedQuad(face, surfaceNum);
                     break;
                 case 2:
-                    if (vertexBufferT[face3D.a].z > 0 && vertexBufferT[face3D.b].z > 0 && vertexBufferT[face3D.c].z > 0 && vertexBufferT[face3D.d].z > 0)
+                    if (a.z > 0 && b.z > 0 && c.z > 0 && d.z > 0)
                     {
-                        face.vertex[0].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.a].x / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.a].y / vertexBufferT[face3D.a].z;
-                        face.vertex[1].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.b].x / vertexBufferT[face3D.b].z;
-                        face.vertex[1].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.b].y / vertexBufferT[face3D.b].z;
-                        face.vertex[2].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.c].x / vertexBufferT[face3D.c].z;
-                        face.vertex[2].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.c].y / vertexBufferT[face3D.c].z;
-                        face.vertex[3].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.d].x / vertexBufferT[face3D.d].z;
-                        face.vertex[3].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.d].y / vertexBufferT[face3D.d].z;
-                        Drawing.DrawQuad(face, face3D.color);
+                        face.vertex[0].x = SCREEN_CENTERX + projectionX * a.x / a.z;
+                        face.vertex[0].y = SCREEN_CENTERY - projectionY * a.y / a.z;
+                        face.vertex[1].x = SCREEN_CENTERX + projectionX * b.x / b.z;
+                        face.vertex[1].y = SCREEN_CENTERY - projectionY * b.y / b.z;
+                        face.vertex[2].x = SCREEN_CENTERX + projectionX * c.x / c.z;
+                        face.vertex[2].y = SCREEN_CENTERY - projectionY * c.y / c.z;
+                        face.vertex[3].x = SCREEN_CENTERX + projectionX * d.x / d.z;
+                        face.vertex[3].y = SCREEN_CENTERY - projectionY * d.y / d.z;
+                        DrawQuad(face, face3D.color);
                         break;
                     }
                     break;
                 case 3:
-                    face.vertex[0].x = vertexBuffer[face3D.a].x;
-                    face.vertex[0].y = vertexBuffer[face3D.a].y;
-                    face.vertex[1].x = vertexBuffer[face3D.b].x;
-                    face.vertex[1].y = vertexBuffer[face3D.b].y;
-                    face.vertex[2].x = vertexBuffer[face3D.c].x;
-                    face.vertex[2].y = vertexBuffer[face3D.c].y;
-                    face.vertex[3].x = vertexBuffer[face3D.d].x;
-                    face.vertex[3].y = vertexBuffer[face3D.d].y;
-                    Drawing.DrawQuad(face, face3D.color);
+                    face.vertex[0].x = a.x;
+                    face.vertex[0].y = a.y;
+                    face.vertex[1].x = b.x;
+                    face.vertex[1].y = b.y;
+                    face.vertex[2].x = c.x;
+                    face.vertex[2].y = c.y;
+                    face.vertex[3].x = d.x;
+                    face.vertex[3].y = d.y;
+                    DrawQuad(face, face3D.color);
                     break;
                 case FACE_FLAG.FADED:
-                    if (vertexBufferT[face3D.a].z > 0 && vertexBufferT[face3D.b].z > 0 && vertexBufferT[face3D.c].z > 0 && vertexBufferT[face3D.d].z > 0)
+                    if (a.z > 0 && b.z > 0 && c.z > 0 && d.z > 0)
                     {
-                        face.vertex[0].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.a].x / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.a].y / vertexBufferT[face3D.a].z;
-                        face.vertex[1].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.b].x / vertexBufferT[face3D.b].z;
-                        face.vertex[1].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.b].y / vertexBufferT[face3D.b].z;
-                        face.vertex[2].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.c].x / vertexBufferT[face3D.c].z;
-                        face.vertex[2].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.c].y / vertexBufferT[face3D.c].z;
-                        face.vertex[3].x = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.d].x / vertexBufferT[face3D.d].z;
-                        face.vertex[3].y = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.d].y / vertexBufferT[face3D.d].z;
+                        face.vertex[0].x = SCREEN_CENTERX + projectionX * a.x / a.z;
+                        face.vertex[0].y = SCREEN_CENTERY - projectionY * a.y / a.z;
+                        face.vertex[1].x = SCREEN_CENTERX + projectionX * b.x / b.z;
+                        face.vertex[1].y = SCREEN_CENTERY - projectionY * b.y / b.z;
+                        face.vertex[2].x = SCREEN_CENTERX + projectionX * c.x / c.z;
+                        face.vertex[2].y = SCREEN_CENTERY - projectionY * c.y / c.z;
+                        face.vertex[3].x = SCREEN_CENTERX + projectionX * d.x / d.z;
+                        face.vertex[3].y = SCREEN_CENTERY - projectionY * d.y / d.z;
 
                         int fogStr = 0;
                         if ((drawList[index].z - 0x8000) >> 8 >= 0)
@@ -453,83 +459,83 @@ public class Scene3D
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C:
-                    if (vertexBufferT[face3D.a].z > 0)
+                    if (a.z > 0)
                     {
                         // [face.a].uv == sprite center
                         // [face.b].uv == ???
                         // [face.c].uv == sprite extend (how far to each edge X & Y)
                         // [face.d].uv == unused
 
-                        face.vertex[0].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x - vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y + vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
-                        face.vertex[1].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x + vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[1].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y + vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
-                        face.vertex[2].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x - vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[2].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y - vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
-                        face.vertex[3].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x + vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[3].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y - vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
+                        face.vertex[0].x = SCREEN_CENTERX + projectionX * (a.x - b.u) / a.z;
+                        face.vertex[0].y = SCREEN_CENTERY - projectionY * (a.y + b.v) / a.z;
+                        face.vertex[1].x = SCREEN_CENTERX + projectionX * (a.x + b.u) / a.z;
+                        face.vertex[1].y = SCREEN_CENTERY - projectionY * (a.y + b.v) / a.z;
+                        face.vertex[2].x = SCREEN_CENTERX + projectionX * (a.x - b.u) / a.z;
+                        face.vertex[2].y = SCREEN_CENTERY - projectionY * (a.y - b.v) / a.z;
+                        face.vertex[3].x = SCREEN_CENTERX + projectionX * (a.x + b.u) / a.z;
+                        face.vertex[3].y = SCREEN_CENTERY - projectionY * (a.y - b.v) / a.z;
 
-                        face.vertex[0].u = vertexBuffer[face3D.a].u - vertexBuffer[face3D.c].u;
-                        face.vertex[0].v = vertexBuffer[face3D.a].v - vertexBuffer[face3D.c].v;
-                        face.vertex[1].u = vertexBuffer[face3D.a].u + vertexBuffer[face3D.c].u;
-                        face.vertex[1].v = vertexBuffer[face3D.a].v - vertexBuffer[face3D.c].v;
-                        face.vertex[2].u = vertexBuffer[face3D.a].u - vertexBuffer[face3D.c].u;
-                        face.vertex[2].v = vertexBuffer[face3D.a].v + vertexBuffer[face3D.c].v;
-                        face.vertex[3].u = vertexBuffer[face3D.a].u + vertexBuffer[face3D.c].u;
-                        face.vertex[3].v = vertexBuffer[face3D.a].v + vertexBuffer[face3D.c].v;
+                        face.vertex[0].u = a.u - c.u;
+                        face.vertex[0].v = a.v - c.v;
+                        face.vertex[1].u = a.u + c.u;
+                        face.vertex[1].v = a.v - c.v;
+                        face.vertex[2].u = a.u - c.u;
+                        face.vertex[2].v = a.v + c.v;
+                        face.vertex[3].u = a.u + c.u;
+                        face.vertex[3].v = a.v + c.v;
 
                         Drawing.DrawTexturedQuad(face, face3D.color);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C_BLEND:
-                    if (vertexBufferT[face3D.a].z > 0)
+                    if (a.z > 0)
                     {
                         // See above, its the same just blended
 
-                        face.vertex[0].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x - vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[0].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y + vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
-                        face.vertex[1].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x + vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[1].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y + vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
-                        face.vertex[2].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x - vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[2].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y - vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
-                        face.vertex[3].x = SCREEN_CENTERX + projectionX * (vertexBufferT[face3D.a].x + vertexBuffer[face3D.b].u) / vertexBufferT[face3D.a].z;
-                        face.vertex[3].y = SCREEN_CENTERY - projectionY * (vertexBufferT[face3D.a].y - vertexBuffer[face3D.b].v) / vertexBufferT[face3D.a].z;
+                        face.vertex[0].x = SCREEN_CENTERX + projectionX * (a.x - b.u) / a.z;
+                        face.vertex[0].y = SCREEN_CENTERY - projectionY * (a.y + b.v) / a.z;
+                        face.vertex[1].x = SCREEN_CENTERX + projectionX * (a.x + b.u) / a.z;
+                        face.vertex[1].y = SCREEN_CENTERY - projectionY * (a.y + b.v) / a.z;
+                        face.vertex[2].x = SCREEN_CENTERX + projectionX * (a.x - b.u) / a.z;
+                        face.vertex[2].y = SCREEN_CENTERY - projectionY * (a.y - b.v) / a.z;
+                        face.vertex[3].x = SCREEN_CENTERX + projectionX * (a.x + b.u) / a.z;
+                        face.vertex[3].y = SCREEN_CENTERY - projectionY * (a.y - b.v) / a.z;
 
-                        face.vertex[0].u = vertexBuffer[face3D.a].u - vertexBuffer[face3D.c].u;
-                        face.vertex[0].v = vertexBuffer[face3D.a].v - vertexBuffer[face3D.c].v;
-                        face.vertex[1].u = vertexBuffer[face3D.a].u + vertexBuffer[face3D.c].u;
-                        face.vertex[1].v = vertexBuffer[face3D.a].v - vertexBuffer[face3D.c].v;
-                        face.vertex[2].u = vertexBuffer[face3D.a].u - vertexBuffer[face3D.c].u;
-                        face.vertex[2].v = vertexBuffer[face3D.a].v + vertexBuffer[face3D.c].v;
-                        face.vertex[3].u = vertexBuffer[face3D.a].u + vertexBuffer[face3D.c].u;
-                        face.vertex[3].v = vertexBuffer[face3D.a].v + vertexBuffer[face3D.c].v;
+                        face.vertex[0].u = a.u - c.u;
+                        face.vertex[0].v = a.v - c.v;
+                        face.vertex[1].u = a.u + c.u;
+                        face.vertex[1].v = a.v - c.v;
+                        face.vertex[2].u = a.u - c.u;
+                        face.vertex[2].v = a.v + c.v;
+                        face.vertex[3].u = a.u + c.u;
+                        face.vertex[3].v = a.v + c.v;
 
                         Drawing.DrawTexturedBlendedQuad(face, face3D.color);
                     }
                     break;
                 case FACE_FLAG.THREEDSPRITE:
-                    if (vertexBufferT[face3D.a].z > 0)
+                    if (a.z > 0)
                     {
-                        int xpos = SCREEN_CENTERX + projectionX * vertexBufferT[face3D.a].x / vertexBufferT[face3D.a].z;
-                        int ypos = SCREEN_CENTERY - projectionY * vertexBufferT[face3D.a].y / vertexBufferT[face3D.a].z;
+                        int xpos = SCREEN_CENTERX + projectionX * a.x / a.z;
+                        int ypos = SCREEN_CENTERY - projectionY * a.y / a.z;
 
-                        ObjectScript scriptInfo = Script.objectScriptList[vertexBuffer[face3D.a].u];
-                        SpriteFrame frame = Animation.scriptFrames[scriptInfo.frameListOffset + vertexBuffer[face3D.b].u];
+                        ObjectScript scriptInfo = Script.objectScriptList[a.u];
+                        SpriteFrame frame = Animation.scriptFrames[scriptInfo.frameListOffset + b.u];
 
-                        switch (vertexBuffer[face3D.a].v)
+                        switch (a.v)
                         {
                             case FX.SCALE:
-                                Drawing.DrawScaledSprite((byte)vertexBuffer[face3D.b].v, xpos, ypos, -frame.pivotX, -frame.pivotY, vertexBuffer[face3D.c].u,
-                                                 vertexBuffer[face3D.c].u, frame.width, frame.height, frame.spriteX, frame.spriteY,
+                                Drawing.DrawScaledSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, c.u,
+                                                 c.u, frame.width, frame.height, frame.spriteX, frame.spriteY,
                                                  scriptInfo.spriteSheetId);
                                 break;
                             case FX.ROTATE:
-                                Drawing.DrawRotatedSprite((byte)vertexBuffer[face3D.b].v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
-                                                  frame.width, frame.height, vertexBuffer[face3D.c].v, scriptInfo.spriteSheetId);
+                                Drawing.DrawRotatedSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
+                                                  frame.width, frame.height, c.v, scriptInfo.spriteSheetId);
                                 break;
                             case FX.ROTOZOOM:
-                                Drawing.DrawRotoZoomSprite((byte)vertexBuffer[face3D.b].v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
-                                                   frame.width, frame.height, vertexBuffer[face3D.c].v, vertexBuffer[face3D.c].u,
+                                Drawing.DrawRotoZoomSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
+                                                   frame.width, frame.height, c.v, c.u,
                                                    scriptInfo.spriteSheetId);
                                 break;
                         }

@@ -2,14 +2,23 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;sl4;net40</TargetFrameworks>
+    <TargetFrameworks>sl4;net40;net6.0;netstandard1.6</TargetFrameworks>
     <RootNamespace>RSDKv4</RootNamespace>
     <LangVersion>10</LangVersion>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+	
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
     <ProjectReference Include="..\Dependencies\FNA\FNA.Core.csproj" />
     <PackageReference Include="NVorbis" Version="0.10.4" />
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="NVorbis">
+      <HintPath>..\Dependencies\netstandard1.6\NVorbis.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'sl4' ">
@@ -19,12 +28,23 @@
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants);</DefineConstants>
+    <DefineConstants>$(DefineConstants);FAST_PALETTE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE;</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+    <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  <PublishAot>true</PublishAot>
+    
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+
+    <DebuggerSupport>false</DebuggerSupport>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'sl4' ">
@@ -32,6 +52,7 @@
     <Reference Include="mscorlib.Extensions" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows" />
     <Reference Include="Microsoft.Xna.Framework" />
     <Reference Include="Microsoft.Xna.Framework.Game" />
     <Reference Include="Microsoft.Xna.Framework.Graphics" />
@@ -40,7 +61,7 @@
       <HintPath>..\Dependencies\sl4\NVorbis.dll</HintPath>
     </Reference>
   </ItemGroup>
-
+  
   <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="Microsoft.Xna.Framework">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.dll</HintPath>
