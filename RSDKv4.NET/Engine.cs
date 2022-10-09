@@ -52,9 +52,9 @@ public static class Engine
     public static int nativeFunctionCount;
     public static Delegate[] nativeFunctions = new Delegate[NATIVEFUNCTION_MAX];
 
-    public static int gameMode;
-    public static int deviceType;
-    public static int language;
+    public static int gameMode = ENGINE.WAIT;
+    public static int deviceType = DEVICE.STANDARD;
+    public static int language = LANGUAGE.EN;
 
     public static bool trialMode = false;
     public static bool hapticsEnabled = false;
@@ -62,8 +62,8 @@ public static class Engine
 
     public static float deltaTime = 0.016f;
 
-    public static int globalBoxRegion = REGION.JP;
-    public static int gameType = GAME.SONIC1;
+    public static int globalBoxRegion = REGION.EU;
+    public static int gameType = GAME.SONIC2;
 
     public static Hooks hooks = new Hooks();
 
