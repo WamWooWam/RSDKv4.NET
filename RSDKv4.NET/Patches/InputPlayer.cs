@@ -3,55 +3,54 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-namespace RSDKv4.Patches
+namespace RSDKv4.Patches;
+
+public class InputPlayer : IPatch
 {
-    public class InputPlayer : IPatch
+    private int frame;
+    private short stageId;
+    private List<int> data;
+
+    public void Install(Hooks hooks)
     {
-        private int frame;
-        private short stageId;
-        private List<int> data;
+        hooks.StageDidLoad += OnStageLoaded;
+        hooks.StageWillStep += OnStageStepped;
+    }
 
-        public void Install(Hooks hooks)
+    private void OnStageLoaded(object sender, EventArgs e)
+    {
+        FastMath.SetRandomSeed(0);
+
+        frame = 0;
+        data = new List<int>();
+        stageId = (short)((((byte)Scene.activeStageList) << 8) | (byte)Scene.stageListPosition);
+        try
         {
-            hooks.StageDidLoad += OnStageLoaded;
-            hooks.StageWillStep += OnStageStepped;
-        }
-
-        private void OnStageLoaded(object sender, EventArgs e)
-        {
-            FastMath.SetRandomSeed(0);
-
-            frame = 0;
-            data = new List<int>();
-            stageId = (short)((((byte)Scene.activeStageList) << 8) | (byte)Scene.stageListPosition);
-            try
+            using (var stream = File.OpenRead($"{stageId}.replay.bin"))
+            using (var read = new BinaryReader(stream))
             {
-                using (var stream = File.OpenRead($"{stageId}.replay.bin"))
-                using (var read = new BinaryReader(stream))
+                var size = read.ReadInt32();
+                for (int i = 0; i < size; i++)
                 {
-                    var size = read.ReadInt32();
-                    for (int i = 0; i < size; i++)
-                    {
-                        data.Add(read.ReadInt32());
-                    }
+                    data.Add(read.ReadInt32());
                 }
             }
-            catch { }
         }
+        catch { }
+    }
 
-        private void OnStageStepped(object sender, EventArgs e)
+    private void OnStageStepped(object sender, EventArgs e)
+    {
+        if (data.Count > 0 && data.Count > frame)
         {
-            if (data.Count > 0 && data.Count > frame)
+            var array = new BitArray(new int[1] { data[frame] });
+            for (int i = 0; i < 15; i++)
             {
-                var array = new BitArray(new int[1] { data[frame] });
-                for (int i = 0; i < 15; i++)
-                {
-                    Input.buttons[i].press = array.Get(i * 2);
-                    Input.buttons[i].hold = array.Get((i * 2) + 1);
-                }
+                Input.buttons[i].press = array.Get(i * 2);
+                Input.buttons[i].hold = array.Get((i * 2) + 1);
             }
-
-            frame++;
         }
+
+        frame++;
     }
 }

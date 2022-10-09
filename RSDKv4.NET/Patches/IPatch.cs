@@ -1,7 +1,6 @@
-﻿namespace RSDKv4.Patches
+﻿namespace RSDKv4.Patches;
+
+public interface IPatch
 {
-    public interface IPatch
-    {
-        public void Install(Hooks hooks);
-    }
+    public void Install(Hooks hooks);
 }
