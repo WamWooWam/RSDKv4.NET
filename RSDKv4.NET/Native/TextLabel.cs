@@ -1,8 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
@@ -12,9 +8,9 @@ public static class ALIGN
     public const int LEFT = 0, CENTER = 1, RIGHT = 2;
 }
 
-internal class TextLabel : NativeEntity
+public class TextLabel : NativeEntity
 {
-    public enum TEXTLABEL_STATE { NONE = -1, IDLE, BLINK, BLINK_FAST };
+    public enum STATE { NONE = -1, IDLE, BLINK, BLINK_FAST };
 
     public float x;
     public float y;
@@ -25,7 +21,7 @@ internal class TextLabel : NativeEntity
     public int alpha;
     public int fontID;
     public ushort[] text;
-    public TEXTLABEL_STATE state;
+    public STATE state;
     public bool useRenderMatrix;
     public Matrix renderMatrix;
 
@@ -38,7 +34,7 @@ internal class TextLabel : NativeEntity
     {
         z = 160.0f;
         alpha = 0xFF;
-        state = TEXTLABEL_STATE.IDLE;
+        state = STATE.IDLE;
     }
 
     public override void Main()
@@ -57,12 +53,12 @@ internal class TextLabel : NativeEntity
         switch (state)
         {
             default: break;
-            case TEXTLABEL_STATE.NONE: break;
-            case TEXTLABEL_STATE.IDLE:
+            case STATE.NONE: break;
+            case STATE.IDLE:
                 SetRenderBlendMode(RENDER_BLEND.ALPHA);
                 RenderText(text, fontID, x - alignOffset, y, (int)z, scale, alpha);
                 break;
-            case TEXTLABEL_STATE.BLINK:
+            case STATE.BLINK:
                 timer += Engine.deltaTime;
                 if (timer > 1.0f)
                     timer -= 1.0f;
@@ -74,7 +70,7 @@ internal class TextLabel : NativeEntity
                     RenderText(text, fontID, x - alignOffset, y, (int)z, scale, alpha);
                 }
                 break;
-            case TEXTLABEL_STATE.BLINK_FAST:
+            case STATE.BLINK_FAST:
                 timer += Engine.deltaTime;
                 if (timer > 0.1f)
                     timer -= 0.1f;
@@ -99,14 +95,14 @@ internal class TextLabel : NativeEntity
         }
     }
 
-    public void Align(int align)
+    public void SetAlignment(int align)
     {
         switch (align)
         {
             default:
             case ALIGN.LEFT: alignOffset = 0.0f; break;
-            case ALIGN.CENTER: alignOffset = Text.GetTextWidth(text, fontID, scale) * 0.5f; break;
-            case ALIGN.RIGHT: alignOffset = Text.GetTextWidth(text, fontID, scale); break;
+            case ALIGN.CENTER: alignOffset = Font.GetTextWidth(text, fontID, scale) * 0.5f; break;
+            case ALIGN.RIGHT: alignOffset = Font.GetTextWidth(text, fontID, scale); break;
         }
     }
 }

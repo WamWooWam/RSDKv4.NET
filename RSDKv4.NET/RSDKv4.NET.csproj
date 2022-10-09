@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>sl4;net40;net6.0;netstandard1.6</TargetFrameworks>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworks>net40;net7.0;netstandard1.6;sl4</TargetFrameworks>
     <RootNamespace>RSDKv4</RootNamespace>
     <LangVersion>10</LangVersion>
   </PropertyGroup>
 	
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
     <ProjectReference Include="..\Dependencies\FNA\FNA.Core.csproj" />
     <PackageReference Include="NVorbis" Version="0.10.4" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
     <Reference Include="MonoGame.Framework">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis">
       <HintPath>..\Dependencies\netstandard1.6\NVorbis.dll</HintPath>
@@ -24,19 +24,20 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'sl4' ">
     <OutputType>Library</OutputType>
     <TargetFrameworkProfile>WindowsPhone71</TargetFrameworkProfile>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants);FAST_PALETTE</DefineConstants>
+    <DefineConstants>$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
     <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <PublishAot>true</PublishAot>
     
-    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
 
     <DebuggerSupport>false</DebuggerSupport>
@@ -45,6 +46,8 @@
     <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
     <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
     <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'sl4' ">

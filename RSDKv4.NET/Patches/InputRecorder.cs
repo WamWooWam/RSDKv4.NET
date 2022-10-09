@@ -1,10 +1,9 @@
-﻿#if !NETSTANDARD1_6
+﻿#if !NETSTANDARD1_6 && !WINDOWSPHONEAPP
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace RSDKv4.Patches
 {

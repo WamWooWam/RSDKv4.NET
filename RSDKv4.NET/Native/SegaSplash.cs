@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using static RSDKv4.Native.NativeRenderer;
+﻿using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
 
-internal class SegaSplash : NativeEntity
+public class SegaSplash : NativeEntity
 {
     private enum STATE
     {
@@ -21,9 +17,9 @@ internal class SegaSplash : NativeEntity
     {
         state = STATE.ENTER;
         rectAlpha = 320.0f;
-        //if (Engine.language == 5)
-        //    textureId = LoadTexture("Data/Game/Menu/SegaJP.png", TEXFMT.RGBA5551);
-        //else
+        if (Engine.language == LANGUAGE.JP)
+            textureId = LoadTexture("Data/Game/Menu/SegaJP.png", TEXFMT.RGBA5551);
+        else
             textureId = LoadTexture("Data/Game/Menu/Sega.png", TEXFMT.RGBA5551);
 
     }

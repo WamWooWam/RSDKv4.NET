@@ -1,13 +1,10 @@
-﻿using RSDKv4.External;
-using RSDKv4.Utility;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Text;
+using RSDKv4.Utility;
 
 namespace RSDKv4;
 
-internal class Scene
+public class Scene
 {
     public const int LAYER_COUNT = (9);
     public const int DEFORM_STORE = (0x100);
@@ -106,12 +103,9 @@ internal class Scene
 
     static Scene()
     {
-        for (int i = 0; i < stageLayouts.Length; i++)
-            stageLayouts[i] = new TileLayer();
-        for (int i = 0; i < collisionMasks.Length; i++)
-            collisionMasks[i] = new CollisionMasks();
-        for (int i = 0; i < drawListEntries.Length; i++)
-            drawListEntries[i] = new DrawListEntry();
+        Helpers.Memset(stageLayouts, () => new TileLayer());
+        Helpers.Memset(collisionMasks, () => new CollisionMasks());
+        Helpers.Memset(drawListEntries, () => new DrawListEntry());
     }
 
     public static void InitFirstStage()
@@ -450,8 +444,7 @@ internal class Scene
             hParallax.entryCount = FileIO.ReadByte();
             for (byte i = 0; i < hParallax.entryCount; ++i)
             {
-                hParallax.parallaxFactor[i] = FileIO.ReadByte();
-                hParallax.parallaxFactor[i] |= FileIO.ReadByte() << 8;
+                hParallax.parallaxFactor[i] = FileIO.ReadUInt16();
                 hParallax.scrollSpeed[i] = FileIO.ReadByte() << 10;
                 hParallax.scrollPos[i] = 0;
                 hParallax.deform[i] = FileIO.ReadByte();
@@ -460,8 +453,7 @@ internal class Scene
             vParallax.entryCount = FileIO.ReadByte();
             for (byte i = 0; i < vParallax.entryCount; ++i)
             {
-                vParallax.parallaxFactor[i] = FileIO.ReadByte();
-                vParallax.parallaxFactor[i] |= FileIO.ReadByte() << 8;
+                vParallax.parallaxFactor[i] = FileIO.ReadUInt16();
                 vParallax.scrollSpeed[i] = FileIO.ReadByte() << 10;
                 vParallax.scrollPos[i] = 0;
                 vParallax.deform[i] = FileIO.ReadByte();
@@ -474,8 +466,7 @@ internal class Scene
                 stageLayouts[i].ysize = FileIO.ReadByte();
                 FileIO.ReadByte(); // Unused (???)
                 stageLayouts[i].type = FileIO.ReadByte();
-                stageLayouts[i].parallaxFactor = FileIO.ReadByte();
-                stageLayouts[i].parallaxFactor |= FileIO.ReadByte() << 8;
+                stageLayouts[i].parallaxFactor = FileIO.ReadUInt16();
                 stageLayouts[i].scrollSpeed = FileIO.ReadByte() << 10;
                 stageLayouts[i].scrollPos = 0;
 
@@ -522,8 +513,7 @@ internal class Scene
                     var tileOffset = y * TILELAYER_CHUNK_H;
                     for (int x = 0; x < stageLayouts[i].xsize; ++x)
                     {
-                        stageLayouts[i].tiles[tileOffset + x] = FileIO.ReadByte();
-                        stageLayouts[i].tiles[tileOffset + x] |= (ushort)(FileIO.ReadByte() << 8);
+                        stageLayouts[i].tiles[tileOffset + x] = FileIO.ReadUInt16();
                     }
                 }
             }
@@ -544,12 +534,7 @@ internal class Scene
                     byte fileBuffer = FileIO.ReadByte();
                     bool isCeiling = (fileBuffer >> 4) != 0;
                     collisionMasks[p].flags[t] = (byte)(fileBuffer & 0xF);
-
-                    collisionMasks[p].angles[t] = FileIO.ReadByte();
-
-                    collisionMasks[p].angles[t] |= (uint)(FileIO.ReadByte() << 8);
-                    collisionMasks[p].angles[t] |= (uint)(FileIO.ReadByte() << 16);
-                    collisionMasks[p].angles[t] |= (uint)(FileIO.ReadByte() << 24);
+                    collisionMasks[p].angles[t] = FileIO.ReadUInt32();
 
                     if (isCeiling) // Ceiling Tile
                     {
@@ -816,8 +801,7 @@ internal class Scene
                 var tileOffset = y * TILELAYER_CHUNK_H;
                 for (int x = 0; x < stageLayouts[0].xsize; ++x)
                 {
-                    stageLayouts[0].tiles[tileOffset + x] = FileIO.ReadByte();
-                    stageLayouts[0].tiles[tileOffset + x] |= (ushort)(FileIO.ReadByte() << 8);
+                    stageLayouts[0].tiles[tileOffset + x] = FileIO.ReadUInt16();
                 }
             }
 
@@ -1331,7 +1315,7 @@ internal class Scene
         }
     }
 
-    internal static void SetLayerDeformation(
+    public static void SetLayerDeformation(
           int selectedDef,
           int waveLength,
           int waveWidth,

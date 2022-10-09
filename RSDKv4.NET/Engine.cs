@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace RSDKv4;
 
@@ -61,10 +58,12 @@ public static class Engine
 
     public static bool trialMode = false;
     public static bool hapticsEnabled = false;
-    public static bool onlineActive = false;
+    public static bool onlineActive = true;
 
     public static float deltaTime = 0.016f;
-    public static int globalBoxRegion = 2;
+
+    public static int globalBoxRegion = REGION.JP;
+    public static int gameType = GAME.SONIC1;
 
     public static Hooks hooks = new Hooks();
 
@@ -75,7 +74,7 @@ public static class Engine
 
         gameWindowText = "Retro-Engine";
         globalVariablesCount = 0;
-        
+
         if (FileIO.LoadFile(filePath, out info))
         {
             gameWindowText = FileIO.ReadLengthPrefixedString();

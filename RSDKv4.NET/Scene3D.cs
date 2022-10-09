@@ -1,73 +1,21 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿using System;
+using Microsoft.Xna.Framework;
+using RSDKv4.Utility;
 using static RSDKv4.Drawing;
 
 namespace RSDKv4;
 
-public struct Vertex2D
-{
-    public int x;
-    public int y;
-    public int u;
-    public int v;
-}
-
-public struct Vertex3D
-{
-    public int x;
-    public int y;
-    public int z;
-    public int u;
-    public int v;
-}
-
-public struct Face3D
-{
-    public int a;
-    public int b;
-    public int c;
-    public int d;
-    public int color;
-    public byte flag;
-}
-public struct SortList
-{
-    public int z;
-    public int index;
-}
-
-public struct SortListComparer : IComparer<SortList>
-{
-    public int Compare(SortList x, SortList y)
-    {
-        return y.z - x.z;
-    }
-}
-
-public class Quad2D
-{
-    public Vertex2D[] vertex = new Vertex2D[4];
-}
-public static class FACE_FLAG
-{
-    public const int TEXTURED_3D = 0,
-    TEXTURED_2D = 1,
-    COLOURED_3D = 2,
-    COLOURED_2D = 3,
-    FADED = 4,
-    TEXTURED_C = 5,
-    TEXTURED_C_BLEND = 6,
-    THREEDSPRITE = 7;
-};
 public class Scene3D
 {
-    public static Vertex3D[] vertexBuffer = new Vertex3D[4096];
-    public static Vertex3D[] vertexBufferT = new Vertex3D[4096];
-    public static Face3D[] faceBuffer = new Face3D[1024];
-    public static SortList[] drawList = new SortList[1024];
+    public const int VERTEXBUFFER_SIZE = 0x1000;
+    public const int FACEBUFFER_SIZE = 0x400;
+
+    public static Face3D[] faceBuffer = new Face3D[FACEBUFFER_SIZE];
+    public static Vertex3D[] vertexBuffer = new Vertex3D[VERTEXBUFFER_SIZE];
+    public static Vertex3D[] vertexBufferT = new Vertex3D[VERTEXBUFFER_SIZE];
+
+    public static SortList[] drawList = new SortList[FACEBUFFER_SIZE];
+
     public static int vertexCount = 0;
     public static int faceCount = 0;
     public static int projectionX = 136;
@@ -79,38 +27,46 @@ public class Scene3D
     public static int[] matFinal = new int[16];
     public static int[] matTemp = new int[16];
 
+    public static SortListComparer listComparer = new SortListComparer();
+
     public static void SetIdentityMatrix(ref int[] m)
     {
-        m[0] = 256;
+        m[0] = 0x100;
         m[1] = 0;
         m[2] = 0;
         m[3] = 0;
+
         m[4] = 0;
-        m[5] = 256;
+        m[5] = 0x100;
         m[6] = 0;
         m[7] = 0;
+
         m[8] = 0;
         m[9] = 0;
-        m[10] = 256;
+        m[10] = 0x100;
         m[11] = 0;
+
         m[12] = 0;
         m[13] = 0;
         m[14] = 0;
-        m[15] = 256;
+        m[15] = 0x100;
     }
 
 
     public static void MatrixMultiply(ref int[] a, ref int[] b)
     {
-        int[] numArray = new int[16];
-        for (uint index = 0; index < 16U; ++index)
+        int[] output = new int[16];
+
+        for (int i = 0; i < 0x10; ++i)
         {
-            uint num1 = index & 3U;
-            uint num2 = index & 12U;
-            numArray[index] = (b[num1] * a[num2] >> 8) + (b[(num1 + 4U)] * a[(num2 + 1U)] >> 8) + (b[(num1 + 8U)] * a[(num2 + 2U)] >> 8) + (b[(num1 + 12U)] * a[(num2 + 3U)] >> 8);
+            int rowA = i / 4;
+            int rowB = i % 4;
+            output[i] = (a[(rowA * 4) + 3] * b[12 + rowB] >> 8) + (a[(rowA * 4) + 2] * b[8 + rowB] >> 8)
+                        + (a[(rowA * 4) + 1] * b[4 + rowB] >> 8) + (a[rowA * 4] * b[rowB] >> 8);
         }
-        for (uint index = 0; index < 16U; ++index)
-            a[index] = numArray[index];
+
+        for (int i = 0; i < 0x10; ++i)
+            a[i] = output[i];
     }
 
     public static void MatrixTranslateXYZ(ref int[] m, int xPos, int yPos, int zPos)
@@ -139,14 +95,17 @@ public class Scene3D
         m[1] = 0;
         m[2] = 0;
         m[3] = 0;
+
         m[4] = 0;
         m[5] = yScale;
         m[6] = 0;
         m[7] = 0;
+
         m[8] = 0;
         m[9] = 0;
         m[10] = zScale;
         m[11] = 0;
+
         m[12] = 0;
         m[13] = 0;
         m[14] = 0;
@@ -155,23 +114,25 @@ public class Scene3D
 
     public static void MatrixRotateX(ref int[] m, int angle)
     {
-        if (angle < 0)
-            angle = 512 - angle;
         angle &= 511;
-        int num1 = FastMath.Sin512(angle) >> 1;
-        int num2 = FastMath.Cos512(angle) >> 1;
+        int sin = FastMath.sinVal512[angle] >> 1;
+        int cos = FastMath.cosVal512[angle] >> 1;
+
         m[0] = 256;
         m[1] = 0;
         m[2] = 0;
         m[3] = 0;
+
         m[4] = 0;
-        m[5] = num2;
-        m[6] = num1;
+        m[5] = cos;
+        m[6] = sin;
         m[7] = 0;
+
         m[8] = 0;
-        m[9] = -num1;
-        m[10] = num2;
+        m[9] = -sin;
+        m[10] = cos;
         m[11] = 0;
+
         m[12] = 0;
         m[13] = 0;
         m[14] = 0;
@@ -180,23 +141,25 @@ public class Scene3D
 
     public static void MatrixRotateY(ref int[] m, int angle)
     {
-        if (angle < 0)
-            angle = 512 - angle;
         angle &= 511;
-        int num1 = FastMath.Sin512(angle) >> 1;
-        int num2 = FastMath.Cos512(angle) >> 1;
-        m[0] = num2;
+        int sin = FastMath.sinVal512[angle] >> 1;
+        int cos = FastMath.cosVal512[angle] >> 1;
+
+        m[0] = cos;
         m[1] = 0;
-        m[2] = num1;
+        m[2] = sin;
         m[3] = 0;
+
         m[4] = 0;
         m[5] = 256;
         m[6] = 0;
         m[7] = 0;
-        m[8] = -num1;
+
+        m[8] = -sin;
         m[9] = 0;
-        m[10] = num2;
+        m[10] = cos;
         m[11] = 0;
+
         m[12] = 0;
         m[13] = 0;
         m[14] = 0;
@@ -205,23 +168,25 @@ public class Scene3D
 
     public static void MatrixRotateZ(ref int[] m, int angle)
     {
-        if (angle < 0)
-            angle = 512 - angle;
         angle &= 511;
-        int num1 = FastMath.Sin512(angle) >> 1;
-        int num2 = FastMath.Cos512(angle) >> 1;
-        m[0] = num2;
+        int sin = FastMath.sinVal512[angle] >> 1;
+        int cos = FastMath.cosVal512[angle] >> 1;
+
+        m[0] = cos;
         m[1] = 0;
-        m[2] = num1;
+        m[2] = sin;
         m[3] = 0;
+
         m[4] = 0;
         m[5] = 256;
         m[6] = 0;
         m[7] = 0;
-        m[8] = -num1;
+
+        m[8] = -sin;
         m[9] = 0;
-        m[10] = num2;
+        m[10] = cos;
         m[11] = 0;
+
         m[12] = 0;
         m[13] = 0;
         m[14] = 0;
@@ -230,33 +195,32 @@ public class Scene3D
 
     public static void MatrixRotateXYZ(ref int[] m, int angleX, int angleY, int angleZ)
     {
-        if (angleX < 0)
-            angleX = 512 - angleX;
         angleX &= 511;
-        if (angleY < 0)
-            angleY = 512 - angleY;
         angleY &= 511;
-        if (angleZ < 0)
-            angleZ = 512 - angleZ;
         angleZ &= 511;
-        int num1 = FastMath.Sin512(angleX) >> 1;
-        int num2 = FastMath.Cos512(angleX) >> 1;
-        int num3 = FastMath.Sin512(angleY) >> 1;
-        int num4 = FastMath.Cos512(angleY) >> 1;
-        int num5 = FastMath.Sin512(angleZ) >> 1;
-        int num6 = FastMath.Cos512(angleZ) >> 1;
-        m[0] = (num4 * num6 >> 8) + ((num1 * num3 >> 8) * num5 >> 8);
-        m[1] = (num4 * num5 >> 8) - ((num1 * num3 >> 8) * num6 >> 8);
-        m[2] = num2 * num3 >> 8;
+
+        int sinX = FastMath.sinVal512[angleX] >> 1;
+        int cosX = FastMath.cosVal512[angleX] >> 1;
+        int sinY = FastMath.sinVal512[angleY] >> 1;
+        int cosY = FastMath.cosVal512[angleY] >> 1;
+        int sinZ = FastMath.sinVal512[angleZ] >> 1;
+        int cosZ = FastMath.cosVal512[angleZ] >> 1;
+
+        m[0] = (cosZ * cosY >> 8) + (sinZ * (sinY * sinX >> 8) >> 8);
+        m[1] = (sinZ * cosY >> 8) - (cosZ * (sinY * sinX >> 8) >> 8);
+        m[2] = sinY * cosX >> 8;
         m[3] = 0;
-        m[4] = -num2 * num5 >> 8;
-        m[5] = num2 * num6 >> 8;
-        m[6] = num1;
+
+        m[4] = -cosX * sinZ >> 8;
+        m[5] = cosZ * cosX >> 8;
+        m[6] = sinX;
         m[7] = 0;
-        m[8] = ((num1 * num4 >> 8) * num5 >> 8) - (num3 * num6 >> 8);
-        m[9] = (-num3 * num5 >> 8) - ((num1 * num4 >> 8) * num6 >> 8);
-        m[10] = num2 * num4 >> 8;
+
+        m[8] = (sinZ * (cosY * sinX >> 8) >> 8) - (cosZ * sinY >> 8);
+        m[9] = (sinZ * -sinY >> 8) - (cosZ * (cosY * sinX >> 8) >> 8);
+        m[10] = cosY * cosX >> 8;
         m[11] = 0;
+
         m[12] = 0;
         m[13] = 0;
         m[14] = 0;
@@ -269,6 +233,9 @@ public class Scene3D
                            matrix[4] / 256.0f, matrix[5] / 256.0f, matrix[6] / 256.0f, matrix[7] / 256.0f,
                            matrix[8] / 256.0f, matrix[9] / 256.0f, matrix[10] / 256.0f, matrix[11] / 256.0f,
                            matrix[12] / 256.0f, matrix[13] / 256.0f, matrix[14] / 256.0f, matrix[15] / 256.0f);
+
+        if (Matrix.Identity == m)
+            return;
 
         var inv = Matrix.Invert(m);
 
@@ -296,7 +263,9 @@ public class Scene3D
         int index2 = 0;
         for (int index3 = 0; index3 < 16; ++index3)
             matFinal[index3] = matWorld[index3];
+
         MatrixMultiply(ref matFinal, ref matView);
+
         for (int index3 = 0; index3 < vertexCount; ++index3)
         {
             Vertex3D vertex3D = vertexBuffer[index1];
@@ -311,21 +280,18 @@ public class Scene3D
         }
     }
 
-    public static void TransformVertices(ref int[] m, int vStart, int vEnd)
+    public static void TransformVertices(ref int[] m, int startIndex, int endIndex)
     {
-        int num = 0;
-        Vertex3D vertex3D1 = new Vertex3D();
-        ++vEnd;
-        for (int index = vStart; index < vEnd - 1; ++index)
+        var vertex3D1 = new Vertex3D();
+        for (int v = startIndex; v < endIndex; ++v)
         {
-            Vertex3D vertex3D2 = vertexBuffer[index];
-            vertex3D1.x = (m[0] * vertex3D2.x >> 8) + (m[4] * vertex3D2.y >> 8) + (m[8] * vertex3D2.z >> 8) + m[12];
-            vertex3D1.y = (m[1] * vertex3D2.x >> 8) + (m[5] * vertex3D2.y >> 8) + (m[9] * vertex3D2.z >> 8) + m[13];
-            vertex3D1.z = (m[2] * vertex3D2.x >> 8) + (m[6] * vertex3D2.y >> 8) + (m[10] * vertex3D2.z >> 8) + m[14];
-            vertexBuffer[index].x = vertex3D1.x;
-            vertexBuffer[index].y = vertex3D1.y;
-            vertexBuffer[index].z = vertex3D1.z;
-            ++num;
+            Vertex3D vertex3D2 = vertexBuffer[v];
+            vertex3D1.x = ((m[0] * vertex3D2.x) >> 8) + ((m[4] * vertex3D2.y) >> 8) + ((m[8] * vertex3D2.z) >> 8) + m[12];
+            vertex3D1.y = ((m[1] * vertex3D2.x) >> 8) + ((m[5] * vertex3D2.y) >> 8) + ((m[9] * vertex3D2.z) >> 8) + m[13];
+            vertex3D1.z = ((m[2] * vertex3D2.x) >> 8) + ((m[6] * vertex3D2.y) >> 8) + ((m[10] * vertex3D2.z) >> 8) + m[14];
+            vertexBuffer[v].x = vertex3D1.x;
+            vertexBuffer[v].y = vertex3D1.y;
+            vertexBuffer[v].z = vertex3D1.z;
         }
     }
 
@@ -333,7 +299,8 @@ public class Scene3D
     {
         for (int index = 0; index < faceCount; ++index)
         {
-            drawList[index].z = vertexBufferT[faceBuffer[index].a].z + vertexBufferT[faceBuffer[index].b].z + vertexBufferT[faceBuffer[index].c].z + vertexBufferT[faceBuffer[index].d].z >> 2;
+            Face3D face3D = faceBuffer[index];
+            drawList[index].z = vertexBufferT[face3D.a].z + vertexBufferT[face3D.b].z + vertexBufferT[face3D.c].z + vertexBufferT[face3D.d].z >> 2;
             drawList[index].index = index;
         }
 
@@ -353,11 +320,14 @@ public class Scene3D
         //    }
         //}
 
-        Array.Sort(drawList, 0, faceCount, new SortListComparer());
+        Array.Sort(drawList, 0, faceCount, listComparer);
     }
 
     public static void Draw3DScene(int surfaceNum)
     {
+        int projectionX = Scene3D.projectionX;
+        int projectionY = Scene3D.projectionY;
+
         Quad2D face = new Quad2D();
         for (int index = 0; index < faceCount; ++index)
         {
@@ -369,7 +339,7 @@ public class Scene3D
 
             switch (face3D.flag)
             {
-                case 0:
+                case FACE_FLAG.TEXTURED_3D:
                     if (a.z > 256 && b.z > 256 && (c.z > 256 && d.z > 256))
                     {
                         face.vertex[0].x = SCREEN_CENTERX + a.x * projectionX / a.z;
@@ -392,7 +362,7 @@ public class Scene3D
                         break;
                     }
                     break;
-                case 1:
+                case FACE_FLAG.TEXTURED_2D:
                     face.vertex[0].x = a.x;
                     face.vertex[0].y = a.y;
                     face.vertex[1].x = b.x;
@@ -411,7 +381,7 @@ public class Scene3D
                     face.vertex[3].v = d.v;
                     DrawTexturedQuad(face, surfaceNum);
                     break;
-                case 2:
+                case FACE_FLAG.COLOURED_3D:
                     if (a.z > 0 && b.z > 0 && c.z > 0 && d.z > 0)
                     {
                         face.vertex[0].x = SCREEN_CENTERX + projectionX * a.x / a.z;
@@ -426,7 +396,7 @@ public class Scene3D
                         break;
                     }
                     break;
-                case 3:
+                case FACE_FLAG.COLOURED_2D:
                     face.vertex[0].x = a.x;
                     face.vertex[0].y = a.y;
                     face.vertex[1].x = b.x;
@@ -455,7 +425,7 @@ public class Scene3D
                         if (fogStr > fogStrength)
                             fogStr = fogStrength;
 
-                        Drawing.DrawFadedQuad(face,  (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
+                        Drawing.DrawFadedQuad(face, (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C:
@@ -513,7 +483,7 @@ public class Scene3D
                         Drawing.DrawTexturedBlendedQuad(face, face3D.color);
                     }
                     break;
-                case FACE_FLAG.THREEDSPRITE:
+                case FACE_FLAG.SPRITE_3D:
                     if (a.z > 0)
                     {
                         int xpos = SCREEN_CENTERX + projectionX * a.x / a.z;

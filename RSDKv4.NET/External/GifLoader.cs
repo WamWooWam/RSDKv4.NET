@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Retro_Engine.GifLoader
-// Assembly: Sonic CD, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: D35AF46A-1892-4F52-B201-E664C9200079
-// Assembly location: E:\wamwo\Downloads\Sonic CD Mod Via Rebel\Sonic CD Mod Via Rebel\Sonic CD.dll
-
-namespace RSDKv4.External;
+﻿namespace RSDKv4.External;
 
 public static class GifLoader
 {
@@ -107,7 +101,7 @@ public static class GifLoader
                 }
                 else
                 {
-                    if (code2 < 0 | code2 > 4095)
+                    if (code2 < 0 || code2 > 4095)
                         return;
                     int index;
                     if (gifDecoder.prefix[code2] == 4098U)
@@ -122,14 +116,14 @@ public static class GifLoader
                     int num2;
                     for (num2 = 0; num2++ <= 4095 && index > clearCode && index <= 4095; index = (int)gifDecoder.prefix[index])
                         gifDecoder.stack[stackPtr++] = gifDecoder.suffix[index];
-                    if (num2 >= 4095 | index > 4095)
+                    if (num2 >= 4095 || index > 4095)
                         return;
                     for (gifDecoder.stack[stackPtr++] = (byte)index; stackPtr != 0 && num1 < length; ++num1)
                         line[offset++] = gifDecoder.stack[--stackPtr];
                 }
                 if (code1 != 4098)
                 {
-                    if (gifDecoder.runningCode < 2 | gifDecoder.runningCode > 4097)
+                    if (gifDecoder.runningCode < 2 || gifDecoder.runningCode > 4097)
                         return;
                     gifDecoder.prefix[gifDecoder.runningCode - 2] = (uint)code1;
                     gifDecoder.suffix[gifDecoder.runningCode - 2] = code2 != gifDecoder.runningCode - 2 ? TracePrefix(ref gifDecoder.prefix, code2, clearCode) : TracePrefix(ref gifDecoder.prefix, code1, clearCode);

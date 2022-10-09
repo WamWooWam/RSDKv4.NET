@@ -7,103 +7,7 @@ using static RSDKv4.Drawing;
 
 namespace RSDKv4.Native;
 
-public struct RenderVertex : IVertexType
-{
-    public static readonly VertexDeclaration VertexDeclaration = new VertexDeclaration(new VertexElement[4]
-    {
-        new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
-        new VertexElement(12, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
-        new VertexElement(24, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
-        new VertexElement(32, VertexElementFormat.Color, VertexElementUsage.Color, 0)
-    });
-
-    public Vector3 position;
-    public Vector3 normal;
-    public Vector2 texCoord;
-    public Color color;
-
-    public RenderVertex(Vector3 position, Vector3 normal, Vector2 texCoord, Color color)
-    {
-        this.position = position;
-        this.normal = normal;
-        this.texCoord = texCoord;
-        this.color = color;
-    }
-
-    VertexDeclaration IVertexType.VertexDeclaration
-        => VertexDeclaration;
-}
-
-
-public static class RENDER_BLEND
-{
-    public const int NONE = 0,
-        ALPHA = 1,
-        ALPHA2 = 2,
-        ALPHA3 = 3;
-}
-
-public static class TEXFMT
-{
-    public const int NONE = 0,
-        RGBA4444 = 1,
-        RGBA5551 = 2,
-        RGBA8888 = 3,
-        RETROBUFFER = 4;
-}
-
-public static class MESH
-{
-    public const int COLOURS = 0,
-        NORMALS = 1,
-        COLOURS_NORMALS = 2;
-}
-
-public struct MeshVertex
-{
-    public Vector3 position;
-    public Vector3 normal;
-}
-
-public class MeshInfo
-{
-    public string fileName;
-    public RenderVertex[] vertices;
-    public short[] indices;
-    public MeshVertex[] frames;
-    public byte textureId;
-}
-
-public class MeshAnimator
-{
-    public float animationSpeed;
-    public float animationTimer;
-    public ushort frameId;
-    public ushort loopIndex;
-    public ushort frameCount;
-    public bool loopAnimation;
-    public bool animationFinished;
-}
-
-public class RenderState
-{
-    public RenderVertex[] vertices;
-    public short[] indices;
-    public Matrix? renderMatrix;
-    public int vertexOffset;
-    public int indexOffset;
-    public int indexCount;
-    public int id;
-    public byte blendMode;
-    public bool useTexture;
-    public bool useColours;
-    public bool depthTest;
-    public bool useNormals;
-    public bool useFilter;
-}
-
-
-internal class NativeRenderer
+public class NativeRenderer
 {
     public static float SCREEN_XSIZE_F = 400;
     public static float SCREEN_CENTERX_F = 400 / 2;
@@ -157,11 +61,22 @@ internal class NativeRenderer
         _game = game;
         _device = device;
         _effect = new BasicEffect(device) { TextureEnabled = true };
-
-        SetPerspectiveMatrix(90.0f, 0.75f, 1.0f, 5000.0f);
-        _effect.View = Matrix.CreateScale(1, 1, -1);
-        _effect.World = Matrix.Identity;
+        SetScreenDimensions(800, 480);
         SetupDrawIndexList();
+    }
+
+    public static void SetScreenDimensions(int width, int height)
+    {
+        double aspect = (width / (double)height);
+        SCREEN_XSIZE_F = (float)(SCREEN_YSIZE * aspect);
+        SCREEN_CENTERX_F = (float)(aspect * SCREEN_CENTERY);
+
+        _effect.Projection =
+            Matrix.CreateScale((float)(320.0 / (SCREEN_YSIZE * aspect)), 1.0f, 1.0f)
+            * CreatePerspectiveMatrix(90.0f, 0.75f, 1.0f, 5000.0f);
+
+        _effect.View = Matrix.Identity;
+        _effect.World = Matrix.Identity;
     }
 
     public static void ResetRenderStates()
@@ -183,23 +98,22 @@ internal class NativeRenderer
         vertexB = b;
     }
 
-    public static void SetPerspectiveMatrix(float w, float h, float near, float far)
+    public static Matrix CreatePerspectiveMatrix(float w, float h, float near, float far)
     {
         var result = new Matrix();
-        var val = (float)Math.Tan((float)(0.017453292f * w) * 0.5f);
-        result.M34 = 1.0f;
-        result.M11 = 1.0f / val;
-        result.M22 = 1.0f / (val * h);
+        var val = Math.Tan(0.017453292 * w * 0.5);
+        result.M11 = (float)(1.0 / val);
+        result.M22 = (float)(1.0 / (val * h));
         result.M33 = (far + near) / (far - near);
+        result.M34 = 1.0f;
         result.M43 = -((far + far) * near) / (far - near);
-
-        _effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(76f), SCREEN_XSIZE / (float)SCREEN_YSIZE, near, far);
+        return result;
     }
 
     public static void SetupDrawIndexList()
     {
         int index = 0;
-        for (int i = 0; i < DRAWINDEX_LIMIT;)
+        for (int i = 0; i < DRAWINDEX_LIMIT; i += 6)
         {
             drawIndexList[i + 2] = (short)(index + 0);
             drawIndexList[i + 1] = (short)(index + 1);
@@ -208,7 +122,6 @@ internal class NativeRenderer
             drawIndexList[i + 4] = (short)(index + 3);
             drawIndexList[i + 3] = (short)(index + 2);
             index += 4;
-            i += 6;
         }
 
         int width2 = 0;
@@ -229,30 +142,33 @@ internal class NativeRenderer
         int texHeight = 1 << height2;
 
         textures[0] = new TextureInfo();
+        textures[0].widthN = 1.0f / texWidth;
+        textures[0].heightN = 1.0f / texHeight;
+
         float w = (SCREEN_XSIZE * textures[0].widthN);
         float w2 = (GFX_LINESIZE * textures[0].widthN);
         float h = (SCREEN_YSIZE * textures[0].heightN);
 
-        retroVertexList[0] = -SCREEN_CENTERX_F;
-        retroVertexList[1] = SCREEN_CENTERY_F;
+        retroVertexList[0] = -SCREEN_CENTERX;
+        retroVertexList[1] = SCREEN_CENTERY;
         retroVertexList[2] = 160.0f;
         retroVertexList[6] = 0.0f;
         retroVertexList[7] = 0.0f;
 
-        retroVertexList[9] = SCREEN_CENTERX_F;
-        retroVertexList[10] = SCREEN_CENTERY_F;
+        retroVertexList[9] = SCREEN_CENTERX;
+        retroVertexList[10] = SCREEN_CENTERY;
         retroVertexList[11] = 160.0f;
         retroVertexList[15] = 1.0f;
         retroVertexList[16] = 0.0f;
 
-        retroVertexList[18] = -SCREEN_CENTERX_F;
-        retroVertexList[19] = -SCREEN_CENTERY_F;
+        retroVertexList[18] = -SCREEN_CENTERX;
+        retroVertexList[19] = -SCREEN_CENTERY;
         retroVertexList[20] = 160.0f;
         retroVertexList[24] = 0.0f;
         retroVertexList[25] = 1.0f;
 
-        retroVertexList[27] = SCREEN_CENTERX_F;
-        retroVertexList[28] = -SCREEN_CENTERY_F;
+        retroVertexList[27] = SCREEN_CENTERX;
+        retroVertexList[28] = -SCREEN_CENTERY;
         retroVertexList[29] = 160.0f;
         retroVertexList[33] = 1.0f;
         retroVertexList[34] = 1.0f;
@@ -287,13 +203,14 @@ internal class NativeRenderer
         textures[0].format = TEXFMT.RETROBUFFER;
         textures[0].widthN = 1.0f / texWidth;
         textures[0].heightN = 1.0f / texHeight;
-        //textures[0].id = RenderTarget;
+        //textures[0].id = Drawing.CopyRetroBuffer();
     }
 
     public static void SetRenderMatrix(Matrix? matrix)
     {
-        //currentRenderState.color.RenderMatrix = matrix;
-
+#if FNA && DEBUG
+        matrix?.CheckForNaNs();
+#endif
         _effect.World = matrix.HasValue ? matrix.Value : Matrix.Identity;
     }
 
@@ -312,7 +229,7 @@ internal class NativeRenderer
         _device.BlendState = BlendState.NonPremultiplied;
         _device.RasterizerState = RasterizerState.CullNone;
         _device.DepthStencilState = DepthStencilState.None;
-        _device.Clear(Color.Black);
+        _device.Clear(Color.Green);
     }
 
     public static void EndDraw()
@@ -322,17 +239,17 @@ internal class NativeRenderer
 
     public static void RenderRect(float x, float y, float z, float w, float h, byte r, byte g, byte b, int alpha)
     {
-        int a = 0;
-        if (alpha >= 0)
-            a = alpha;
-        if (a > 0xFF)
-            a = 0xFF;
+        if (alpha < 0)
+            alpha = 0;
+        if (alpha > 255)
+            alpha = 255;
+
+        byte a = (byte)alpha;
 
         _device.DepthStencilState = DepthStencilState.None;
         _effect.TextureEnabled = false;
         _effect.VertexColorEnabled = true;
         _effect.LightingEnabled = false;
-
 
         var drawVertexList = new RenderVertex[4];
         drawVertexList[0] = new RenderVertex(new Vector3(x, y, z), Vector3.Zero, Vector2.Zero, new Color(r, g, b, a));
@@ -344,13 +261,14 @@ internal class NativeRenderer
     }
 
     public static void RenderImage(float x, float y, float z, float scaleX, float scaleY, float pivotX, float pivotY, float sprW, float sprH, float sprX, float sprY,
-                 int alpha, byte texture)
+                 int alpha, int texture)
     {
-        int a = 0;
-        if (alpha >= 0)
-            a = alpha;
-        if (a > 0xFF)
-            a = 0xFF;
+        if (alpha < 0)
+            alpha = 0;
+        if (alpha > 255)
+            alpha = 255;
+
+        byte a = (byte)alpha;
 
         _device.DepthStencilState = DepthStencilState.None;
 
@@ -363,13 +281,13 @@ internal class NativeRenderer
         drawVertexList[0] = new RenderVertex(
             new Vector3(x - (pivotX * scaleX), (pivotY * scaleY) + y, z),
             Vector3.Zero,
-            new Vector2(sprX * textures[texture].widthN, sprX * textures[texture].heightN),
+            new Vector2(sprX * textures[texture].widthN, sprY * textures[texture].heightN),
             new Color(vertexR, vertexG, vertexB, a)
             );
         drawVertexList[1] = new RenderVertex(
             new Vector3(((sprW - pivotX) * scaleX) + x, (pivotY * scaleY) + y, z),
             Vector3.Zero,
-            new Vector2((sprX + sprW) * textures[texture].widthN, sprX * textures[texture].heightN),
+            new Vector2((sprX + sprW) * textures[texture].widthN, sprY * textures[texture].heightN),
             new Color(vertexR, vertexG, vertexB, a)
             );
         drawVertexList[2] = new RenderVertex(
@@ -394,11 +312,12 @@ internal class NativeRenderer
         float posX = x;
         float posY = (font.baseline * scale) + y;
 
-        int a = 0;
-        if (alpha >= 0)
-            a = alpha;
-        if (a > 0xFF)
-            a = 0xFF;
+        if (alpha < 0)
+            alpha = 0;
+        if (alpha > 255)
+            alpha = 255;
+
+        byte a = (byte)alpha;
 
         _device.DepthStencilState = DepthStencilState.None;
         _effect.TextureEnabled = true;
@@ -529,20 +448,21 @@ internal class NativeRenderer
 
     public static void RenderRetroBuffer(int alpha, float z)
     {
-        int a = 0;
-        if (alpha >= 0)
-            a = alpha;
-        if (a > 0xFF)
-            a = 0xFF;
+        if (alpha < 0)
+            alpha = 0;
+        if (alpha > 255)
+            alpha = 255;
+
+        byte a = (byte)alpha;
 
         _device.DepthStencilState = DepthStencilState.None;
-        //_device.SamplerStates[0] = SamplerState.PointClamp;
+        _device.SamplerStates[0] = SamplerState.PointClamp;
 
         _effect.TextureEnabled = true;
-        //_effect.Texture = RenderTarget;
+        _effect.Texture = Drawing.CopyRetroBuffer();
         _effect.VertexColorEnabled = false;
         _effect.LightingEnabled = false;
-
+        _device.BlendState = BlendState.Opaque;
 
         RenderVertex vertex1 = new RenderVertex();
         vertex1.position.X = retroVertexList[0];
@@ -625,8 +545,8 @@ internal class NativeRenderer
         if (!FileIO.LoadFile(filePath, out var info))
             return 0;
 
+        using var stream = FileIO.CreateFileStream();
         var texture = textures[texID] = new TextureInfo();
-        var stream = FileIO.CreateFileStream();
         texture.id = Texture2D.FromStream(_device, stream);
         texture.width = texture.id.Width;
         texture.height = texture.id.Height;
@@ -679,7 +599,7 @@ internal class NativeRenderer
                     //FileRead(&buf, sizeof(float));
                     mesh.vertices[v].texCoord.X = FileIO.ReadFloat();
                     mesh.vertices[v].texCoord.Y = FileIO.ReadFloat();
-                    mesh.vertices[v].color = new Color(255, 255, 25, 255);
+                    mesh.vertices[v].color = new Color(255, 255, 255, 255);
                 }
 
                 var indexCount = FileIO.ReadUInt16();
@@ -699,7 +619,7 @@ internal class NativeRenderer
                 var frameCount = FileIO.ReadUInt16();
                 if (frameCount <= 1)
                 {
-                    for (int v = 0; v < frameCount; ++v)
+                    for (int v = 0; v < vertexCount; ++v)
                     {
                         mesh.vertices[v].position.X = FileIO.ReadFloat();
                         mesh.vertices[v].position.Y = FileIO.ReadFloat();
@@ -755,6 +675,14 @@ internal class NativeRenderer
             animator.frameId = 0;
         }
         animator.animationSpeed = speed;
+    }
+
+    public static void SetMeshVertexColors(MeshInfo mesh, byte r, byte g, byte b, byte a)
+    {
+        for (int v = 0; v < mesh.vertices.Length; ++v)
+        {
+            mesh.vertices[v].color = new Color(r, g, b, a);
+        }
     }
 
     public static void AnimateMesh(MeshInfo mesh, MeshAnimator animator)

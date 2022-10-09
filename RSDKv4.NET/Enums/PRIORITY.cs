@@ -1,7 +1,4 @@
-﻿#define RETRO_REV02
-
-
-namespace RSDKv4;
+﻿namespace RSDKv4;
 
 public static class PRIORITY
 {

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RSDKv4;
 
-internal class FastMath
+public class FastMath
 {
     public static int[] sinValM7 = new int[0x200];
     public static int[] cosValM7 = new int[0x200];
@@ -84,7 +82,7 @@ internal class FastMath
         }
     }
 
-    public static byte ArcTanLookup(int X, int Y)
+    public static byte ArcTan(int X, int Y)
     {
         int x = Math.Abs(X);
         int y = Math.Abs(Y);

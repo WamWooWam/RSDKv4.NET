@@ -1,18 +1,16 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Diagnostics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.Native;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-
+using RSDKv4.Utility;
 using static RSDKv4.Drawing;
-using static RSDKv4.Scene;
 using static RSDKv4.Palette;
+using static RSDKv4.Scene;
 
 namespace RSDKv4.Render;
 
-internal class HardwareRenderer : IRenderer
+public class HardwareRenderer : IRenderer
 {
     private static readonly Color MAX_COLOR
         = new Color(255, 255, 255, 255);
@@ -29,6 +27,8 @@ internal class HardwareRenderer : IRenderer
     private RasterizerState _noScissorState;
     private RasterizerState _scissorState;
 
+    private BlendState[] _blendStates;
+
     // 1024x1024 atlases
 #if FAST_PALETTE
     private Texture2D _surface;
@@ -40,8 +40,8 @@ internal class HardwareRenderer : IRenderer
     // only used to flip the display
     private SpriteBatch _spriteBatch;
 
-    private Matrix _projection2D;
     private Rectangle _screenRect;
+    private Matrix _projection2D;
 
 #if ENABLE_3D
     private Matrix _projection3D;
@@ -68,8 +68,8 @@ internal class HardwareRenderer : IRenderer
     public HardwareRenderer(Game game, GraphicsDevice device)
     {
         _game = game;
-
         _device = device;
+
 #if FAST_PALETTE
         _effect = game.Content.Load<Effect>("Shaders/Palette");
         _surface = new Texture2D(device, SURFACE_SIZE, SURFACE_SIZE, false, SurfaceFormat.Alpha8);
@@ -88,14 +88,30 @@ internal class HardwareRenderer : IRenderer
 
         _spriteBatch = new SpriteBatch(device);
 
+        _blendStates = new BlendState[5];
+        _blendStates[(int)BlendMode.None] = BlendState.Opaque;
+        _blendStates[(int)BlendMode.Alpha] = BlendState.NonPremultiplied;
+        _blendStates[(int)BlendMode.Additive] = BlendState.Additive;
+        _blendStates[(int)BlendMode.Subtractive] = new BlendState()
+        {
+            ColorSourceBlend = Blend.SourceAlpha,
+            ColorDestinationBlend = Blend.One,
+            ColorBlendFunction = BlendFunction.ReverseSubtract,
+            AlphaSourceBlend = Blend.SourceAlpha,
+            AlphaDestinationBlend = Blend.One,
+            AlphaBlendFunction = BlendFunction.ReverseSubtract
+        };
+
         SetScreenDimensions(device.PresentationParameters.BackBufferWidth, device.PresentationParameters.BackBufferHeight);
         SetupPolygonLists();
     }
 
     public void SetScreenDimensions(int width, int height)
     {
-        //InputSystem.touchWidth = width;
-        //InputSystem.touchHeight = height;
+        NativeRenderer.SetScreenDimensions(width, height);
+
+        Input.touchWidth = width;
+        Input.touchHeight = height;
         var viewWidth = width;
         var viewHeight = height;
         var bufferWidth = (int)((float)viewWidth / (float)viewHeight * 240f);
@@ -117,13 +133,7 @@ internal class HardwareRenderer : IRenderer
             SetScreenRenderSize(bufferWidth, bufferWidth);
         }
 
-        float aspect = (((width >> 16) * 65536.0f) + width) / (((height >> 16) * 65536.0f) + height);
-        NativeRenderer.SCREEN_XSIZE_F = SCREEN_YSIZE * aspect;
-        NativeRenderer.SCREEN_CENTERX_F = aspect * SCREEN_CENTERY;
-        NativeRenderer.SetPerspectiveMatrix(SCREEN_YSIZE * aspect, NativeRenderer.SCREEN_YSIZE_F, 1.0f, 1000.0f);
-
         var orthWidth = SCREEN_XSIZE * 16;
-
         _projection2D = Matrix.CreateOrthographicOffCenter(4f, (float)(orthWidth + 4), 3844f, 4f, 0.0f, 100f);
 #if ENABLE_3D
         _projection3D = Matrix.CreatePerspectiveFieldOfView(1.832596f, viewAspect, 0.1f, 2000f) * Matrix.CreateScale(1f, -1f, 1f) * Matrix.CreateTranslation(0.0f, -0.045f, 0.0f);
@@ -138,7 +148,7 @@ internal class HardwareRenderer : IRenderer
         _screenRect = new Rectangle((int)x, (int)y, (int)realWidth, (int)realHeight);
     }
 
-    internal void SetScreenRenderSize(int width, int lineSize)
+    public void SetScreenRenderSize(int width, int lineSize)
     {
         //SCREEN_XSIZE = width;
         //SCREEN_CENTERX = width / 2;
@@ -175,7 +185,7 @@ internal class HardwareRenderer : IRenderer
 
         for (byte paletteNum = 1; paletteNum < 6; ++paletteNum)
         {
-            SetActivePalette(paletteNum, 0, 240);
+            SetActivePalette(paletteNum, 0, SCREEN_YSIZE);
             UpdateTextureBufferWithTiles();
             UpdateTextureBufferWithSprites();
             _textures[paletteNum].SetData(textureBuffer);
@@ -184,7 +194,7 @@ internal class HardwareRenderer : IRenderer
 #endif
     }
 
-    internal void UpdateActivePalettes()
+    public void UpdateActivePalettes()
     {
 #if FAST_PALETTE
         fullPalette[texPaletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
@@ -213,7 +223,7 @@ internal class HardwareRenderer : IRenderer
     {
         frame++;
         _device.SetRenderTarget(_renderTarget);
-        _device.Clear(Color.Red);
+        _device.Clear(Color.Black);
 
         if (surfaceDirty)
         {
@@ -222,7 +232,7 @@ internal class HardwareRenderer : IRenderer
             surfaceDirty = false;
         }
 
-#if !SILVERLIGHT
+#if FAST_PALETTE
         if (paletteDirty)
         {
             // Debug.WriteLine($"{frame} Updating palettes");
@@ -311,12 +321,7 @@ internal class HardwareRenderer : IRenderer
                 if (drawList.vertexCount == 0 || drawList.indexCount == 0)
                     continue;
 
-                if (drawList.blendMode == BlendMode.None)
-                    _device.BlendState = BlendState.Opaque;
-                else if (drawList.blendMode == BlendMode.Alpha)
-                    _device.BlendState = BlendState.NonPremultiplied;
-                else if (drawList.blendMode == BlendMode.Additive)
-                    _device.BlendState = BlendState.Additive;
+                _device.BlendState = _blendStates[(int)drawList.blendMode];
 
                 foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
                 {
@@ -345,7 +350,7 @@ internal class HardwareRenderer : IRenderer
         _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
         _spriteBatch.Draw(_renderTarget, _screenRect, Color.White);
 
-#if FAST_PALETTE && false
+#if FAST_PALETTE
         for (int i = 0; i < PALETTE_COUNT; i++)
         {
             _spriteBatch.Draw(_palettes[i], new Rectangle(64 * i, _screenRect.Height - 64, 64, 64), Color.White);
@@ -353,6 +358,12 @@ internal class HardwareRenderer : IRenderer
 #endif
 
         _spriteBatch.End();
+    }
+
+    public Texture2D CopyRetroBuffer()
+    {
+        // no copying here sir
+        return _renderTarget;
     }
 
     public void Reset()
@@ -447,8 +458,10 @@ internal class HardwareRenderer : IRenderer
 
     public void Copy16x16Tile(int dest, int src)
     {
-        if (src << 2 < tileUVList.Length && dest << 2 < tileUVList.Length)
-            Array.Copy(tileUVList, src << 2, tileUVList, dest << 2, 4);
+        src <<= 2;
+        dest <<= 2;
+        if (src < tileUVList.Length && dest < tileUVList.Length)
+            Array.Copy(tileUVList, src, tileUVList, dest, 4);
     }
 
     public void UpdateTextureBufferWithTiles()
@@ -456,6 +469,9 @@ internal class HardwareRenderer : IRenderer
         var cnt = 0;
         var bufPos = 0;
         var currentPalette = fullPalette[texPaletteNum];
+
+        Helpers.Memset(textureBuffer, (byte)255);
+
         if (textureBufferMode == 0)
         {
             for (int h = 0; h < 512; h += 16)
@@ -467,16 +483,45 @@ internal class HardwareRenderer : IRenderer
                     bufPos = w + (h << 10);
                     for (int y = 0; y < TILE_SIZE; y++)
                     {
-                        for (int x = 0; x < TILE_SIZE; x++)
-                        {
 #if FAST_PALETTE
-                            textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos] = tilesetGFXData[dataPos];
+                        textureBuffer[bufPos + 1] = tilesetGFXData[dataPos + 1];
+                        textureBuffer[bufPos + 2] = tilesetGFXData[dataPos + 2];
+                        textureBuffer[bufPos + 3] = tilesetGFXData[dataPos + 3];
+                        textureBuffer[bufPos + 4] = tilesetGFXData[dataPos + 4];
+                        textureBuffer[bufPos + 5] = tilesetGFXData[dataPos + 5];
+                        textureBuffer[bufPos + 6] = tilesetGFXData[dataPos + 6];
+                        textureBuffer[bufPos + 7] = tilesetGFXData[dataPos + 7];
+                        textureBuffer[bufPos + 8] = tilesetGFXData[dataPos + 8];
+                        textureBuffer[bufPos + 9] = tilesetGFXData[dataPos + 9];
+                        textureBuffer[bufPos + 10] = tilesetGFXData[dataPos + 10];
+                        textureBuffer[bufPos + 11] = tilesetGFXData[dataPos + 11];
+                        textureBuffer[bufPos + 12] = tilesetGFXData[dataPos + 12];
+                        textureBuffer[bufPos + 13] = tilesetGFXData[dataPos + 13];
+                        textureBuffer[bufPos + 14] = tilesetGFXData[dataPos + 14];
+                        textureBuffer[bufPos + 15] = tilesetGFXData[dataPos + 15];
+
 #else
-                            textureBuffer[bufPos] = currentPalette[tilesetGFXData[dataPos]];
+                        textureBuffer[bufPos] =  currentPalette[tilesetGFXData[dataPos]];
+                        textureBuffer[bufPos + 1] =  currentPalette[tilesetGFXData[dataPos + 1]];
+                        textureBuffer[bufPos + 2] =  currentPalette[tilesetGFXData[dataPos + 2]];
+                        textureBuffer[bufPos + 3] =  currentPalette[tilesetGFXData[dataPos + 3]];
+                        textureBuffer[bufPos + 4] =  currentPalette[tilesetGFXData[dataPos + 4]];
+                        textureBuffer[bufPos + 5] =  currentPalette[tilesetGFXData[dataPos + 5]];
+                        textureBuffer[bufPos + 6] =  currentPalette[tilesetGFXData[dataPos + 6]];
+                        textureBuffer[bufPos + 7] =  currentPalette[tilesetGFXData[dataPos + 7]];
+                        textureBuffer[bufPos + 8] =  currentPalette[tilesetGFXData[dataPos + 8]];
+                        textureBuffer[bufPos + 9] =  currentPalette[tilesetGFXData[dataPos + 9]];
+                        textureBuffer[bufPos + 10] =  currentPalette[tilesetGFXData[dataPos + 10]];
+                        textureBuffer[bufPos + 11] =  currentPalette[tilesetGFXData[dataPos + 11]];
+                        textureBuffer[bufPos + 12] =  currentPalette[tilesetGFXData[dataPos + 12]];
+                        textureBuffer[bufPos + 13] =  currentPalette[tilesetGFXData[dataPos + 13]];
+                        textureBuffer[bufPos + 14] =  currentPalette[tilesetGFXData[dataPos + 14]];
+                        textureBuffer[bufPos + 15] =  currentPalette[tilesetGFXData[dataPos + 15]];
 #endif
-                            bufPos++;
-                            dataPos++;
-                        }
+                        bufPos += 16;
+                        dataPos += 16;
+
                         bufPos += 1008;
                     }
                 }
@@ -645,7 +690,7 @@ internal class HardwareRenderer : IRenderer
     {
         for (int i = 0; i < SURFACE_MAX; ++i)
         {
-            SurfaceDesc surface = _surfaces[i];
+            SurfaceDesc surface = surfaces[i];
             if (surface.texStartY + surface.height <= SURFACE_SIZE && surface.texStartX > -1)
             {
                 int pos = surface.dataPosition;
@@ -674,7 +719,7 @@ internal class HardwareRenderer : IRenderer
         byte surfCnt = 0;
         byte[] surfList = new byte[SURFACE_MAX];
         bool flag = true;
-        for (int i = 0; i < SURFACE_MAX; i++) _surfaces[i].texStartX = -1;
+        for (int i = 0; i < SURFACE_MAX; i++) surfaces[i].texStartX = -1;
 
         for (int i = 0; i < SURFACE_MAX; i++)
         {
@@ -682,7 +727,7 @@ internal class HardwareRenderer : IRenderer
             int surfID = -1;
             for (int s = 0; s < SURFACE_MAX; s++)
             {
-                var surface = _surfaces[s];
+                var surface = surfaces[s];
                 if (surface != null && surface.texStartX == -1)
                 {
                     if (CheckSurfaceSize(surface.width) && CheckSurfaceSize(surface.height))
@@ -706,17 +751,17 @@ internal class HardwareRenderer : IRenderer
             }
             else
             {
-                _surfaces[surfID].texStartX = 0;
+                surfaces[surfID].texStartX = 0;
                 surfList[surfCnt++] = (byte)surfID;
             }
         }
 
         for (int i = 0; i < SURFACE_MAX; i++)
-            _surfaces[i].texStartX = -1;
+            surfaces[i].texStartX = -1;
 
         for (int i = 0; i < surfCnt; i++)
         {
-            var curSurface = _surfaces[surfList[i]];
+            var curSurface = surfaces[surfList[i]];
             curSurface.texStartX = 0;
             curSurface.texStartY = 0;
             bool loopFlag = true;
@@ -742,7 +787,7 @@ internal class HardwareRenderer : IRenderer
                     {
                         for (int s = 0; s < SURFACE_MAX; s++)
                         {
-                            var surface = _surfaces[s];
+                            var surface = surfaces[s];
                             if (surface.texStartX > -1 && s != surfList[i] && curSurface.texStartX < surface.texStartX + surface.width
                                 && curSurface.texStartX >= surface.texStartX && curSurface.texStartY < surface.texStartY + surface.height)
                             {
@@ -776,7 +821,7 @@ internal class HardwareRenderer : IRenderer
                         {
                             for (int s = 0; s < SURFACE_MAX; s++)
                             {
-                                var surface = _surfaces[s];
+                                var surface = surfaces[s];
                                 if (surface.texStartX > -1 && s != surfList[i] && curSurface.texStartX < surface.texStartX + surface.width
                                     && curSurface.texStartX >= surface.texStartX && curSurface.texStartY < surface.texStartY + surface.height)
                                 {
@@ -886,42 +931,33 @@ internal class HardwareRenderer : IRenderer
         if (alpha > byte.MaxValue)
             alpha = byte.MaxValue;
 
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
             return;
+
+        var color = new Color(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
+
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin) * PIXEL_TO_UV;
         vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin) * PIXEL_TO_UV;
         ++vertexCount;
         vertexList[vertexCount].position.X = xPos + xSize << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin + xSize) * PIXEL_TO_UV;
         vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
         ++vertexCount;
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos + ySize << 4;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
         vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin + ySize) * PIXEL_TO_UV;
         ++vertexCount;
         vertexList[vertexCount].position.X = vertexList[vertexCount - 2].position.X;
         vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
         vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
         ++vertexCount;
@@ -937,42 +973,32 @@ internal class HardwareRenderer : IRenderer
         if (alpha < 0)
             alpha = 0;
 
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
             return;
+
+        var color = new Color(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin) * PIXEL_TO_UV;
         vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin) * PIXEL_TO_UV;
         ++vertexCount;
         vertexList[vertexCount].position.X = xPos + xSize << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = (surfaceDesc.texStartX + xBegin + xSize) * PIXEL_TO_UV;
         vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
         ++vertexCount;
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos + ySize << 4;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
         vertexList[vertexCount].texCoord.Y = (surfaceDesc.texStartY + yBegin + ySize) * PIXEL_TO_UV;
         ++vertexCount;
         vertexList[vertexCount].position.X = vertexList[vertexCount - 2].position.X;
         vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
-        vertexList[vertexCount].color.R = byte.MaxValue;
-        vertexList[vertexCount].color.G = byte.MaxValue;
-        vertexList[vertexCount].color.B = byte.MaxValue;
-        vertexList[vertexCount].color.A = (byte)alpha;
+        vertexList[vertexCount].color = color;
         vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
         vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
         ++vertexCount;
@@ -983,7 +1009,7 @@ internal class HardwareRenderer : IRenderer
     {
         EnsureBlendMode(BlendMode.Alpha);
 
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
             return;
         vertexList[vertexCount].position.X = xPos << 4;
@@ -1811,7 +1837,7 @@ internal class HardwareRenderer : IRenderer
             rotAngle = 512 - rotAngle;
         int num1 = FastMath.Sin512(rotAngle);
         int num2 = FastMath.Cos512(rotAngle);
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -8192 || xPos >= 13952) || (yPos <= -8192 || yPos >= 12032))
             return;
         if (direction == 0)
@@ -1899,7 +1925,7 @@ internal class HardwareRenderer : IRenderer
             rotAngle = 512 - rotAngle;
         int num1 = FastMath.Sin512(rotAngle) * scale >> 9;
         int num2 = FastMath.Cos512(rotAngle) * scale >> 9;
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -8192 || xPos >= 13952) || (yPos <= -8192 || yPos >= 12032))
             return;
         if (direction == 0)
@@ -1984,7 +2010,7 @@ internal class HardwareRenderer : IRenderer
         xScale = xSize * xScale >> 5;
         yPos -= yPivot * yScale >> 5;
         yScale = ySize * yScale >> 5;
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1)
             return;
         vertexList[vertexCount].position.X = xPos;
@@ -2024,7 +2050,7 @@ internal class HardwareRenderer : IRenderer
         xScale = xSize * xScale >> 11;
         yPos -= yPivot * yScale >> 11;
         yScale = ySize * yScale >> 11;
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1)
             return;
         vertexList[vertexCount].position.X = xPos << 4;
@@ -2058,7 +2084,7 @@ internal class HardwareRenderer : IRenderer
     {
         EnsureBlendMode(BlendMode.Alpha);
 
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
             return;
         vertexList[vertexCount].position.X = xPos << 4;
@@ -2092,7 +2118,7 @@ internal class HardwareRenderer : IRenderer
     {
         EnsureBlendMode(BlendMode.Alpha);
 
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT)
             return;
         switch (direction)
@@ -2212,7 +2238,7 @@ internal class HardwareRenderer : IRenderer
         if (alpha > byte.MaxValue)
             alpha = byte.MaxValue;
 
-        var surfaceDesc = _surfaces[surfaceNum];
+        var surfaceDesc = surfaces[surfaceNum];
         if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
             return;
 
@@ -2249,7 +2275,7 @@ internal class HardwareRenderer : IRenderer
     {
         if (vertexCount >= VERTEX_LIMIT)
             return;
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         vertexList[vertexCount].position.X = face.vertex[0].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[0].y << 4;
         vertexList[vertexCount].color = MAX_COLOR;
@@ -2282,7 +2308,7 @@ internal class HardwareRenderer : IRenderer
 
         if (vertexCount >= VERTEX_LIMIT)
             return;
-        SurfaceDesc surfaceDesc = _surfaces[surfaceNum];
+        SurfaceDesc surfaceDesc = surfaces[surfaceNum];
         vertexList[vertexCount].position.X = face.vertex[0].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[0].y << 4;
         vertexList[vertexCount].color = MAX_COLOR;

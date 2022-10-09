@@ -1,18 +1,30 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
-namespace RSDKv4.External;
+namespace RSDKv4.Utility;
 
-internal static class BitHelper
+public static class BitHelper
 {
     [StructLayout(LayoutKind.Explicit)]
     private struct UInt32ToBytes
     {
         [FieldOffset(0)]
         public uint Value;
+
+        [FieldOffset(0)]
+        public byte B0;
+        [FieldOffset(1)]
+        public byte B1;
+        [FieldOffset(2)]
+        public byte B2;
+        [FieldOffset(3)]
+        public byte B3;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    private struct Int32ToBytes
+    {
+        [FieldOffset(0)]
+        public int Value;
 
         [FieldOffset(0)]
         public byte B0;
@@ -45,6 +57,17 @@ internal static class BitHelper
         array[location + 2] = bytes.B2;
         array[location + 3] = bytes.B3;
     }
+
+    public static void CopyTo(int value, byte[] array, ref int location)
+    {
+        var bytes = new Int32ToBytes() { Value = value };
+        array[location + 0] = bytes.B0;
+        array[location + 1] = bytes.B1;
+        array[location + 2] = bytes.B2;
+        array[location + 3] = bytes.B3;
+        location += 4;
+    }
+
 
     public static void SwapAndCopyTo(uint value, byte[] array, int location)
     {

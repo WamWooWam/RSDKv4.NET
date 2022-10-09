@@ -1,28 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.Xna.Framework.Graphics;
 
 namespace RSDKv4.Render;
 
-public enum BlendMode
-{
-    None,
-    Alpha,
-    Additive,
-    Subtractive
-}
-
-public struct DrawBlendState
-{
-    public int vertexOffset;
-    public int vertexCount;
-    public int indexOffset;
-    public int indexCount;
-    public BlendMode blendMode;
-}
-
-
-internal interface IRenderer
+public interface IRenderer
 {
     void Draw();
     void Present();
@@ -60,4 +40,6 @@ internal interface IRenderer
     void DrawTintRectangle(int xPos, int yPos, int xSize, int ySize);
     void DrawTintSpriteMask(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int tableNo, int surfaceNum);
     void DrawVLineScrollLayer(int layer);
+
+    Texture2D CopyRetroBuffer();
 }

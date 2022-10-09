@@ -1,11 +1,10 @@
+using System;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RSDKv4.Native;
-using RSDKv4.Patches;
 using RSDKv4.Utility;
-using System;
-using System.Threading;
 
 #if !SILVERLIGHT
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace RSDKv4;
 public class RSDKv4Game : Game
 {
     GraphicsDeviceManager graphics;
-#if !NETSTANDARD1_6
+#if !NETSTANDARD1_6 && !WINDOWSPHONEAPP8_1
     private Thread loadThread;
 #else
     private Task loadTask;
@@ -48,14 +47,17 @@ public class RSDKv4Game : Game
 #endif
 #if FAST_PALETTE
         graphics.GraphicsProfile = GraphicsProfile.HiDef;
+        graphics.PreferMultiSampling = true;
 #endif
         Content.RootDirectory = "Content";
         TargetElapsedTime = TimeSpan.FromTicks(166666);
         IsFixedTimeStep = true;
 
+#if !SILVERLIGHT
+        IsMouseVisible = true;
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnClientSizeChange;
-
+#endif
 #if SILVERLIGHT
         System.Windows.Application.Current.UnhandledException += (o, e) =>
         {
@@ -72,6 +74,9 @@ public class RSDKv4Game : Game
     private void OnPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
     {
         e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.One;
+#if FAST_PALETTE
+        e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
+#endif
     }
 
     /// <summary>
@@ -92,7 +97,7 @@ public class RSDKv4Game : Game
     protected override void LoadContent()
     {
         loadingScreen = new LoadingScreen(this, GraphicsDevice);
-#if !NETSTANDARD1_6
+#if !NETSTANDARD1_6 && !WINDOWSPHONEAPP8_1
         loadThread = new Thread(LoadRetroEngine);
         loadThread.Start();
 #else
@@ -105,9 +110,32 @@ public class RSDKv4Game : Game
         // new InputPlayer().Install(Engine.hooks);
         // new PaletteHack().Install(Engine.hooks);
 
-        NativeRenderer.InitRenderDevice(this, GraphicsDevice);
         FastMath.CalculateTrigAngles();
-        FileIO.CheckRSDKFile("DataS2.rsdk");
+        if (!FileIO.CheckRSDKFile("Data.rsdk"))
+            FileIO.CheckRSDKFile("DataS2.rsdk");
+
+        Strings.InitLocalizedStrings();
+        SaveData.InitializeSaveRAM();
+
+        var saveData = SaveData.saveGame;
+        var saveFile = saveData.files[0];
+
+        var newGame = false;
+        if (saveFile.stageId == 0)
+        {
+            newGame = true;
+            saveFile.lives = 3;
+            saveFile.score = 0;
+            saveFile.scoreBonus = 500000;
+            saveFile.stageId = 1;
+            saveFile.emeralds = 0;
+            saveFile.specialStageId = 0;
+            saveFile.characterId = 3;
+
+            SaveData.WriteSaveRAMData();
+        }
+
+        NativeRenderer.InitRenderDevice(this, GraphicsDevice);
 
         if (Engine.LoadGameConfig("Data/Game/GameConfig.bin"))
         {
@@ -117,7 +145,7 @@ public class RSDKv4Game : Game
                 loadPercent = 0.10f;
                 if (Audio.InitAudioPlayback())
                 {
-                    // Objects.CreateNativeObject(() => new RetroGameLoop());
+                    Objects.CreateNativeObject(() => new RetroGameLoop());
 
                     loadPercent = 0.85f;
 
@@ -125,12 +153,12 @@ public class RSDKv4Game : Game
                     Engine.SetGlobalVariableByName("options.gameMode", 1);
                     Engine.SetGlobalVariableByName("options.stageSelectFlag", 0);
 
-                    Engine.SetGlobalVariableByName("player.lives", 69);
-                    Engine.SetGlobalVariableByName("player.score", 0);
-                    Engine.SetGlobalVariableByName("player.scoreBonus", 50000);
+                    Engine.SetGlobalVariableByName("player.lives", saveFile.lives);
+                    Engine.SetGlobalVariableByName("player.score", saveFile.score);
+                    Engine.SetGlobalVariableByName("player.scoreBonus", saveFile.scoreBonus);
 
-                    Engine.SetGlobalVariableByName("specialStage.emeralds", 0);
-                    Engine.SetGlobalVariableByName("specialStage.listPos", 0);
+                    Engine.SetGlobalVariableByName("specialStage.emeralds", saveFile.emeralds);
+                    Engine.SetGlobalVariableByName("specialStage.listPos", saveFile.specialStageId);
 
                     Engine.SetGlobalVariableByName("stage.player2Enabled", 0);
 
@@ -139,16 +167,35 @@ public class RSDKv4Game : Game
 
                     Engine.SetGlobalVariableByName("options.vsMode", 0);
 
-                    Engine.SetGlobalVariableByName("specialStage.nextZone", 0);
+                    //Scene.InitFirstStage();
 
-                    Scene.InitFirstStage();
                     Script.ClearScriptData();
                     loadPercent = 0.9f;
 
-                    Scene.InitStartingStage(STAGELIST.PRESENTATION, 1, 0);
+                    if (newGame)
+                    {
+                        Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, saveFile.characterId);
+                    }
+                    else if (saveFile.stageId >= 0x80)
+                    {
+                        Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 0x81);
+                        Scene.InitStartingStage(STAGELIST.SPECIAL, saveFile.specialStageId, saveFile.characterId);
+                    }
+                    else
+                    {
+                        Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 1);
+                        Scene.InitStartingStage(STAGELIST.REGULAR, saveFile.stageId - 1, saveFile.characterId);
+                    }
+
+                    // stage select
+                    // Scene.InitStartingStage(STAGELIST.REGULAR, 21, 0);
+
+
                     loadPercent = 0.95f;
 
                     Scene.ProcessStage();
+
+                    Engine.gameMode = ENGINE.MAINGAME;
                     loadPercent = 1f;
                 }
             }
@@ -175,6 +222,13 @@ public class RSDKv4Game : Game
     {
         base.Update(gameTime);
 
+        // Allows the game to exit
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+            this.Exit();
+
+        if (!isLoaded)
+            return;
+
         if (needsResize)
         {
             graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
@@ -186,12 +240,7 @@ public class RSDKv4Game : Game
             needsResize = false;
         }
 
-        // Allows the game to exit
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
-            this.Exit();
-
-        if (!isLoaded)
-            return;
+        Drawing.rects.Clear();
 
         Input.ProcessInput();
         Scene.ProcessStage();
@@ -212,10 +261,10 @@ public class RSDKv4Game : Game
         else
         {
             Engine.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            Drawing.Draw();
-            Drawing.Present();
+            //Drawing.Draw();
+            //Drawing.Present();
 
-            // Objects.ProcessNativeObjects();
+            Objects.ProcessNativeObjects();
         }
     }
 }

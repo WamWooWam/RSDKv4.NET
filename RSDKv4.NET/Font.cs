@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RSDKv4;
-
 
 public class Font
 {
@@ -107,6 +105,41 @@ public class Font
         }
 
         return chars.ToArray();
+    }
+
+    public static float GetTextWidth(ushort[] text, int fontId, float scaleX)
+    {
+        float width = 0.0f;
+        float lineMax = 0.0f;
+        float w = 0.0f;
+        for (int i = 0; i < text.Length; i++)
+        {
+            var character = text[i];
+            w += Font.fontList[fontId].characters[character].xAdvance;
+            if (character == 1)
+            {
+                if (w > lineMax)
+                    lineMax = w;
+                w = 0.0f;
+            }
+        }
+
+        width = Math.Max(w, lineMax);
+        return width * scaleX;
+    }
+
+    public static float GetTextHeight(ushort[] text, int fontId, float scaleY)
+    {
+        float height = 0.0f;
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            if (text[i] == 1)
+            {
+                height += Font.fontList[fontId].lineHeight;
+            }
+        }
+        return height * scaleY;
     }
 
     private static int ParseInt(string line, int firstPos, int nextPos, int len)

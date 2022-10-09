@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RSDKv4;
+﻿namespace RSDKv4;
 
 public abstract class NativeEntity
 {

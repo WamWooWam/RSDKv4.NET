@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using static RSDKv4.Native.NativeRenderer;
+﻿using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
 
-internal class CWSplash : NativeEntity
+public class CWSplash : NativeEntity
 {
     private enum STATE
     {

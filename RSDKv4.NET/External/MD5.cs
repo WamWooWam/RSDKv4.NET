@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Security.Cryptography;
 using System.Runtime.InteropServices;
+using RSDKv4.Utility;
+#if NETCOREAPP
+using System.Security.Cryptography;
+#endif
 
 namespace RSDKv4.External;
 public class MD5Hash
@@ -25,7 +25,7 @@ public class MD5Hash
         n = (uint)((int)b[dataIndex + i] | (int)b[dataIndex + i + 1] << 8 | (int)b[dataIndex + i + 2] << 16 | (int)b[dataIndex + i + 3] << 24);
     }
 
-    private static void PUT_UINT32(uint n, ref byte[] b, int i)
+    private static void PUT_UINT32(uint n, byte[] b, int i)
     {
         b[i] = (byte)n;
         b[i + 1] = (byte)(n >> 8);
@@ -213,8 +213,8 @@ public class MD5Hash
     {
         byte[] b = new byte[8];
         uint n = ctx.total[0] >> 29 | ctx.total[1] << 3;
-        PUT_UINT32(ctx.total[0] << 3, ref b, 0);
-        PUT_UINT32(n, ref b, 4);
+        PUT_UINT32(ctx.total[0] << 3, b, 0);
+        PUT_UINT32(n, b, 4);
         uint num = ctx.total[0] & 63U;
         uint length = num < 56U ? 56U - num : 120U - num;
         md5_update(ref ctx, md5_padding, length);
@@ -243,7 +243,7 @@ public class MD5Hash
 
     private delegate uint FuncF(uint x, uint y, uint z);
 
-#if !SILVERLIGHT
+#if NETCOREAPP
     private static MD5 md5 = MD5.Create();
 #endif
 

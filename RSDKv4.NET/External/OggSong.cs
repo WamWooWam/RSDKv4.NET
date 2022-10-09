@@ -1,16 +1,13 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using NVorbis;
 using RSDKv4.Utility;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
-#if NETSTANDARD1_6
+#if NETSTANDARD1_6 || WINDOWSPHONEAPP
 using System.Threading.Tasks;
 #endif
 
@@ -21,12 +18,13 @@ public class OggSong : IDisposable
     private VorbisReader reader;
     private DynamicSoundEffectInstance effect;
 
-#if NETSTANDARD1_6
+#if NETSTANDARD1_6 || WINDOWSPHONEAPP
     private Task thread;
 #else
     private Thread thread;
 #endif
     private bool threadRun = false;
+    private bool threadRunning = false;
     private bool needBuffer = false;
     private bool hasPlayed = false;
 
@@ -134,14 +132,20 @@ public class OggSong : IDisposable
         }
 #if SILVERLIGHT
 #else
-        if (reader.TimePosition != TimeSpan.Zero)
-            reader.TimePosition = TimeSpan.Zero;
+        try
+        {
+            if (reader.TimePosition != TimeSpan.Zero)
+                reader.TimePosition = TimeSpan.Zero;
+        }
+        catch { }
 #endif
         if (thread != null)
         {
             // set the handle to stop our thread
             threadRun = false;
             thread = null;
+
+            while (threadRunning) { };
         }
     }
 
@@ -152,7 +156,7 @@ public class OggSong : IDisposable
             threadRun = true;
             needBuffer = true;
             hasPlayed = false;
-#if NETSTANDARD1_6
+#if NETSTANDARD1_6 || WINDOWSPHONEAPP
             thread = Task.Run(StreamThread);
 #else
             thread = new Thread(StreamThread);
@@ -164,96 +168,106 @@ public class OggSong : IDisposable
 
     private void StreamThread()
     {
-#if NETSTANDARD1_6 || NETCOREAPP1_0_OR_GREATER
+        this.threadRunning = true;
+
+#if NETCOREAPP1_0_OR_GREATER  || NETSTANDARD1_0_OR_GREATER
         var wait = new SpinWait();
 #endif
-
-        while (!effect.IsDisposed)
+        try
         {
-            // sleep until we need a buffer
-            while (!effect.IsDisposed && threadRun && !needBuffer)
+            while (!effect.IsDisposed)
             {
-#if NETSTANDARD1_6_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-                wait.SpinOnce();
+                // sleep until we need a buffer
+                while (!effect.IsDisposed && threadRun && !needBuffer)
+                {
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+                    wait.SpinOnce();
 #else
-                Thread.Sleep(25);
+                    Thread.Sleep(25);
 #endif
-            }
+                }
 
-            // if the thread is waiting to exit, leave
-            if (!threadRun)
-            {
-                break;
-            }
+                // if the thread is waiting to exit, leave
+                if (!threadRun)
+                {
+                    break;
+                }
 
-            lock (effect)
-            {
-                // ensure the effect isn't disposed
-                if (effect.IsDisposed) { break; }
-            }
+                lock (effect)
+                {
+                    // ensure the effect isn't disposed
+                    if (effect.IsDisposed) { break; }
+                }
 
-            // read the next chunk of data
-            int samplesRead = reader.ReadSamples(nvBuffer, 0, nvBuffer.Length);
+                // read the next chunk of data
+                int samplesRead = reader.ReadSamples(nvBuffer, 0, nvBuffer.Length);
 
-            // out of data and looping? reset the reader and read again
-            if (samplesRead == 0 && IsLooped)
-            {
+                // out of data and looping? reset the reader and read again
+                if (samplesRead == 0 && IsLooped)
+                {
 #if SILVERLIGHT
                 reader.DecodedTime = LoopPoint;
 #else
-        if (reader.TimePosition != LoopPoint)
-            reader.TimePosition = LoopPoint;
+                    if (reader.TimePosition != LoopPoint)
+                        reader.TimePosition = LoopPoint;
 #endif
-                samplesRead = reader.ReadSamples(nvBuffer, 0, nvBuffer.Length);
-            }
+                    samplesRead = reader.ReadSamples(nvBuffer, 0, nvBuffer.Length);
+                }
 
-            if (samplesRead > 0)
-            {
+                if (samplesRead > 0)
+                {
 #if NETCOREAPP
-                // submit our buffers
-                lock (effect)
-                {
-                    // ensure the effect isn't disposed
-                    if (effect.IsDisposed) { break; }
+                    // submit our buffers
+                    lock (effect)
+                    {
+                        // ensure the effect isn't disposed
+                        if (effect.IsDisposed) { break; }
 
-                    effect.SubmitFloatBufferEXT(nvBuffer, 0, samplesRead);
-                }
+                        effect.SubmitFloatBufferEXT(nvBuffer, 0, samplesRead);
+                    }
 #else
-                for (int i = 0; i < samplesRead; i++)
-                {
-                    //short sValue = (short)Math.Max(Math.Min(short.MaxValue * nvBuffer[i], short.MaxValue), short.MinValue);
-                    short sValue = (short)(short.MaxValue * nvBuffer[i]);
-                    buffer[i * 2] = (byte)(sValue & 0xff);
-                    buffer[i * 2 + 1] = (byte)((sValue >> 8) & 0xff);
-                }
+                    for (int i = 0; i < samplesRead; i++)
+                    {
+                        //short sValue = (short)Math.Max(Math.Min(short.MaxValue * nvBuffer[i], short.MaxValue), short.MinValue);
+                        short sValue = (short)(short.MaxValue * nvBuffer[i]);
+                        buffer[i * 2] = (byte)(sValue & 0xff);
+                        buffer[i * 2 + 1] = (byte)((sValue >> 8) & 0xff);
+                    }
 
-                // submit our buffers
-                lock (effect)
-                {
-                    // ensure the effect isn't disposed
-                    if (effect.IsDisposed) { break; }
+                    // submit our buffers
+                    lock (effect)
+                    {
+                        // ensure the effect isn't disposed
+                        if (effect.IsDisposed) { break; }
 
-                    effect.SubmitBuffer(buffer, 0, samplesRead * 2);
-                    //effect.SubmitBuffer(buffer, samplesRead, samplesRead);
-                }
+                        effect.SubmitBuffer(buffer, 0, samplesRead * 2);
+                        //effect.SubmitBuffer(buffer, samplesRead, samplesRead);
+                    }
 #endif
-            }
-            else
-            {
-                break;
-            }
-
-            if (!hasPlayed)
-            {
-                hasPlayed = true;
-                lock (effect)
-                {
-                    effect.Play();
                 }
-            }
+                else
+                {
+                    break;
+                }
 
-            // reset our handle
-            needBuffer = false;
+                if (!hasPlayed)
+                {
+                    hasPlayed = true;
+                    lock (effect)
+                    {
+                        effect.Play();
+                    }
+                }
+
+                // reset our handle
+                needBuffer = false;
+            }
         }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+
+        this.threadRunning = false;
     }
 }

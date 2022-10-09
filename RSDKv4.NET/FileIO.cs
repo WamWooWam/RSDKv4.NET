@@ -1,13 +1,9 @@
-using Microsoft.Xna.Framework;
-using RSDKv4.External;
-using RSDKv4.Utility;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Xna.Framework;
+using RSDKv4.Utility;
 
 namespace RSDKv4;
 
@@ -48,7 +44,7 @@ public static class FileIO
         {
             Engine.usingDataFile = false;
             Engine.usingBytecode = false;
-            return true;
+            return false;
         }
     }
 

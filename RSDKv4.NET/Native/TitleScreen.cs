@@ -1,46 +1,43 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
 
-internal class TitleScreen : NativeEntity
+
+public class TitleScreen : NativeEntity
 {
-    private enum TITLESCREEN_STATE
+    public enum STATE
     {
         SETUP, ENTERINTRO, INTRO, ENTERBOX, TITLE, EXITTITLE, EXIT
     }
 
-    private TITLESCREEN_STATE state;
-    private float introRectAlpha;
-    private TextLabel labelPtr;
-    private MeshInfo introMesh;
-    private MeshInfo boxMesh;
-    private MeshInfo cartMesh;
-    private MeshAnimator meshAnimator = new MeshAnimator();
+    public STATE state;
+    public float introRectAlpha;
+    public TextLabel labelPtr;
+    public MeshInfo introMesh;
+    public MeshInfo boxMesh;
+    public MeshInfo cartMesh;
+    public MeshAnimator meshAnimator = new MeshAnimator();
 
-    private float rectY;
-    private float field_3C;
-    private float meshScale;
-    private float rotationY;
-    private float x;
-    private float field_4C;
-    private float field_50;
-    private float rotationZ;
-    private float matrixY;
-    private float matrixZ;
-    private Matrix renderMatrix;
-    private Matrix renderMatrix2;
-    private Matrix matrixTemp;
-    private int logoTextureId;
-    private int introTextureId;
-    private int logoAlpha;
-    private int skipButtonAlpha;
-    private int field_12C;
-    private byte field_130;
+    public float rectY;
+    public float field_3C;
+    public float meshScale;
+    public float rotationY;
+    public float x;
+    public float field_4C;
+    public float field_50;
+    public float rotationZ;
+    public float matrixY;
+    public float matrixZ;
+    public Matrix renderMatrix;
+    public Matrix renderMatrix2;
+    public Matrix matrixTemp;
+    public int logoTextureId;
+    public int introTextureId;
+    public int logoAlpha;
+    public int skipButtonAlpha;
+    public int field_12C;
+    public byte field_130;
 
     public override void Create()
     {
@@ -48,7 +45,7 @@ internal class TitleScreen : NativeEntity
         int labelTex = 0;
         int textTex = 0;
 
-        state = TITLESCREEN_STATE.SETUP;
+        state = STATE.SETUP;
         introRectAlpha = 320.0f;
         logoTextureId = LoadTexture("Data/Game/Menu/SonicLogo.png", TEXFMT.RGBA8888);
 
@@ -64,7 +61,7 @@ internal class TitleScreen : NativeEntity
         labelPtr.fontID = FONT.HEADING;
         labelPtr.scale = 0.15f;
         labelPtr.alpha = 256;
-        labelPtr.state = TextLabel.TEXTLABEL_STATE.BLINK;
+        labelPtr.state = TextLabel.STATE.BLINK;
         //if (Engine.gameDeviceType == RETRO_MOBILE)
         //    SetStringToFont(labelPtr.text, strTouchToStart, FONT.HEADING);
         //else
@@ -72,7 +69,7 @@ internal class TitleScreen : NativeEntity
 
         labelPtr.text = Font.GetCharactersForString("PRESS START", FONT.HEADING);
 
-        labelPtr.Align(ALIGN.CENTER);
+        labelPtr.SetAlignment(ALIGN.CENTER);
 
         labelPtr.x = 64.0f;
         labelPtr.y = -96.0f;
@@ -112,10 +109,10 @@ internal class TitleScreen : NativeEntity
         LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
         LoadTexture("Data/Game/Menu/BG1.png", TEXFMT.RGBA4444);
         LoadTexture("Data/Game/Menu/ArrowButtons.png", TEXFMT.RGBA4444);
-        //if (Engine.deviceType == RETRO.MOBILE)
-        //    LoadTexture("Data/Game/Menu/VirtualDPad.png", TEXFMT.RGBA8888);
-        //else
-        LoadTexture("Data/Game/Menu/Generic.png", TEXFMT.RGBA8888);
+        if (Engine.deviceType == DEVICE.MOBILE)
+            LoadTexture("Data/Game/Menu/VirtualDPad.png", TEXFMT.RGBA8888);
+        else
+            LoadTexture("Data/Game/Menu/Generic.png", TEXFMT.RGBA8888);
         LoadTexture("Data/Game/Menu/PlayerSelect.png", TEXFMT.RGBA8888);
         LoadTexture("Data/Game/Menu/SegaID.png", TEXFMT.RGBA8888);
     }
@@ -125,15 +122,15 @@ internal class TitleScreen : NativeEntity
 
         switch (state)
         {
-            case TITLESCREEN_STATE.SETUP:
+            case STATE.SETUP:
                 {
                     Audio.PlayMusic(0, 0);
-                    state = TITLESCREEN_STATE.ENTERINTRO;
+                    state = STATE.ENTERINTRO;
                     SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 0, 0, 0, (byte)introRectAlpha);
+                    RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 0, 0, 0, (int)introRectAlpha);
                     break;
                 }
-            case TITLESCREEN_STATE.ENTERINTRO:
+            case STATE.ENTERINTRO:
                 {
                     SetRenderBlendMode(RENDER_BLEND.NONE);
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
@@ -142,36 +139,35 @@ internal class TitleScreen : NativeEntity
                     RenderMesh(introMesh, MESH.NORMALS, true);
                     SetRenderBlendMode(RENDER_BLEND.ALPHA);
 
-                    //if (Engine.gameDeviceType == RETRO_MOBILE && skipButtonAlpha < 0x100 && introRectAlpha < 0.0)
-                    //{
-                    //    skipButtonAlpha += 8;
-                    //}
+                    if (Engine.deviceType == DEVICE.MOBILE && skipButtonAlpha < 0x100 && introRectAlpha < 0.0)
+                    {
+                        skipButtonAlpha += 8;
+                    }
                     RenderImage(SCREEN_CENTERX_F - 32.0f, 104.0f, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 704.0f, 544.0f, skipButtonAlpha,
                                 (byte)introTextureId);
                     introRectAlpha -= (300.0f * Engine.deltaTime);
                     if (introRectAlpha < -320.0)
-                        state = TITLESCREEN_STATE.INTRO;
-                    RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 0, 0, 0, (byte)introRectAlpha);
+                        state = STATE.INTRO;
+                    RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 0, 0, 0, (int)introRectAlpha);
 
-                    //CheckKeyDown(&inputDown);
-                    //CheckKeyPress(&inputPress);
+                    Input.CheckKeyDown(ref Input.inputDown);
+                    Input.CheckKeyPress(ref Input.inputPress);
 
-                    //if (CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0) >= 0 || (inputPress.start || inputPress.A))
-                    //{
-                    //    state = TITLESCREEN_STATE.TITLE;
-                    //    x = -96.0;
-                    //    meshScale = 1.0;
-                    //    rectY = -48.0;
-                    //    field_12C = 256;
-                    //    logoAlpha = 256;
-                    //    field_130 = 1;
-                    //    NativeEntity_TextLabel* label = labelPtr;
-                    //    label.alpha = 256;
-                    //    label.state = TEXTLABEL_STATE_BLINK;
-                    //}
+                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.inputPress.start != 0 || Input.inputPress.A != 0))
+                    {
+                        state = STATE.TITLE;
+                        x = -96.0f;
+                        meshScale = 1.0f;
+                        rectY = -48.0f;
+                        field_12C = 256;
+                        logoAlpha = 256;
+                        field_130 = 1;
+                        labelPtr.alpha = 256;
+                        labelPtr.state = TextLabel.STATE.BLINK;
+                    }
                     break;
                 }
-            case TITLESCREEN_STATE.INTRO:
+            case STATE.INTRO:
                 {
                     Input.CheckKeyDown(ref Input.inputDown);
                     Input.CheckKeyPress(ref Input.inputPress);
@@ -184,11 +180,11 @@ internal class TitleScreen : NativeEntity
                     RenderImage(SCREEN_CENTERX_F - 32.0f, 104.0f, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 704.0f, 544.0f, skipButtonAlpha,
                                 (byte)introTextureId);
                     if (meshAnimator.frameId > 26)
-                        state = TITLESCREEN_STATE.ENTERBOX;
+                        state = STATE.ENTERBOX;
 
-                    if (/*CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0) >= 0 || */(Input.inputPress.start != 0 || Input.inputPress.A != 0))
+                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.inputPress.start != 0 || Input.inputPress.A != 0))
                     {
-                        state = TITLESCREEN_STATE.TITLE;
+                        state = STATE.TITLE;
                         x = -96.0f;
                         meshScale = 1.0f;
                         rectY = -48.0f;
@@ -196,11 +192,11 @@ internal class TitleScreen : NativeEntity
                         logoAlpha = 256;
                         field_130 = 1;
                         labelPtr.alpha = 256;
-                        labelPtr.state = TextLabel.TEXTLABEL_STATE.BLINK;
+                        labelPtr.state = TextLabel.STATE.BLINK;
                     }
                     break;
                 }
-            case TITLESCREEN_STATE.ENTERBOX:
+            case STATE.ENTERBOX:
                 {
                     SetRenderBlendMode(RENDER_BLEND.NONE);
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
@@ -237,9 +233,8 @@ internal class TitleScreen : NativeEntity
                     }
                     else
                     {
-                        //NativeEntity_TextLabel* label = labelPtr;
-                        //label.state = TEXTLABEL_STATE_BLINK;
-                        state = TITLESCREEN_STATE.TITLE;
+                        labelPtr.state = TextLabel.STATE.BLINK;
+                        state = STATE.TITLE;
                         x = 0.0f;
                     }
                     rotationY += Engine.deltaTime;
@@ -258,7 +253,7 @@ internal class TitleScreen : NativeEntity
                                 (byte)introTextureId);
                     break;
                 }
-            case TITLESCREEN_STATE.TITLE:
+            case STATE.TITLE:
                 {
                     SetRenderBlendMode(RENDER_BLEND.NONE);
                     RenderRect(-SCREEN_CENTERX_F, Drawing.SCREEN_CENTERY, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
@@ -275,15 +270,15 @@ internal class TitleScreen : NativeEntity
                         {
                             Input.CheckKeyDown(ref Input.inputDown);
                             Input.CheckKeyPress(ref Input.inputPress);
-                            if (Input.inputPress.start != 0 /*|| touches > 0*/ || Input.inputPress.A != 0)
+                            if (Input.inputPress.start != 0 || Input.touches > 0 || Input.inputPress.A != 0)
                             {
                                 //if (field_130 != 0)
                                 //{
                                 Audio.PlaySfxByName("Menu Select", false);
                                 Audio.StopMusic(true);
-                                labelPtr.state = TextLabel.TEXTLABEL_STATE.BLINK_FAST;
+                                labelPtr.state = TextLabel.STATE.BLINK_FAST;
                                 introRectAlpha = 0.0f;
-                                state = TITLESCREEN_STATE.EXITTITLE;
+                                state = STATE.EXITTITLE;
                                 //}
                             }
                             else
@@ -328,7 +323,7 @@ internal class TitleScreen : NativeEntity
                     }
                     break;
                 }
-            case TITLESCREEN_STATE.EXITTITLE:
+            case STATE.EXITTITLE:
                 {
                     SetRenderBlendMode(RENDER_BLEND.NONE);
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
@@ -353,7 +348,7 @@ internal class TitleScreen : NativeEntity
                     introRectAlpha += Engine.deltaTime;
                     if (introRectAlpha > 1.0)
                     {
-                        state = TITLESCREEN_STATE.EXIT;
+                        state = STATE.EXIT;
                         Objects.RemoveNativeObject(labelPtr);
                         SetMeshAnimation(boxMesh, meshAnimator, 4, 16, 0.0f);
                         meshAnimator.animationTimer = 0.0f;
@@ -365,7 +360,7 @@ internal class TitleScreen : NativeEntity
                     RenderImage(64.0f, 32.0f, 160.0f, 0.3f, 0.3f, 256.0f, 128.0f, 512.0f, 256.0f, 0.0f, 0.0f, logoAlpha, (byte)logoTextureId);
                     break;
                 }
-            case TITLESCREEN_STATE.EXIT:
+            case STATE.EXIT:
                 {
                     SetRenderBlendMode(RENDER_BLEND.NONE);
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
@@ -406,7 +401,7 @@ internal class TitleScreen : NativeEntity
                     {
                         //ShowPromoPopup(0, "BootupPromo");
                         //ResetNativeObject(entity, MenuControl_Create, MenuControl_Main);
-                        Objects.ResetNativeObject(this, () => new RetroGameLoop());
+                        Objects.ResetNativeObject(this, () => new MenuControl());
                     }
                     break;
                 }

@@ -1,25 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
+using Microsoft.Xna.Framework;
 using static RSDKv4.Drawing;
 
 namespace RSDKv4;
-
-public struct PaletteEntry
-{
-    public int paletteNum;
-    public int startLine;
-    public int endLine;
-
-    public PaletteEntry(int palette, int startLine, int endLine)
-    {
-        this.paletteNum = palette;
-        this.startLine = startLine;
-        this.endLine = endLine;
-    }
-}
 
 public class Palette
 {
@@ -53,7 +36,7 @@ public class Palette
         paletteDirty = true;
     }
 
-    internal static void LoadPalette(string filePath, int paletteID, int startPaletteIndex, int startIndex, int endIndex)
+    public static void LoadPalette(string filePath, int paletteID, int startPaletteIndex, int startIndex, int endIndex)
     {
         string fullPath = "Data/Palettes/" + filePath;
 
@@ -86,7 +69,7 @@ public class Palette
     }
 
 
-    internal static void RotatePalette(int palID, byte startIndex, byte endIndex, bool right)
+    public static void RotatePalette(int palID, byte startIndex, byte endIndex, bool right)
     {
         if (right)
         {
@@ -116,7 +99,7 @@ public class Palette
         paletteDirty = true;
     }
 
-    internal static void SetActivePalette(byte newActivePal, int startLine, int endLine)
+    public static void SetActivePalette(byte newActivePal, int startLine, int endLine)
     {
         if (newActivePal >= PALETTE_COUNT)
             return;
@@ -133,7 +116,7 @@ public class Palette
             texPaletteNum = newActivePal;
     }
 
-    internal static void SetPaletteFade(byte destPaletteID, byte srcPaletteA, byte srcPaletteB, ushort blendAmount, int startIndex, int endIndex)
+    public static void SetPaletteFade(byte destPaletteID, byte srcPaletteA, byte srcPaletteB, ushort blendAmount, int startIndex, int endIndex)
     {
         if (destPaletteID >= PALETTE_COUNT || srcPaletteA >= PALETTE_COUNT || srcPaletteB >= PALETTE_COUNT)
             return;
@@ -169,7 +152,7 @@ public class Palette
         paletteDirty = true;
     }
 
-    internal static void SetPaletteEntryPacked(byte paletteIndex, byte index, uint colour)
+    public static void SetPaletteEntryPacked(byte paletteIndex, byte index, uint colour)
     {
         var fullPalette = Drawing.fullPalette;
         var fullPalette32 = Drawing.fullPalette32;
@@ -186,13 +169,13 @@ public class Palette
         }
     }
 
-    internal static int GetPaletteEntryPacked(byte paletteIndex, byte index)
+    public static int GetPaletteEntryPacked(byte paletteIndex, byte index)
     {
         var clr = fullPalette32[paletteIndex][index];
         return (clr.R << 16) | (clr.G << 8) | (clr.B);
     }
 
-    internal static void CopyPalette(byte sourcePalette, byte srcPaletteStart, byte destinationPalette, byte destPaletteStart, ushort count)
+    public static void CopyPalette(byte sourcePalette, byte srcPaletteStart, byte destinationPalette, byte destPaletteStart, ushort count)
     {
         var fullPalette = Drawing.fullPalette;
         var fullPalette32 = Drawing.fullPalette32;

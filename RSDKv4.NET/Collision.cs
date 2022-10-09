@@ -1,12 +1,11 @@
-﻿using RSDKv4.Utility;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿using System;
+using RSDKv4.Utility;
 using static RSDKv4.Scene;
+using static RSDKv4.Script;
 
 namespace RSDKv4;
-internal class Collision
+
+public class Collision
 {
     public static CollisionSensor[] sensors = new CollisionSensor[7];
 
@@ -1105,7 +1104,7 @@ internal class Collision
             }
             sensorAngle &= 0xFF;
 
-            int angle = FastMath.ArcTanLookup(entity.xvel, entity.yvel);
+            int angle = FastMath.ArcTan(entity.xvel, entity.yvel);
             if (sensorAngle > 0x40 && sensorAngle < 0x62 && angle > 0xA0 && angle < 0xC2)
             {
                 entity.gravity = 0;
@@ -1137,6 +1136,7 @@ internal class Collision
             Script.scriptEng.checkResult = 2;
         }
     }
+
     public static void ProcessPathGrip(Entity entity)
     {
         int cosValue256;
@@ -2135,24 +2135,26 @@ internal class Collision
         }
     }
 
+
+
     public static void ObjectFloorGrip(int xOffset, int yOffset, int cPath)
     {
-        int c;
         Script.scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
-        int chunkX = YPos;
+        int chunkX1 = YPos;
         YPos = YPos - 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && Script.scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && (YPos > 0 && YPos < stageLayouts[0].ysize << 7) && Script.scriptEng.checkResult == 0)
             {
-                chunkX = XPos >> 7;
+                int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
                 int chunkY = YPos >> 7;
                 int tileY = (YPos & 0x7F) >> 4;
-                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
+                //int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + (tileX + (tileY << 3));
+                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + (tileX + (tileY << 3)); 
                 int tileIndex = tiles128x128.tileIndex[chunk];
                 if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.LRB && tiles128x128.collisionFlags[cPath][chunk] != SOLID.NONE)
                 {
@@ -2160,46 +2162,46 @@ internal class Collision
                     {
                         case 0:
                             {
-                                c = (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].floorMasks[c] >= 64)
+                                int c = (XPos & 15) + (tileIndex << 4);
+                                if (collisionMasks[cPath].floorMasks[c] < 64)
                                 {
+                                    entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.scriptEng.checkResult = 1;
                                     break;
                                 }
-                                entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
                                 break;
                             }
                         case 1:
                             {
-                                c = 15 - (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].floorMasks[c] >= 64)
+                                int c = 15 - (XPos & 15) + (tileIndex << 4);
+                                if (collisionMasks[cPath].floorMasks[c] < 64)
                                 {
+                                    entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.scriptEng.checkResult = 1;
                                     break;
                                 }
-                                entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
                                 break;
                             }
                         case 2:
                             {
-                                c = (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].roofMasks[c] <= -64)
+                                int c = (XPos & 15) + (tileIndex << 4);
+                                if (collisionMasks[cPath].roofMasks[c] > -64)
                                 {
+                                    entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.scriptEng.checkResult = 1;
                                     break;
                                 }
-                                entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
                                 break;
                             }
                         case 3:
                             {
-                                c = 15 - (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].roofMasks[c] <= -64)
+                                int c = 15 - (XPos & 15) + (tileIndex << 4);
+                                if (collisionMasks[cPath].roofMasks[c] > -64)
                                 {
+                                    entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.scriptEng.checkResult = 1;
                                     break;
                                 }
-                                entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
                                 break;
                             }
                     }
@@ -2208,17 +2210,20 @@ internal class Collision
             YPos += 16;
         }
 
-        if (Script.scriptEng.checkResult != 0)
+        if (Script.scriptEng.checkResult == 0)
+            return;
+
+        if (Math.Abs(entity.ypos - chunkX1) < 16)
         {
-            if (Math.Abs(entity.ypos - chunkX) < 16)
-            {
-                entity.ypos = (entity.ypos - yOffset) << 16;
-                return;
-            }
-            entity.ypos = (chunkX - yOffset) << 16;
-            Script.scriptEng.checkResult = 0;
+            entity.ypos = entity.ypos - yOffset << 16;
+        }
+        else
+        {
+            entity.ypos = chunkX1 - yOffset << 16;
+            scriptEng.checkResult = 0;
         }
     }
+
     public static void ObjectLWallGrip(int xOffset, int yOffset, int cPath)
     {
         int c;

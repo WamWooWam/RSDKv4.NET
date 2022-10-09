@@ -1,32 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RSDKv4;
-
-public enum TextMenuAlignment : byte
-{
-    LEFT, RIGHT, CENTER
-}
-
-public class TextMenu
-{
-    public char[] textData = new char[Text.TEXTDATA_COUNT];
-    public int[] entryStart = new int[Text.TEXTENTRY_COUNT];
-    public int[] entrySize = new int[Text.TEXTENTRY_COUNT];
-    public bool[] entryHighlight = new bool[Text.TEXTENTRY_COUNT];
-    public int textDataPos;
-    public int selection1;
-    public int selection2;
-    public ushort rowCount;
-    public ushort visibleRowCount;
-    public ushort visibleRowOffset;
-    public byte selectionCount;
-    public sbyte timer;
-    public int surfaceId;
-
-    public TextMenuAlignment alignment;
-}
+﻿namespace RSDKv4;
 
 public class Text
 {
@@ -73,27 +45,6 @@ public class Text
             menu.rowCount++;
             FileIO.CloseFile();
         }
-    }
-
-    public static float GetTextWidth(ushort[] text, int fontID, float scaleX)
-    {
-        float width = 0.0f;
-        float lineMax = 0.0f;
-        float w = 0.0f;
-        for(int i = 0; i < text.Length; i++)
-        {
-            var character = text[i];
-            w += Font.fontList[fontID].characters[character].xAdvance;
-            if (character == 1)
-            {
-                if (w > lineMax)
-                    lineMax = w;
-                w = 0.0f;
-            }
-        }
-
-        width = Math.Max(w, lineMax);
-        return width * scaleX;
     }
 
     public static void SetupTextMenu(TextMenu menu, int rowCount)

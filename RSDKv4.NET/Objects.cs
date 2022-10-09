@@ -1,13 +1,11 @@
-﻿using RSDKv4.Native;
-using RSDKv4.Utility;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Text;
+using RSDKv4.Native;
+using RSDKv4.Utility;
 
 namespace RSDKv4;
 
-internal class Objects
+public class Objects
 {
     public const int NATIVEENTITY_COUNT = 0x100;
     public const int ENTITY_COUNT = 0x4A0;
@@ -20,7 +18,8 @@ internal class Objects
 
     public static int[] activeEntityList = new int[NATIVEENTITY_COUNT];
     public static byte[] objectRemoveFlag = new byte[NATIVEENTITY_COUNT];
-    public static NativeEntity[] objectEntityBank = new NativeEntity[NATIVEENTITY_COUNT];
+
+    public static NativeEntity[] nativeEntityBank = new NativeEntity[NATIVEENTITY_COUNT];
     public static int nativeEntityCount;
 
     public static int objectEntityPos = 0;
@@ -62,8 +61,7 @@ internal class Objects
         Entity entity = objectEntityList[TEMPENTITY_START];
         objectEntityList[TEMPENTITY_START + 1].type = objectEntityList[0].type;
 
-        Helpers.Memset(Script.foreachStack, -1);
-        Helpers.Memset(Script.jumpTableStack, 0);
+        Script.ClearStacks();
 
         for (int i = 0; i < OBJECT_COUNT; ++i)
         {
@@ -74,8 +72,7 @@ internal class Objects
             scriptInfo.spriteSheetId = 0;
             entity.type = (byte)i;
 
-            if (Script.scriptData[scriptInfo.eventStartup.scriptCodePtr] > 0)
-                Script.ProcessScript(scriptInfo.eventStartup.scriptCodePtr, scriptInfo.eventStartup.jumpTablePtr, EVENT.SETUP);
+            Script.ProcessScript(scriptInfo.eventStartup.scriptCodePtr, scriptInfo.eventStartup.jumpTablePtr, EVENT.SETUP);
 
             scriptInfo.frameCount = Animation.scriptFrameCount - scriptInfo.frameListOffset;
         }
@@ -135,11 +132,9 @@ internal class Objects
             if (processObjectFlag[objectEntityPos] && entity.type > 0)
             {
                 ObjectScript scriptInfo = Script.objectScriptList[entity.type];
-                if (Script.scriptData[scriptInfo.eventMain.scriptCodePtr] > 0)
-                {
-                    if (stageMode != STAGEMODE.FROZEN && stageMode != STAGEMODE.FROZEN_STEP || entity.priority == PRIORITY.ACTIVE_PAUSED)
-                        Script.ProcessScript(scriptInfo.eventMain.scriptCodePtr, scriptInfo.eventMain.jumpTablePtr, EVENT.MAIN);
-                }
+
+                if (stageMode != STAGEMODE.FROZEN && stageMode != STAGEMODE.FROZEN_STEP || entity.priority == PRIORITY.ACTIVE_PAUSED)
+                    Script.ProcessScript(scriptInfo.eventMain.scriptCodePtr, scriptInfo.eventMain.jumpTablePtr, EVENT.MAIN);
 
                 if (entity.drawOrder < Scene.DRAWLAYER_COUNT && entity.drawOrder >= 0)
                     Scene.drawListEntries[entity.drawOrder].entityRefs.Add(objectEntityPos);
@@ -192,22 +187,22 @@ internal class Objects
         }
     }
 
-    internal static void SetObjectTypeName(string objectName, int objectID)
+    public static void SetObjectTypeName(string objectName, int objectID)
     {
         typeNames[objectID] = objectName;
         Debug.WriteLine("Set Object ({0}) name to: {1}", objectID, objectName);
     }
 
-    public static NativeEntity CreateNativeObject<T>(Func<T> factory) where T : NativeEntity
+    public static T CreateNativeObject<T>(Func<T> factory) where T : NativeEntity
     {
         if (nativeEntityCount == 0)
         {
-            Helpers.Memset(objectEntityBank, (NativeEntity)null);
-            NativeEntity entity = objectEntityBank[0] = factory();
+            Helpers.Memset(nativeEntityBank, (NativeEntity)null);
+            NativeEntity entity = nativeEntityBank[0] = factory();
             activeEntityList[0] = 0;
             nativeEntityCount++;
             entity.Create();
-            return entity;
+            return (T)entity;
         }
         else if (nativeEntityCount >= NATIVEENTITY_COUNT)
         {
@@ -220,15 +215,15 @@ internal class Objects
             int slot = 0;
             for (; slot < NATIVEENTITY_COUNT; ++slot)
             {
-                if (objectEntityBank[slot] == null)
+                if (nativeEntityBank[slot] == null)
                     break;
             }
-            NativeEntity entity = objectEntityBank[slot] = factory();
+            NativeEntity entity = nativeEntityBank[slot] = factory();
             entity.slotId = slot;
             entity.objectId = nativeEntityCount;
             activeEntityList[nativeEntityCount++] = slot;
             entity.Create();
-            return entity;
+            return (T)entity;
         }
     }
 
@@ -237,12 +232,12 @@ internal class Objects
         int slotId = obj.slotId;
         int objId = obj.objectId;
 
-        objectEntityBank[slotId] = factory();
-        objectEntityBank[slotId].slotId = slotId;
-        objectEntityBank[slotId].objectId = objId;
-        objectEntityBank[slotId].Create();
+        nativeEntityBank[slotId] = factory();
+        nativeEntityBank[slotId].slotId = slotId;
+        nativeEntityBank[slotId].objectId = objId;
+        nativeEntityBank[slotId].Create();
 
-        return objectEntityBank[slotId];
+        return nativeEntityBank[slotId];
     }
 
     public static void ProcessNativeObjects()
@@ -250,13 +245,20 @@ internal class Objects
         NativeRenderer.ResetRenderStates();
 
         NativeRenderer.BeginDraw();
-        for (int i = 0; i < nativeEntityCount; i++)
-            objectEntityBank[i]?.Main();
+        for (nativeEntityPos = 0; nativeEntityPos < nativeEntityCount; ++nativeEntityPos)
+        {
+            NativeEntity entity = nativeEntityBank[activeEntityList[nativeEntityPos]];
+            entity.Main();
+        }
         NativeRenderer.EndDraw();
     }
 
-    internal static void RemoveNativeObject(NativeEntity obj)
+    public static void RemoveNativeObject(NativeEntity obj)
     {
-        //throw new NotImplementedException();
+        Array.Copy(activeEntityList, obj.objectId + 1, activeEntityList, obj.objectId, NATIVEENTITY_COUNT - (obj.objectId + 2));
+
+        --nativeEntityCount;
+        for (int i = obj.slotId; nativeEntityBank[i] != null; ++i)
+            nativeEntityBank[i].objectId--;
     }
 }

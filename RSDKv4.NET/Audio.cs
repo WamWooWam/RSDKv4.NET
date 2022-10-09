@@ -1,17 +1,14 @@
-﻿using Microsoft.Xna.Framework.Audio;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using Microsoft.Xna.Framework.Audio;
 using NVorbis;
 using RSDKv4.External;
 using RSDKv4.Utility;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading;
 
 namespace RSDKv4;
 
-internal class Audio
+public class Audio
 {
     public const int TRACK_COUNT = 0x10;
     public static TrackInfo[] musicTracks = new TrackInfo[TRACK_COUNT];
@@ -121,7 +118,7 @@ internal class Audio
 
     }
 
-    internal static void SetMusicTrack(string filePath, byte trackId, bool loop, uint loopPoint)
+    public static void SetMusicTrack(string filePath, byte trackId, bool loop, uint loopPoint)
     {
         if (string.IsNullOrEmpty(filePath))
         {
@@ -133,7 +130,7 @@ internal class Audio
             if (musicTracks[trackId].name == filePath) return;
 
             var nextTrack = "Data/Music/" + filePath;
-            if (FileIO.LoadFile(nextTrack, out var file))
+            if (FileIO.LoadFile(nextTrack, out _))
             {
                 var stream = FileIO.CreateFileStream();
                 var oggSound = new OggSong(stream);
@@ -145,7 +142,7 @@ internal class Audio
         }
     }
 
-    internal static void PlayMusic(int track, int musStartPos)
+    public static void PlayMusic(int track, int musStartPos)
     {
         StopAllMusic();
 
@@ -167,7 +164,7 @@ internal class Audio
         }
     }
 
-    internal static void StopMusic(bool setStatus)
+    public static void StopMusic(bool setStatus)
     {
         if (setStatus)
         {
@@ -178,29 +175,26 @@ internal class Audio
         StopAllMusic();
     }
 
-    internal static void PauseSound()
+    public static void PauseSound()
     {
         musicTracks[currentTrack].song.Pause();
     }
 
-    internal static void ResumeSound()
+    public static void ResumeSound()
     {
         if (currentTrack >= 0 && currentTrack < musicTracks.Length)
             musicTracks[currentTrack].song.Resume();
     }
 
-    internal static void SwapMusicTrack(string filePath, byte trackId, uint loopPoint, int ratio)
+    public static void SwapMusicTrack(string filePath, byte trackId, uint loopPoint, int ratio)
     {
-        lastTime = musicTracks[currentTrack].song?.Position ?? TimeSpan.Zero;
-        musicRatio = ratio;
-
-        StopAllMusic();
-
         if (!string.IsNullOrWhiteSpace(filePath))
         {
             if (musicTracks[trackId].name != filePath)
             {
                 SetMusicTrack(filePath, trackId, true, loopPoint);
+                lastTime = musicTracks[currentTrack].song?.Position ?? TimeSpan.Zero;
+                musicRatio = ratio;
                 PlayMusic(trackId, 1);
             }
         }
@@ -210,12 +204,12 @@ internal class Audio
         }
     }
 
-    internal static void PlaySfx(int sfx, bool loop)
+    public static void PlaySfx(int sfx, bool loop)
     {
         PlaySfxWithAttributes(sfx, sfxVolume, 0, loop);
     }
 
-    internal static void StopSfx(int sfx)
+    public static void StopSfx(int sfx)
     {
         for (int i = 0; i < soundChannels.Length; i++)
         {
@@ -223,6 +217,7 @@ internal class Audio
                 soundChannels[i].instance?.Stop();
         }
     }
+
     public static bool PlaySfxByName(string sfx, bool loopCnt)
     {
         for (int s = 0; s < TRACK_COUNT; ++s)
@@ -235,6 +230,7 @@ internal class Audio
         }
         return false;
     }
+
     public static bool StopSFXByName(string sfx)
     {
         for (int s = 0; s < TRACK_COUNT; ++s)
@@ -267,6 +263,8 @@ internal class Audio
         }
 
         var instance = soundEffects[sfx].soundEffect?.CreateInstance();
+        if (instance == null) return;
+
         instance.IsLooped = loop;
         instance.Pan = pan * 0.01f;
         instance.Volume = sfxVolume / 100.0f;
@@ -292,7 +290,9 @@ internal class Audio
             volume = 0;
         if (volume > 100)
             volume = 100;
+
         bgmVolume = volume;
+
         var vol = volume * 0.01f * masterVolume;
 
         foreach (var song in musicTracks)
@@ -304,6 +304,7 @@ internal class Audio
 
     public static void SetSfxName(string name, int index)
     {
+        soundEffects[index].name = name;
         Debug.WriteLine("Set SFX ({0}) name to: {1}", index, name);
     }
 }

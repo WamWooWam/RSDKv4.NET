@@ -1,9 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.IO;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using RSDKv4.External;
-using System.IO;
 
-namespace RSDKv4.Utility;
+namespace RSDKv4.External;
 
 public class GifReader
 {
@@ -24,11 +23,11 @@ public class GifReader
 
     public void InitGifDecoder()
     {
-        int num = (int)fileStream.ReadByte();
+        int num = fileStream.ReadByte();
         gifDecoder.fileState = 0;
         gifDecoder.position = 0;
         gifDecoder.bufferSize = 0;
-        gifDecoder.buffer[0] = (byte)0;
+        gifDecoder.buffer[0] = 0;
         gifDecoder.depth = num;
         gifDecoder.clearCode = 1 << num;
         gifDecoder.eofCode = gifDecoder.clearCode + 1;
@@ -102,7 +101,7 @@ public class GifReader
             ReadGifPictureData(width, height, interlaced, ref data, 0);
 
             var textureData = new Color[dataSize];
-            for (int i = 0; i < dataSize; i++)            
+            for (int i = 0; i < dataSize; i++)
                 textureData[i] = table[data[i]];
 
             var texture = new Texture2D(device, width, height);
@@ -155,7 +154,7 @@ public class GifReader
             int code2 = ReadGifCode();
             if (code2 == eofCode)
             {
-                if (num1 != length - 1 | gifDecoder.pixelCount != 0U)
+                if (num1 != length - 1 || gifDecoder.pixelCount != 0U)
                     return;
                 ++num1;
             }
@@ -178,7 +177,7 @@ public class GifReader
                 }
                 else
                 {
-                    if (code2 < 0 | code2 > 4095)
+                    if (code2 < 0 || code2 > 4095)
                         return;
                     int index;
                     if (gifDecoder.prefix[code2] == 4098U)
@@ -193,14 +192,14 @@ public class GifReader
                     int num2;
                     for (num2 = 0; num2++ <= 4095 && index > clearCode && index <= 4095; index = (int)gifDecoder.prefix[index])
                         gifDecoder.stack[stackPtr++] = gifDecoder.suffix[index];
-                    if (num2 >= 4095 | index > 4095)
+                    if (num2 >= 4095 || index > 4095)
                         return;
                     for (gifDecoder.stack[stackPtr++] = (byte)index; stackPtr != 0 && num1 < length; ++num1)
                         line[offset++] = gifDecoder.stack[--stackPtr];
                 }
                 if (code1 != 4098)
                 {
-                    if (gifDecoder.runningCode < 2 | gifDecoder.runningCode > 4097)
+                    if (gifDecoder.runningCode < 2 || gifDecoder.runningCode > 4097)
                         return;
                     gifDecoder.prefix[gifDecoder.runningCode - 2] = (uint)code1;
                     gifDecoder.suffix[gifDecoder.runningCode - 2] = code2 != gifDecoder.runningCode - 2 ? TracePrefix(ref gifDecoder.prefix, code2, clearCode) : TracePrefix(ref gifDecoder.prefix, code1, clearCode);
@@ -219,7 +218,7 @@ public class GifReader
             byte num = ReadGifByte();
             gifDecoder.shiftData |= (uint)num << gifDecoder.shiftState;
         }
-        int num1 = (int)((long)gifDecoder.shiftData & (long)codeMasks[gifDecoder.runningBits]);
+        int num1 = (int)(gifDecoder.shiftData & codeMasks[gifDecoder.runningBits]);
         gifDecoder.shiftData >>= gifDecoder.runningBits;
         gifDecoder.shiftState -= gifDecoder.runningBits;
         if (++gifDecoder.runningCode > gifDecoder.maxCodePlusOne && gifDecoder.runningBits < 12)
@@ -239,7 +238,7 @@ public class GifReader
         if (gifDecoder.position == gifDecoder.bufferSize)
         {
             byte num2 = (byte)fileStream.ReadByte();
-            gifDecoder.bufferSize = (int)num2;
+            gifDecoder.bufferSize = num2;
             if (gifDecoder.bufferSize == 0)
             {
                 gifDecoder.fileState = 1;

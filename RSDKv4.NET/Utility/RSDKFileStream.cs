@@ -1,10 +1,8 @@
-﻿using RSDKv4.External;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Text;
+using RSDKv4.External;
 
 namespace RSDKv4.Utility;
 
@@ -187,7 +185,7 @@ public class RSDKFileStream : Stream
         return 0;
     }
 
-    internal bool LoadFile(string filePath, out FileInfo fileInfo)
+    public bool LoadFile(string filePath, out FileInfo fileInfo)
     {
         fileInfo = new FileInfo();
 

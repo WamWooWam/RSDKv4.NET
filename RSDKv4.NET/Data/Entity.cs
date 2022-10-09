@@ -1,7 +1,63 @@
-﻿namespace RSDKv4;
+﻿using System;
+using System.Diagnostics;
 
+namespace RSDKv4;
+
+[DebuggerDisplay("X = {xpos >> 16}, Y = {ypos >> 16}, Type = {RSDKv4.Objects.typeNames[type]}")]
 public class Entity
 {
+    public Entity()
+    {
+
+    }
+
+    public Entity(Entity other)
+    {
+        xpos = other.xpos;
+        ypos = other.ypos;
+        xvel = other.xvel;
+        yvel = other.yvel;
+        speed = other.speed;
+        state = other.state;
+        angle = other.angle;
+        scale = other.scale;
+        rotation = other.rotation;
+        alpha = other.alpha;
+        animationTimer = other.animationTimer;
+        animationSpeed = other.animationSpeed;
+        lookPosX = other.lookPosX;
+        lookPosY = other.lookPosY;
+        groupID = other.groupID;
+        type = other.type;
+        propertyValue = other.propertyValue;
+        priority = other.priority;
+        drawOrder = other.drawOrder;
+        direction = other.direction;
+        inkEffect = other.inkEffect;
+        animation = other.animation;
+        prevAnimation = other.prevAnimation;
+        frame = other.frame;
+        collisionMode = other.collisionMode;
+        collisionPlane = other.collisionPlane;
+        controlMode = other.controlMode;
+        controlLock = other.controlLock;
+        pushing = other.pushing;
+        visible = other.visible;
+        tileCollisions = other.tileCollisions;
+        objectInteractions = other.objectInteractions;
+        gravity = other.gravity;
+        left = other.left;
+        right = other.right;
+        up = other.up;
+        down = other.down;
+        jumpPress = other.jumpPress;
+        jumpHold = other.jumpHold;
+        scrollTracking = other.scrollTracking;
+
+        Array.Copy(other.values, values, 48);
+        Array.Copy(other.floorSensors, floorSensors, 5);
+    }
+
     public int xpos;
     public int ypos;
     public int xvel;

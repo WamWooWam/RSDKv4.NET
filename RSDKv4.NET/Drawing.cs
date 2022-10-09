@@ -1,15 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.External;
+using RSDKv4.Native;
 using RSDKv4.Render;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+using static RSDKv4.Scene;
 
 namespace RSDKv4;
-
-using static RSDKv4.Scene;
 
 public static class Drawing
 {
@@ -43,19 +41,24 @@ public static class Drawing
 
     public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
 
+    public const float PIXEL_TO_UV = (float)(1.0 / SURFACE_SIZE);
+
     public static byte[] graphicsBuffer = new byte[SURFACE_DATASIZE];
     public static int graphicsBufferPos = 0;
 
     public static byte[] tilesetGFXData = new byte[TILESET_SIZE];
 
-    public static SurfaceDesc[] _surfaces = new SurfaceDesc[SURFACE_MAX];
+    public static SurfaceDesc[] surfaces = new SurfaceDesc[SURFACE_MAX];
 
     public static ushort[][] fullPalette = new ushort[PALETTE_COUNT][];
     public static Color[][] fullPalette32 = new Color[PALETTE_COUNT][];
 
-    public const float PIXEL_TO_UV = 1.0f / SURFACE_SIZE;
-
     public static bool surfaceDirty = true;
+
+    public static Color[] colors = new Color[]
+    {
+        Color.Red, Color.Magenta, Color.Green, Color.Yellow
+    };
 
 #if ENABLE_3D
     public static DrawVertex3D[] vertexList3D = new DrawVertex3D[VERTEX3D_LIMIT];
@@ -72,7 +75,7 @@ public static class Drawing
     static Drawing()
     {
         for (int i = 0; i < SURFACE_MAX; i++)
-            _surfaces[i] = new SurfaceDesc();
+            surfaces[i] = new SurfaceDesc();
 
         for (int i = 0; i < PALETTE_COUNT; i++)
         {
@@ -112,10 +115,15 @@ public static class Drawing
         Instance.SetScreenDimensions(w, h);
     }
 
+    public static Texture2D CopyRetroBuffer()
+    {
+        return Instance.CopyRetroBuffer();
+    }
+
     public static void ClearGraphicsData()
     {
         for (int index = 0; index < 24; ++index)
-            _surfaces[index].fileName = null;
+            surfaces[index].fileName = null;
 
         graphicsBufferPos = 0;
     }
@@ -137,9 +145,9 @@ public static class Drawing
         //char sheetPath[0x100];
         var sheetPath = "Data/Sprites/" + filePath;
         int sheetId = 0;
-        while (_surfaces[sheetId].fileName != null)
+        while (surfaces[sheetId].fileName != null)
         {
-            if (_surfaces[sheetId].fileName == sheetPath)
+            if (surfaces[sheetId].fileName == sheetPath)
                 return sheetId;
             if (++sheetId == SURFACE_MAX) // Max Sheet cnt
                 return 0;
@@ -162,13 +170,13 @@ public static class Drawing
         if (sheetId < 0)
         {
             for (int i = 0; i < SURFACE_MAX; i++)
-                if (_surfaces[i].fileName == filePath)
+                if (surfaces[i].fileName == filePath)
                     sheetId = i;
         }
 
-        if (sheetId >= 0 && _surfaces[sheetId].fileName != null)
+        if (sheetId >= 0 && surfaces[sheetId].fileName != null)
         {
-            var surface = _surfaces[sheetId];
+            var surface = surfaces[sheetId];
 
             int dataPosStart = surface.dataPosition;
             int dataPosEnd = surface.dataPosition + surface.height * surface.width;
@@ -180,11 +188,11 @@ public static class Drawing
 
             for (int i = 0; i < SURFACE_MAX; ++i)
             {
-                if (_surfaces[i].dataPosition > surface.dataPosition)
-                    _surfaces[i].dataPosition -= surface.height * surface.width;
+                if (surfaces[i].dataPosition > surface.dataPosition)
+                    surfaces[i].dataPosition -= surface.height * surface.width;
             }
 
-            _surfaces[sheetId] = new SurfaceDesc();
+            surfaces[sheetId] = new SurfaceDesc();
         }
 
         surfaceDirty = true;
@@ -195,7 +203,7 @@ public static class Drawing
         if (!FileIO.LoadFile(fileName, out var info))
             return;
 
-        var surface = _surfaces[surfaceNum];
+        var surface = surfaces[surfaceNum];
         surface.fileName = fileName;
 
         FileIO.SetFilePosition(18);
@@ -238,7 +246,7 @@ public static class Drawing
         if (!FileIO.LoadFile(fileName, out _))
             return;
 
-        SurfaceDesc surface = _surfaces[surfaceNum];
+        SurfaceDesc surface = surfaces[surfaceNum];
         surface.fileName = fileName;
 
         FileIO.SetFilePosition(6);
@@ -340,6 +348,7 @@ public static class Drawing
         surfaceDirty = true;
     }
 
+    public static List<Rectangle> rects = new List<Rectangle>();
     public static void DrawStageGFX()
     {
         waterDrawPos = waterLevel - yScrollOffset;
@@ -496,8 +505,19 @@ public static class Drawing
         }
 
 #if !RETRO_USE_ORIGINAL_CODE
-        //if (!drawStageGFXHQ)
-        //    DrawDebugOverlays();
+        //for (int i = 0; i < Input.touches; i++)
+        //{
+        //    if (Input.touchDown[i] == 0) continue;
+
+        //    Drawing.DrawRectangle(Input.touchX[i], Input.touchY[i], 10, 10, 255, 0, 0, 255);
+        //}
+
+        //for (int i = 0; i < rects.Count; i++)
+        //{
+        //    var item = rects[i];
+        //    var col = colors[i % colors.Length];
+        //    Drawing.DrawRectangle(item.X, item.Y, item.Width, item.Height, col.R, col.G, col.B, 64);
+        //}
 #endif
 
         Instance.EndDraw();
@@ -512,10 +532,7 @@ public static class Drawing
             int type = Objects.objectEntityList[Objects.objectEntityPos].type;
             if (type != 0)
             {
-                if (Script.scriptData[Script.objectScriptList[type].eventDraw.scriptCodePtr] > 0)
-                {
-                    Script.ProcessScript(Script.objectScriptList[type].eventDraw.scriptCodePtr, Script.objectScriptList[type].eventDraw.jumpTablePtr, EVENT.DRAW);
-                }
+                Script.ProcessScript(Script.objectScriptList[type].eventDraw.scriptCodePtr, Script.objectScriptList[type].eventDraw.jumpTablePtr, EVENT.DRAW);
             }
         }
     }
@@ -748,13 +765,12 @@ public static class Drawing
         Instance.DrawScaledTintMask(direction, xPos, yPos, xPivot, yPivot, xScale, yScale, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 
-    public static void DrawTextMenuEntry(object menu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
+    public static void DrawTextMenuEntry(TextMenu tMenu, int rowID, int XPos, int YPos, int textHighlight, int textMenuSurface)
     {
-        TextMenu tMenu = (TextMenu)menu;
         int id = tMenu.entryStart[rowID];
         for (int i = 0; i < tMenu.entrySize[rowID]; ++i)
         {
-            Instance.DrawSprite(XPos + (i << 3) - (((tMenu.entrySize[rowID] % 2) & (tMenu.alignment == TextMenuAlignment.CENTER ? 1 : 0)) * 4), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3),
+            Instance.DrawSprite(XPos + (i << 3) - (((tMenu.entrySize[rowID] % 2) & (tMenu.alignment == ALIGN.CENTER ? 1 : 0)) * 4), YPos, 8, 8, ((tMenu.textData[id] & 0xF) << 3),
                        ((tMenu.textData[id] >> 4) << 3) + textHighlight, textMenuSurface);
             id++;
         }
@@ -814,7 +830,7 @@ public static class Drawing
 
         switch (tMenu.alignment)
         {
-            case TextMenuAlignment.LEFT:
+            case ALIGN.LEFT:
                 for (int i = tMenu.visibleRowOffset; i < cnt; ++i)
                 {
                     switch (tMenu.selectionCount)
@@ -847,7 +863,7 @@ public static class Drawing
                 }
                 break;
 
-            case TextMenuAlignment.RIGHT:
+            case ALIGN.RIGHT:
                 for (int i = tMenu.visibleRowOffset; i < cnt; ++i)
                 {
                     int entryX = XPos - (tMenu.entrySize[i] << 3);
@@ -881,7 +897,7 @@ public static class Drawing
                 }
                 break;
 
-            case TextMenuAlignment.CENTER:
+            case ALIGN.CENTER:
                 for (int i = tMenu.visibleRowOffset; i < cnt; ++i)
                 {
                     int entryX = XPos - (tMenu.entrySize[i] >> 1 << 3);
@@ -1019,7 +1035,7 @@ public static class Drawing
         }
     }
 
-    internal static void SetFade(byte R, byte G, byte B, ushort A)
+    public static void SetFade(byte R, byte G, byte B, ushort A)
     {
         Palette.fadeMode = 1;
         Palette.fadeR = R;

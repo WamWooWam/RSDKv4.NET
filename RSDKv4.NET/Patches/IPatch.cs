@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RSDKv4.Patches
+﻿namespace RSDKv4.Patches
 {
     public interface IPatch
     {
