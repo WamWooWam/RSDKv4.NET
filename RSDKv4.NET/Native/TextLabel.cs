@@ -3,11 +3,6 @@ using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
 
-public static class ALIGN
-{
-    public const int LEFT = 0, CENTER = 1, RIGHT = 2;
-}
-
 public class TextLabel : NativeEntity
 {
     public enum STATE { NONE = -1, IDLE, BLINK, BLINK_FAST };

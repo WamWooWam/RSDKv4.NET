@@ -1,10 +1,9 @@
 ﻿using RSDKv4.External;
 
-namespace RSDKv4
+namespace RSDKv4;
+
+public class TrackInfo
 {
-    public class TrackInfo
-    {
-        public string name;
-        public OggSong song;
-    }
+    public string name;
+    public OggSong song;
 }

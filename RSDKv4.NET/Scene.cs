@@ -121,7 +121,7 @@ public class Scene
 
         Palette.SetActivePalette(0, 0, 0);
         stageMode = STAGEMODE.LOAD;
-        Engine.gameMode = ENGINE.MAINGAME;
+        Engine.gameMode = ENGINE.WAIT;
         activeStageList = 0;
         stageListPosition = 0;
     }

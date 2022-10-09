@@ -4,12 +4,6 @@ using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
 
-public static class NativeGlobals
-{
-    public static bool usePhysicalControls = true;
-    public static bool nativeMenuFadeIn = false;
-}
-
 public class DialogPanel : NativeEntity
 {
     public enum TYPE { OK, YESNO }

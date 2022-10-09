@@ -1,10 +1,9 @@
 ﻿using Microsoft.Xna.Framework.Audio;
 
-namespace RSDKv4
+namespace RSDKv4;
+
+public class SfxInfo
 {
-    public class SfxInfo
-    {
-        public string name;
-        public SoundEffect soundEffect;
-    }
+    public string name;
+    public SoundEffect soundEffect;
 }

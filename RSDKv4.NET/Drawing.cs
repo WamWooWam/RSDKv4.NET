@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.External;
-using RSDKv4.Native;
 using RSDKv4.Render;
 using static RSDKv4.Scene;
 

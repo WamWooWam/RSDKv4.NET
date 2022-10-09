@@ -13,7 +13,7 @@ public class TitleScreen : NativeEntity
 
     public STATE state;
     public float introRectAlpha;
-    public TextLabel labelPtr;
+    public TextLabel label;
     public MeshInfo introMesh;
     public MeshInfo boxMesh;
     public MeshInfo cartMesh;
@@ -57,22 +57,20 @@ public class TitleScreen : NativeEntity
         textTex = LoadTexture("Data/Game/Menu/Text_EN.png", TEXFMT.RGBA4444);
         Font.LoadBitmapFont("Data/Game/Menu/Text_EN.fnt", FONT.TEXT, textTex);
 
-        labelPtr = (TextLabel)Objects.CreateNativeObject(() => new TextLabel());
-        labelPtr.fontID = FONT.HEADING;
-        labelPtr.scale = 0.15f;
-        labelPtr.alpha = 256;
-        labelPtr.state = TextLabel.STATE.BLINK;
-        //if (Engine.gameDeviceType == RETRO_MOBILE)
-        //    SetStringToFont(labelPtr.text, strTouchToStart, FONT.HEADING);
-        //else
-        //    SetStringToFont(labelPtr.text, strPressStart, FONT.HEADING);
+        label = (TextLabel)Objects.CreateNativeObject(() => new TextLabel());
+        label.fontID = FONT.HEADING;
+        label.scale = 0.15f;
+        label.alpha = 256;
+        label.state = TextLabel.STATE.NONE;
+        if (Engine.deviceType == DEVICE.MOBILE)
+            label.text = Font.GetCharactersForString(Strings.strTouchToStart, FONT.HEADING);
+        else
+            label.text = Font.GetCharactersForString(Strings.strPressStart, FONT.HEADING);
 
-        labelPtr.text = Font.GetCharactersForString("PRESS START", FONT.HEADING);
+        label.SetAlignment(ALIGN.CENTER);
 
-        labelPtr.SetAlignment(ALIGN.CENTER);
-
-        labelPtr.x = 64.0f;
-        labelPtr.y = -96.0f;
+        label.x = 64.0f;
+        label.y = -96.0f;
 
         introTextureId = LoadTexture("Data/Game/Menu/Intro.png", TEXFMT.RGBA5551);
         int package = 0;
@@ -162,8 +160,8 @@ public class TitleScreen : NativeEntity
                         field_12C = 256;
                         logoAlpha = 256;
                         field_130 = 1;
-                        labelPtr.alpha = 256;
-                        labelPtr.state = TextLabel.STATE.BLINK;
+                        label.alpha = 256;
+                        label.state = TextLabel.STATE.BLINK;
                     }
                     break;
                 }
@@ -191,8 +189,8 @@ public class TitleScreen : NativeEntity
                         field_12C = 256;
                         logoAlpha = 256;
                         field_130 = 1;
-                        labelPtr.alpha = 256;
-                        labelPtr.state = TextLabel.STATE.BLINK;
+                        label.alpha = 256;
+                        label.state = TextLabel.STATE.BLINK;
                     }
                     break;
                 }
@@ -233,7 +231,7 @@ public class TitleScreen : NativeEntity
                     }
                     else
                     {
-                        labelPtr.state = TextLabel.STATE.BLINK;
+                        label.state = TextLabel.STATE.BLINK;
                         state = STATE.TITLE;
                         x = 0.0f;
                     }
@@ -276,7 +274,7 @@ public class TitleScreen : NativeEntity
                                 //{
                                 Audio.PlaySfxByName("Menu Select", false);
                                 Audio.StopMusic(true);
-                                labelPtr.state = TextLabel.STATE.BLINK_FAST;
+                                label.state = TextLabel.STATE.BLINK_FAST;
                                 introRectAlpha = 0.0f;
                                 state = STATE.EXITTITLE;
                                 //}
@@ -289,7 +287,7 @@ public class TitleScreen : NativeEntity
                         else
                         {
                             logoAlpha += 8;
-                            labelPtr.alpha += 8;
+                            label.alpha += 8;
                         }
                     }
                     else
@@ -349,7 +347,7 @@ public class TitleScreen : NativeEntity
                     if (introRectAlpha > 1.0)
                     {
                         state = STATE.EXIT;
-                        Objects.RemoveNativeObject(labelPtr);
+                        Objects.RemoveNativeObject(label);
                         SetMeshAnimation(boxMesh, meshAnimator, 4, 16, 0.0f);
                         meshAnimator.animationTimer = 0.0f;
                         meshAnimator.frameId = 16;
