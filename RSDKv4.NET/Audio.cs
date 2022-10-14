@@ -39,9 +39,6 @@ public class Audio
     public static StreamInfo[] streams = new StreamInfo[2];
     public static int currentStream = 0;
 
-    //private static VorbisReader reader;
-    //private static DynamicSoundEffectInstance effect;
-
 #if NO_THREADS
     private static Task musicThread;
 #else
