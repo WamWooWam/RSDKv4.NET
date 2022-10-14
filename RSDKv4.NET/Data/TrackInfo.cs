@@ -5,5 +5,6 @@ namespace RSDKv4;
 public class TrackInfo
 {
     public string name;
-    public OggSong song;
+    public bool loop;
+    public uint loopPoint;
 }

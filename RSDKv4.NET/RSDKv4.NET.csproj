@@ -29,11 +29,16 @@
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants)</DefineConstants>
+    <DefineConstants>$(DefineConstants);FAST_PALETTE</DefineConstants>
+  </PropertyGroup>
+
+  
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
+    <DefineConstants>$(DefineConstants);NO_THREADS</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
-    <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE</DefineConstants>
+    <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE;NO_THREADS</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <PublishAot>true</PublishAot>
     

@@ -432,4 +432,10 @@ public class RSDKFileStream : Stream
         BitHelper.SwapAndCopyTo(hash.u3, info.encryptionKeyB, 8);
         BitHelper.SwapAndCopyTo(hash.u4, info.encryptionKeyB, 12);
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        fileHandle.Dispose();
+    }
 }

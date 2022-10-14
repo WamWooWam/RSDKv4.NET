@@ -64,7 +64,8 @@ public class HardwareRenderer : IRenderer
 #endif
     public byte textureBufferMode = 0;
 
-
+    public static float PIXEL_TO_UV = 1.0f / 1024.0f;
+    
     public HardwareRenderer(Game game, GraphicsDevice device)
     {
         _game = game;

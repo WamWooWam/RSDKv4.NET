@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Xna.Framework;
 using RSDKv4.Utility;
@@ -189,5 +190,23 @@ public static class FileIO
         GetFileInfo(out var info);
         stream.SetFileInfo(info);
         return stream;
+    }
+
+    public static bool TryGetFileStream(string file, out Stream stream)
+    {
+        var fileHandle = TitleContainer.OpenStream(fileName);
+        var rsdkStream = new RSDKFileStream(rsdkContainer, fileHandle);
+
+        if(rsdkStream.LoadFile(file, out _))
+        {
+            stream = rsdkStream;
+            return true;
+        }
+        else
+        {
+            rsdkStream.Dispose();
+            stream = null;
+            return false;
+        }
     }
 }

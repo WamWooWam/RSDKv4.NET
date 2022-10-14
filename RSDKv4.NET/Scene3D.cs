@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using RSDKv4.Utility;
 using static RSDKv4.Drawing;
+using static RSDKv4.FastMath;
 
 namespace RSDKv4;
 
@@ -75,14 +76,17 @@ public class Scene3D
         m[1] = 0;
         m[2] = 0;
         m[3] = 0;
+
         m[4] = 0;
         m[5] = 256;
         m[6] = 0;
         m[7] = 0;
+
         m[8] = 0;
         m[9] = 0;
         m[10] = 256;
         m[11] = 0;
+
         m[12] = xPos;
         m[13] = yPos;
         m[14] = zPos;
@@ -115,8 +119,8 @@ public class Scene3D
     public static void MatrixRotateX(ref int[] m, int angle)
     {
         angle &= 511;
-        int sin = FastMath.sinVal512[angle] >> 1;
-        int cos = FastMath.cosVal512[angle] >> 1;
+        int sin = sinVal512[angle] >> 1;
+        int cos = cosVal512[angle] >> 1;
 
         m[0] = 256;
         m[1] = 0;
@@ -142,8 +146,8 @@ public class Scene3D
     public static void MatrixRotateY(ref int[] m, int angle)
     {
         angle &= 511;
-        int sin = FastMath.sinVal512[angle] >> 1;
-        int cos = FastMath.cosVal512[angle] >> 1;
+        int sin = sinVal512[angle] >> 1;
+        int cos = cosVal512[angle] >> 1;
 
         m[0] = cos;
         m[1] = 0;
@@ -169,8 +173,8 @@ public class Scene3D
     public static void MatrixRotateZ(ref int[] m, int angle)
     {
         angle &= 511;
-        int sin = FastMath.sinVal512[angle] >> 1;
-        int cos = FastMath.cosVal512[angle] >> 1;
+        int sin = sinVal512[angle] >> 1;
+        int cos = cosVal512[angle] >> 1;
 
         m[0] = cos;
         m[1] = 0;
@@ -199,12 +203,12 @@ public class Scene3D
         angleY &= 511;
         angleZ &= 511;
 
-        int sinX = FastMath.sinVal512[angleX] >> 1;
-        int cosX = FastMath.cosVal512[angleX] >> 1;
-        int sinY = FastMath.sinVal512[angleY] >> 1;
-        int cosY = FastMath.cosVal512[angleY] >> 1;
-        int sinZ = FastMath.sinVal512[angleZ] >> 1;
-        int cosZ = FastMath.cosVal512[angleZ] >> 1;
+        int sinX = sinVal512[angleX] >> 1;
+        int cosX = cosVal512[angleX] >> 1;
+        int sinY = sinVal512[angleY] >> 1;
+        int cosY = cosVal512[angleY] >> 1;
+        int sinZ = sinVal512[angleZ] >> 1;
+        int cosZ = cosVal512[angleZ] >> 1;
 
         m[0] = (cosZ * cosY >> 8) + (sinZ * (sinY * sinX >> 8) >> 8);
         m[1] = (sinZ * cosY >> 8) - (cosZ * (sinY * sinX >> 8) >> 8);
@@ -425,7 +429,7 @@ public class Scene3D
                         if (fogStr > fogStrength)
                             fogStr = fogStrength;
 
-                        Drawing.DrawFadedQuad(face, (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
+                        DrawFadedQuad(face, (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C:
@@ -454,7 +458,7 @@ public class Scene3D
                         face.vertex[3].u = a.u + c.u;
                         face.vertex[3].v = a.v + c.v;
 
-                        Drawing.DrawTexturedQuad(face, face3D.color);
+                        DrawTexturedQuad(face, face3D.color);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C_BLEND:
@@ -480,7 +484,7 @@ public class Scene3D
                         face.vertex[3].u = a.u + c.u;
                         face.vertex[3].v = a.v + c.v;
 
-                        Drawing.DrawTexturedBlendedQuad(face, face3D.color);
+                        DrawTexturedBlendedQuad(face, face3D.color);
                     }
                     break;
                 case FACE_FLAG.SPRITE_3D:
@@ -495,16 +499,16 @@ public class Scene3D
                         switch (a.v)
                         {
                             case FX.SCALE:
-                                Drawing.DrawScaledSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, c.u,
+                                DrawScaledSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, c.u,
                                                  c.u, frame.width, frame.height, frame.spriteX, frame.spriteY,
                                                  scriptInfo.spriteSheetId);
                                 break;
                             case FX.ROTATE:
-                                Drawing.DrawRotatedSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
+                                DrawRotatedSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
                                                   frame.width, frame.height, c.v, scriptInfo.spriteSheetId);
                                 break;
                             case FX.ROTOZOOM:
-                                Drawing.DrawRotoZoomSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
+                                DrawRotoZoomSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
                                                    frame.width, frame.height, c.v, c.u,
                                                    scriptInfo.spriteSheetId);
                                 break;

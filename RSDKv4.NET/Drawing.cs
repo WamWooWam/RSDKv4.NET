@@ -40,8 +40,6 @@ public static class Drawing
 
     public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
 
-    public const float PIXEL_TO_UV = (float)(1.0 / SURFACE_SIZE);
-
     public static byte[] graphicsBuffer = new byte[SURFACE_DATASIZE];
     public static int graphicsBufferPos = 0;
 

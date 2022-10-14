@@ -11,7 +11,7 @@
 - Keyboard input
 - Touch Input
 - Save Data
-- Music & Sound effects (mostly)
+- Music & Sound effects
 - 30% of Native Menus
 - Builds and runs flawlessly using NativeAoT on .NET 7
 
@@ -25,7 +25,6 @@
     - FAST_PALETTE is unsupported on the XNA Reach profile (Windows Phone 7)
     - Another solution will be required
 - Some background modes that aren't used by Sonic 1 & 2
-- Music is buggy
 
 ## What's not planned
 - Mod support
