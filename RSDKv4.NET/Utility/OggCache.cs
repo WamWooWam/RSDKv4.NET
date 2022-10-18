@@ -4,6 +4,8 @@ using RSDKv4.External;
 
 #if SILVERLIGHT
 using System.IO.IsolatedStorage;
+#elif WINDOWS_UWP
+using Windows.Storage;
 #endif
 
 namespace RSDKv4.Utility;
@@ -22,6 +24,9 @@ internal class OggCache
                 stream = storage.OpenFile($"{digest}.wav", FileMode.Open);
                 return true;
             }
+#elif WINDOWS_UWP
+            stream = File.OpenRead(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, $"{digest}.wav"));
+            return true;
 #else
             stream = File.OpenRead($"Cache/{digest}.wav");
             return true;
@@ -41,6 +46,8 @@ internal class OggCache
 #if SILVERLIGHT
             using (var storage = IsolatedStorageFile.GetUserStoreForApplication())
             using (var stream = storage.OpenFile($"{digest}.wav", FileMode.Create))
+#elif WINDOWS_UWP
+            using (var stream = File.Create(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, $"{digest}.wav"))
 #else
             if (!Directory.Exists("Cache"))
                 Directory.CreateDirectory("Cache");

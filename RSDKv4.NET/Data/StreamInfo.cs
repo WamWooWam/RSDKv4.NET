@@ -3,9 +3,6 @@ using System.IO;
 using Microsoft.Xna.Framework.Audio;
 using NVorbis;
 
-#if NO_THREADS
-#endif
-
 namespace RSDKv4;
 
 public class StreamInfo
@@ -21,8 +18,6 @@ public class StreamInfo
 #endif
     public float[] floatBuffer;
 
-    public bool isPlaying;
-
     public void Reset()
     {
         if (effect != null)
@@ -31,14 +26,10 @@ public class StreamInfo
             effect.Dispose();
         }
 
-        if (reader != null)
-        {
-            reader.Dispose();
-        }
+        reader?.Dispose();
 
         effect = null;
         reader = null;
         stream = null;
-        isPlaying = false;
     }
 }

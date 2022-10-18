@@ -6,10 +6,7 @@ namespace RSDKv4.Native;
 
 public class TitleScreen : NativeEntity
 {
-    public enum STATE
-    {
-        SETUP, ENTERINTRO, INTRO, ENTERBOX, TITLE, EXITTITLE, EXIT
-    }
+    public enum STATE { SETUP, ENTERINTRO, INTRO, ENTERBOX, TITLE, EXITTITLE, EXIT }
 
     public STATE state;
     public float introRectAlpha;
@@ -58,7 +55,7 @@ public class TitleScreen : NativeEntity
         Font.LoadBitmapFont("Data/Game/Menu/Text_EN.fnt", FONT.TEXT, textTex);
 
         label = (TextLabel)Objects.CreateNativeObject(() => new TextLabel());
-        label.fontID = FONT.HEADING;
+        label.fontId = FONT.HEADING;
         label.scale = 0.15f;
         label.alpha = 256;
         label.state = TextLabel.STATE.NONE;

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.External;
 using RSDKv4.Render;
+using RSDKv4.Utility;
 using static RSDKv4.Scene;
 
 namespace RSDKv4;
@@ -18,7 +19,7 @@ public static class Drawing
     public const int INDEX_LIMIT = VERTEX_LIMIT * 6;
     public const int VERTEX3D_LIMIT = 0x1904;
     public const int TEXBUFFER_SIZE = 0x100000;
-    public const int TILEUV_SIZE = 0x1000;
+    public const int TILEUV_SIZE = 0x4000;
 
     public const int PALETTE_COUNT = 0x8;
     public const int PALETTE_SIZE = 0x100;
@@ -52,11 +53,6 @@ public static class Drawing
 
     public static bool surfaceDirty = true;
 
-    public static Color[] colors = new Color[]
-    {
-        Color.Red, Color.Magenta, Color.Green, Color.Yellow
-    };
-
 #if ENABLE_3D
     public static DrawVertex3D[] vertexList3D = new DrawVertex3D[VERTEX3D_LIMIT];
     public static ushort vertexCount3D = 0;
@@ -71,14 +67,9 @@ public static class Drawing
 
     static Drawing()
     {
-        for (int i = 0; i < SURFACE_MAX; i++)
-            surfaces[i] = new SurfaceDesc();
-
-        for (int i = 0; i < PALETTE_COUNT; i++)
-        {
-            fullPalette32[i] = new Color[PALETTE_SIZE];
-            fullPalette[i] = new ushort[PALETTE_SIZE];
-        }
+        Helpers.Memset(surfaces, () => new SurfaceDesc());
+        Helpers.Memset(fullPalette, () => new ushort[PALETTE_SIZE]);
+        Helpers.Memset(fullPalette32, () => new Color[PALETTE_SIZE]);
     }
 
     public static ushort RGB_16BIT5551(byte r, byte g, byte b, byte a)
@@ -119,10 +110,11 @@ public static class Drawing
 
     public static void ClearGraphicsData()
     {
-        for (int index = 0; index < 24; ++index)
+        for (int index = 0; index < SURFACE_MAX; ++index)
             surfaces[index].fileName = null;
 
         graphicsBufferPos = 0;
+        surfaceDirty = true;
     }
 
     public static bool CheckSurfaceSize(int size)
@@ -178,8 +170,10 @@ public static class Drawing
             int dataPosStart = surface.dataPosition;
             int dataPosEnd = surface.dataPosition + surface.height * surface.width;
 
-            for (int i = SURFACE_DATASIZE - dataPosEnd; i > 0; --i)
-                graphicsBuffer[dataPosStart++] = graphicsBuffer[dataPosEnd++];
+            Array.Copy(graphicsBuffer, dataPosStart, graphicsBuffer, dataPosEnd, SURFACE_DATASIZE - dataPosEnd);
+
+            //for (int i = SURFACE_DATASIZE - dataPosEnd; i > 0; --i)
+            //    graphicsBuffer[dataPosStart++] = graphicsBuffer[dataPosEnd++];
 
             graphicsBufferPos -= surface.height * surface.width;
 
@@ -205,15 +199,8 @@ public static class Drawing
 
         FileIO.SetFilePosition(18);
 
-        surface.width = FileIO.ReadByte();
-        surface.width += FileIO.ReadByte() << 8;
-        surface.width += FileIO.ReadByte() << 16;
-        surface.width += FileIO.ReadByte() << 24;
-
-        surface.height = FileIO.ReadByte();
-        surface.height += FileIO.ReadByte() << 8;
-        surface.height += FileIO.ReadByte() << 16;
-        surface.height += FileIO.ReadByte() << 24;
+        surface.width = FileIO.ReadInt32();
+        surface.height = FileIO.ReadInt32();
 
         FileIO.SetFilePosition((int)((ulong)info.fileSize - (ulong)(surface.width * surface.height)));
 
@@ -345,7 +332,6 @@ public static class Drawing
         surfaceDirty = true;
     }
 
-    public static List<Rectangle> rects = new List<Rectangle>();
     public static void DrawStageGFX()
     {
         waterDrawPos = waterLevel - yScrollOffset;

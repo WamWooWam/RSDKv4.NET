@@ -1,4 +1,4 @@
-﻿#if !NETSTANDARD1_6 && !WINDOWSPHONEAPP
+﻿#if false
 
 using System;
 using System.Collections;

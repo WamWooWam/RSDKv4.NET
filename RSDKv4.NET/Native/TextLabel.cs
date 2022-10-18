@@ -14,7 +14,7 @@ public class TextLabel : NativeEntity
     public float timer;
     public float scale;
     public int alpha;
-    public int fontID;
+    public int fontId;
     public ushort[] text;
     public STATE state;
     public bool useRenderMatrix;
@@ -51,7 +51,7 @@ public class TextLabel : NativeEntity
             case STATE.NONE: break;
             case STATE.IDLE:
                 SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                RenderText(text, fontID, x - alignOffset, y, (int)z, scale, alpha);
+                RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
                 break;
             case STATE.BLINK:
                 timer += Engine.deltaTime;
@@ -62,7 +62,7 @@ public class TextLabel : NativeEntity
                 {
                     SetRenderBlendMode(RENDER_BLEND.ALPHA);
                     
-                    RenderText(text, fontID, x - alignOffset, y, (int)z, scale, alpha);
+                    RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
                 }
                 break;
             case STATE.BLINK_FAST:
@@ -73,7 +73,7 @@ public class TextLabel : NativeEntity
                 if (timer > 0.05)
                 {
                     SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    RenderText(text, fontID, x - alignOffset, y, (int)z, scale, alpha);
+                    RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
                 }
                 break;
         }
@@ -92,12 +92,11 @@ public class TextLabel : NativeEntity
 
     public void SetAlignment(int align)
     {
-        switch (align)
+        alignOffset = align switch
         {
-            default:
-            case ALIGN.LEFT: alignOffset = 0.0f; break;
-            case ALIGN.CENTER: alignOffset = Font.GetTextWidth(text, fontID, scale) * 0.5f; break;
-            case ALIGN.RIGHT: alignOffset = Font.GetTextWidth(text, fontID, scale); break;
-        }
+            ALIGN.CENTER => Font.GetTextWidth(text, fontId, scale) * 0.5f,
+            ALIGN.RIGHT => Font.GetTextWidth(text, fontId, scale),
+            _ => 0.0f,
+        };
     }
 }

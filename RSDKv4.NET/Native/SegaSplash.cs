@@ -4,10 +4,7 @@ namespace RSDKv4.Native;
 
 public class SegaSplash : NativeEntity
 {
-    private enum STATE
-    {
-        ENTER, EXIT, SPAWNCWSPLASH
-    }
+    private enum STATE { ENTER, EXIT, SPAWNCWSPLASH }
 
     private STATE state;
     private float rectAlpha;

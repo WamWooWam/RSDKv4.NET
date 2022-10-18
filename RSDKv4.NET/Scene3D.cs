@@ -458,7 +458,7 @@ public class Scene3D
                         face.vertex[3].u = a.u + c.u;
                         face.vertex[3].v = a.v + c.v;
 
-                        DrawTexturedQuad(face, face3D.color);
+                        DrawTexturedQuad(face, surfaceNum);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C_BLEND:
@@ -484,7 +484,7 @@ public class Scene3D
                         face.vertex[3].u = a.u + c.u;
                         face.vertex[3].v = a.v + c.v;
 
-                        DrawTexturedBlendedQuad(face, face3D.color);
+                        DrawTexturedBlendedQuad(face, surfaceNum);
                     }
                     break;
                 case FACE_FLAG.SPRITE_3D:

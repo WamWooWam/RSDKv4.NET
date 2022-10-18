@@ -17,7 +17,8 @@ public class RetroGameLoop : NativeEntity
             case ENGINE.MAINGAME:
                 //Scene.ProcessStage();
                 Drawing.Draw();
-                NativeRenderer.RenderRetroBuffer(64, 160);
+                Drawing.Present();
+                //NativeRenderer.RenderRetroBuffer(64, 160);
                 break;
         }
     }

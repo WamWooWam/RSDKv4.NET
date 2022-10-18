@@ -98,20 +98,20 @@ public class Objects
 
             switch (entity.priority)
             {
-                case PRIORITY.ACTIVE_BOUNDS:
+                case PRIORITY.BOUNDS:
                     processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X1 && x < xScrollOffset + OBJECT_BORDER_X2
                                                          && y > yScrollOffset - OBJECT_BORDER_Y1 && y < yScrollOffset + OBJECT_BORDER_Y2;
                     break;
 
                 case PRIORITY.ACTIVE:
-                case PRIORITY.ACTIVE_PAUSED:
+                case PRIORITY.ALWAYS:
                 case PRIORITY.ACTIVE_SMALL: processObjectFlag[objectEntityPos] = true; break;
 
-                case PRIORITY.ACTIVE_XBOUNDS:
+                case PRIORITY.XBOUNDS:
                     processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X1 && x < OBJECT_BORDER_X2 + xScrollOffset;
                     break;
 
-                case PRIORITY.ACTIVE_XBOUNDS_REMOVE:
+                case PRIORITY.XBOUNDS_DESTROY:
                     processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X1 && x < xScrollOffset + OBJECT_BORDER_X2;
                     if (!processObjectFlag[objectEntityPos])
                     {
@@ -121,7 +121,7 @@ public class Objects
                     break;
 
                 case PRIORITY.INACTIVE: processObjectFlag[objectEntityPos] = false; break;
-                case PRIORITY.ACTIVE_BOUNDS_SMALL:
+                case PRIORITY.BOUNDS_SMALL:
                     processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X3 && x < OBJECT_BORDER_X4 + xScrollOffset
                                                          && y > yScrollOffset - OBJECT_BORDER_Y3 && y < yScrollOffset + OBJECT_BORDER_Y4;
                     break;
@@ -133,8 +133,8 @@ public class Objects
             {
                 ObjectScript scriptInfo = Script.objectScriptList[entity.type];
 
-                if (stageMode != STAGEMODE.FROZEN && stageMode != STAGEMODE.FROZEN_STEP || entity.priority == PRIORITY.ACTIVE_PAUSED)
-                    Script.ProcessScript(scriptInfo.eventMain.scriptCodePtr, scriptInfo.eventMain.jumpTablePtr, EVENT.MAIN);
+                if (stageMode != STAGEMODE.FROZEN && stageMode != STAGEMODE.FROZEN_STEP || entity.priority == PRIORITY.ALWAYS)
+                    Script.ProcessScript(scriptInfo.eventUpdate.scriptCodePtr, scriptInfo.eventUpdate.jumpTablePtr, EVENT.MAIN);
 
                 if (entity.drawOrder < Scene.DRAWLAYER_COUNT && entity.drawOrder >= 0)
                     Scene.drawListEntries[entity.drawOrder].entityRefs.Add(objectEntityPos);

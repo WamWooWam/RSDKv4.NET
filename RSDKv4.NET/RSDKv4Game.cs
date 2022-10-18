@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using RSDKv4.Native;
 using RSDKv4.Utility;
 
-#if !SILVERLIGHT
+#if NO_THREADS
 using System.Threading.Tasks;
 #endif
 
@@ -18,10 +18,10 @@ namespace RSDKv4;
 public class RSDKv4Game : Game
 {
     GraphicsDeviceManager graphics;
-#if !NETSTANDARD1_6 && !WINDOWSPHONEAPP8_1
-    private Thread loadThread;
-#else
+#if NO_THREADS
     private Task loadTask;
+#else
+    private Thread loadThread;
 #endif
     private bool isLoaded;
 
@@ -41,16 +41,17 @@ public class RSDKv4Game : Game
         graphics.PreparingDeviceSettings += OnPreparingDeviceSettings;
         graphics.PreferredBackBufferWidth = WIDTH;
         graphics.PreferredBackBufferHeight = HEIGHT;
-#if SILVERLIGHT
+        //graphics.PreferredBackBufferFormat = SurfaceFormat.Bgr565;
+#if SILVERLIGHT || WINDOWS_UWP
         graphics.IsFullScreen = true;
         graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
 #endif
 #if FAST_PALETTE
         graphics.GraphicsProfile = GraphicsProfile.HiDef;
-        graphics.PreferMultiSampling = true;
 #endif
         Content.RootDirectory = "Content";
-        TargetElapsedTime = TimeSpan.FromTicks(166666);
+        TargetElapsedTime = TimeSpan.FromSeconds(1.0 / 60.0);
+        InactiveSleepTime = TimeSpan.FromSeconds(1.0);
         IsFixedTimeStep = true;
 
 #if !SILVERLIGHT
@@ -74,9 +75,6 @@ public class RSDKv4Game : Game
     private void OnPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
     {
         e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.One;
-#if FAST_PALETTE
-        e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
-#endif
     }
 
     /// <summary>
@@ -88,6 +86,7 @@ public class RSDKv4Game : Game
     protected override void Initialize()
     {
         base.Initialize();
+        this.GraphicsDevice.PresentationParameters.PresentationInterval = PresentInterval.One;
     }
 
     /// <summary>
@@ -97,11 +96,11 @@ public class RSDKv4Game : Game
     protected override void LoadContent()
     {
         loadingScreen = new LoadingScreen(this, GraphicsDevice);
-#if !NETSTANDARD1_6 && !WINDOWSPHONEAPP8_1
+#if NO_THREADS
+        loadTask = Task.Run(LoadRetroEngine);
+#else
         loadThread = new Thread(LoadRetroEngine);
         loadThread.Start();
-#else
-        loadTask = Task.Run(LoadRetroEngine);
 #endif
     }
 
@@ -111,7 +110,7 @@ public class RSDKv4Game : Game
         // new PaletteHack().Install(Engine.hooks);
 
         FastMath.CalculateTrigAngles();
-        if (!FileIO.CheckRSDKFile("Data.rsdk"))
+        if (!FileIO.CheckRSDKFile("DataS2u.rsdk"))
             FileIO.CheckRSDKFile("DataS2.rsdk");
 
         Strings.InitLocalizedStrings();
@@ -124,7 +123,7 @@ public class RSDKv4Game : Game
         if (saveFile.stageId == 0)
         {
             newGame = true;
-            saveFile.lives = 3;
+            saveFile.lives = int.MaxValue;
             saveFile.score = 0;
             saveFile.scoreBonus = 500000;
             saveFile.stageId = 1;
@@ -188,8 +187,7 @@ public class RSDKv4Game : Game
                     }
 
                     // stage select
-                    // Scene.InitStartingStage(STAGELIST.REGULAR, 21, 0);
-
+                    // Scene.InitStartingStage(STAGELIST.REGULAR, 0, 0);
 
                     loadPercent = 0.95f;
 
@@ -240,8 +238,6 @@ public class RSDKv4Game : Game
             needsResize = false;
         }
 
-        Drawing.rects.Clear();
-
         Input.ProcessInput();
         Scene.ProcessStage();
     }
@@ -266,5 +262,7 @@ public class RSDKv4Game : Game
 
             Objects.ProcessNativeObjects();
         }
+
+        base.Draw(gameTime);
     }
 }

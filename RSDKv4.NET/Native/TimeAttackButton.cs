@@ -6,7 +6,6 @@ namespace RSDKv4.Native;
 
 public class TimeAttackButton : MenuButton
 {
-    public MeshInfo meshTimeAttack;
     public MeshAnimator animator = new MeshAnimator();
 
     public override void Create()
@@ -14,8 +13,8 @@ public class TimeAttackButton : MenuButton
         this.textureCircle = LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
 
         int texture = LoadTexture("Data/Game/Menu/Intro.png", TEXFMT.RGBA4444);
-        this.meshTimeAttack = LoadMesh("Data/Game/Models/TimeAttack.bin", texture);
-        SetMeshAnimation(this.meshTimeAttack, this.animator, 0, 16, 0.0f);
+        this.mesh = LoadMesh("Data/Game/Models/TimeAttack.bin", texture);
+        SetMeshAnimation(this.mesh, this.animator, 0, 16, 0.0f);
         this.animator.loopAnimation = true;
         this.x = 0.0f;
         this.y = 16.0f;
@@ -24,7 +23,7 @@ public class TimeAttackButton : MenuButton
         this.g = 0xFF;
         this.b = 0x00;
         this.label = Objects.CreateNativeObject(() => new TextLabel());
-        this.label.fontID = FONT.HEADING;
+        this.label.fontId = FONT.HEADING;
         this.label.scale = 0.15f;
         this.label.alpha = 0;
         this.label.state = TextLabel.STATE.IDLE;
@@ -53,7 +52,7 @@ public class TimeAttackButton : MenuButton
                 this.angle += MathHelper.TwoPi;
 
             this.animator.animationSpeed = Engine.deltaTime * 16.0f;
-            AnimateMesh(this.meshTimeAttack, this.animator);
+            AnimateMesh(this.mesh, this.animator);
 
             NewRenderState();
 
@@ -61,7 +60,7 @@ public class TimeAttackButton : MenuButton
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
 
             SetRenderMatrix(this.renderMatrix);
-            RenderMesh(this.meshTimeAttack, MESH.COLOURS, true);
+            RenderMesh(this.mesh, MESH.COLOURS, true);
             SetRenderMatrix(null);
 
             TextLabel label = this.label;

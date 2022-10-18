@@ -64,8 +64,8 @@ public class HardwareRenderer : IRenderer
 #endif
     public byte textureBufferMode = 0;
 
-    public static float PIXEL_TO_UV = 1.0f / 1024.0f;
-    
+    public static float PIXEL_TO_UV = 1.0f / (float)SURFACE_SIZE;
+
     public HardwareRenderer(Game game, GraphicsDevice device)
     {
         _game = game;
@@ -188,7 +188,7 @@ public class HardwareRenderer : IRenderer
         {
             SetActivePalette(paletteNum, 0, SCREEN_YSIZE);
             UpdateTextureBufferWithTiles();
-            UpdateTextureBufferWithSprites();
+            UpdateTextureBufferWithSortedSprites();
             _textures[paletteNum].SetData(textureBuffer);
         }
         SetActivePalette((byte)0, 0, SCREEN_YSIZE);
@@ -213,7 +213,7 @@ public class HardwareRenderer : IRenderer
         }
 #else
         UpdateTextureBufferWithTiles();
-        UpdateTextureBufferWithSprites();
+        //UpdateTextureBufferWithSprites();
         UpdateTextureBufferWithSortedSprites();
         _textures[texPaletteNum].SetData(textureBuffer);
 #endif
@@ -354,7 +354,7 @@ public class HardwareRenderer : IRenderer
 #if FAST_PALETTE
         for (int i = 0; i < PALETTE_COUNT; i++)
         {
-            _spriteBatch.Draw(_palettes[i], new Rectangle(64 * i, _screenRect.Height - 64, 64, 64), Color.White);
+            _spriteBatch.Draw(_palettes[i], new Rectangle(32 * i, _screenRect.Height - 32, 32, 32), Color.White);
         }
 #endif
 
@@ -470,8 +470,8 @@ public class HardwareRenderer : IRenderer
         var cnt = 0;
         var bufPos = 0;
         var currentPalette = fullPalette[texPaletteNum];
-
-        Helpers.Memset(textureBuffer, (byte)255);
+        var tilesetGFXData = Drawing.tilesetGFXData;
+        var textureBuffer = this.textureBuffer;
 
         if (textureBufferMode == 0)
         {
@@ -481,7 +481,7 @@ public class HardwareRenderer : IRenderer
                 {
                     int dataPos = cnt << 8;
                     cnt++;
-                    bufPos = w + (h << 10);
+                    bufPos = w + (h * SURFACE_SIZE);
                     for (int y = 0; y < TILE_SIZE; y++)
                     {
 #if FAST_PALETTE
@@ -520,10 +520,8 @@ public class HardwareRenderer : IRenderer
                         textureBuffer[bufPos + 14] =  currentPalette[tilesetGFXData[dataPos + 14]];
                         textureBuffer[bufPos + 15] =  currentPalette[tilesetGFXData[dataPos + 15]];
 #endif
-                        bufPos += 16;
                         dataPos += 16;
-
-                        bufPos += 1008;
+                        bufPos += SURFACE_SIZE;
                     }
                 }
             }
@@ -539,7 +537,7 @@ public class HardwareRenderer : IRenderer
                     if (cnt == 783)
                         cnt = 1023;
 
-                    bufPos = w + (h << 10);
+                    bufPos = w + (h * SURFACE_SIZE);
 #if FAST_PALETTE
                     textureBuffer[bufPos] = tilesetGFXData[dataPos];
 #else
@@ -689,13 +687,15 @@ public class HardwareRenderer : IRenderer
 
     public void UpdateTextureBufferWithSprites()
     {
+        var currentPalette = fullPalette[texPaletteNum];
+
         for (int i = 0; i < SURFACE_MAX; ++i)
         {
             SurfaceDesc surface = surfaces[i];
             if (surface.texStartY + surface.height <= SURFACE_SIZE && surface.texStartX > -1)
             {
                 int pos = surface.dataPosition;
-                int teXPos = surface.texStartX + (surface.texStartY << 10);
+                int teXPos = surface.texStartX + (surface.texStartY * SURFACE_SIZE);
                 for (int j = 0; j < surface.height; j++)
                 {
                     for (int k = 0; k < surface.width; k++)
@@ -703,7 +703,7 @@ public class HardwareRenderer : IRenderer
 #if FAST_PALETTE
                         textureBuffer[teXPos] = graphicsBuffer[pos];
 #else
-                        textureBuffer[teXPos] = fullPalette[texPaletteNum][graphicsBuffer[pos]];
+                        textureBuffer[teXPos] = currentPalette[graphicsBuffer[pos]];
 #endif
 
                         teXPos++;
@@ -717,6 +717,8 @@ public class HardwareRenderer : IRenderer
 
     public void UpdateTextureBufferWithSortedSprites()
     {
+        var currentPalette = fullPalette[texPaletteNum];
+
         byte surfCnt = 0;
         byte[] surfList = new byte[SURFACE_MAX];
         bool flag = true;
@@ -844,7 +846,7 @@ public class HardwareRenderer : IRenderer
             if (curSurface.texStartY + curSurface.height <= SURFACE_SIZE)
             {
                 int gfXPos = curSurface.dataPosition;
-                int dataPos = curSurface.texStartX + (curSurface.texStartY << 10);
+                int dataPos = curSurface.texStartX + (curSurface.texStartY * SURFACE_SIZE);
                 for (int h = 0; h < curSurface.height; h++)
                 {
                     for (int w = 0; w < curSurface.width; w++)
@@ -852,7 +854,7 @@ public class HardwareRenderer : IRenderer
 #if FAST_PALETTE
                         textureBuffer[dataPos] = graphicsBuffer[gfXPos];
 #else
-                        textureBuffer[dataPos] = fullPalette[texPaletteNum][graphicsBuffer[gfXPos]];
+                        textureBuffer[dataPos] = currentPalette[graphicsBuffer[gfXPos]];
 #endif
                         dataPos++;
                         gfXPos++;

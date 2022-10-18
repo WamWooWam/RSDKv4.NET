@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net40;net7.0;netstandard1.6;sl4</TargetFrameworks>
+    <TargetFrameworks>net40;net7.0;sl4</TargetFrameworks>
     <RootNamespace>RSDKv4</RootNamespace>
     <LangVersion>10</LangVersion>
   </PropertyGroup>
@@ -12,9 +12,9 @@
     <PackageReference Include="NVorbis" Version="0.10.4" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
     <Reference Include="MonoGame.Framework">
-      <HintPath>C:\Program Files (x86)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
+      <HintPath>$(MSBuildProgramFiles32)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis">
       <HintPath>..\Dependencies\netstandard1.6\NVorbis.dll</HintPath>
@@ -31,10 +31,10 @@
     <PlatformTarget>x86</PlatformTarget>
     <DefineConstants>$(DefineConstants);FAST_PALETTE</DefineConstants>
   </PropertyGroup>
-
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
-    <DefineConstants>$(DefineConstants);NO_THREADS</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
+    <OutputType>Library</OutputType>
+    <DefineConstants>$(DefineConstants);MONOGAME;FAST_PALETTE;NO_THREADS</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
@@ -72,16 +72,16 @@
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="Microsoft.Xna.Framework">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.dll</HintPath>
+      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework.Game">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Game.dll</HintPath>
+      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Game.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework.Graphics">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Graphics.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework.Input.Touch">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
+      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis">
       <HintPath>..\Dependencies\net40\NVorbis.dll</HintPath>

@@ -19,7 +19,7 @@ public class OptionsButton : MenuButton
         this.g = 0xFF;
         this.b = 0x00;
         this.label = Objects.CreateNativeObject(() => new TextLabel());
-        this.label.fontID = FONT.HEADING;
+        this.label.fontId = FONT.HEADING;
         this.label.scale = 0.15f;
         this.label.alpha = 0;
         this.label.state = TextLabel.STATE.IDLE;

@@ -6,10 +6,7 @@ namespace RSDKv4.Native;
 
 public class SegaIDButton : NativeEntity
 {
-    public enum STATE
-    {
-        IDLE, PRESSED
-    }
+    public enum STATE { IDLE, PRESSED }
 
     public float x;
     public float y;

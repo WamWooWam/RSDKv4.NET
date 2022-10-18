@@ -53,7 +53,7 @@ public static class Engine
     public static Delegate[] nativeFunctions = new Delegate[NATIVEFUNCTION_MAX];
 
     public static int gameMode = ENGINE.WAIT;
-    public static int deviceType = DEVICE.STANDARD;
+    public static int deviceType = DEVICE.MOBILE;
     public static int language = LANGUAGE.EN;
 
     public static bool trialMode = false;
@@ -159,7 +159,7 @@ public static class Engine
             if (name == globalVariableNames[v])
                 return globalVariables[v];
         }
-        return 0;
+        return -1;
     }
 
     public static void SetGlobalVariableByName(string name, int value)
@@ -181,7 +181,7 @@ public static class Engine
             if (name == globalVariableNames[v])
                 return v;
         }
-        return 0xFF;
+        return -1;
     }
 
     public static void AddNativeFunction(string name, Delegate function)

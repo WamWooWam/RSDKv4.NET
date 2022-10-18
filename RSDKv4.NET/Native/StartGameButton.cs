@@ -6,7 +6,6 @@ namespace RSDKv4.Native;
 
 public class StartGameButton : MenuButton
 {
-    public MeshInfo meshCart;
     public int prevRegion;
 
     public override void Create()
@@ -18,15 +17,15 @@ public class StartGameButton : MenuButton
         {
             case REGION.JP:
                 package = LoadTexture("Data/Game/Models/Package_JP.png", TEXFMT.RGBA5551);
-                this.meshCart = LoadMesh("Data/Game/Models/JPCartridge.bin", package);
+                this.mesh = LoadMesh("Data/Game/Models/JPCartridge.bin", package);
                 break;
             case REGION.US:
                 package = LoadTexture("Data/Game/Models/Package_US.png", TEXFMT.RGBA5551);
-                this.meshCart = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
                 break;
             case REGION.EU:
                 package = LoadTexture("Data/Game/Models/Package_EU.png", TEXFMT.RGBA5551);
-                this.meshCart = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
                 break;
         }
         this.prevRegion = Engine.globalBoxRegion;
@@ -37,7 +36,7 @@ public class StartGameButton : MenuButton
         this.g = 0xFF;
         this.b = 0x00;
         this.label = Objects.CreateNativeObject(() => new TextLabel());
-        this.label.fontID = FONT.HEADING;
+        this.label.fontId = FONT.HEADING;
         this.label.scale = 0.15f;
         this.label.alpha = 0;
         this.label.state = TextLabel.STATE.IDLE;
@@ -54,15 +53,15 @@ public class StartGameButton : MenuButton
             {
                 case REGION.JP:
                     package = LoadTexture("Data/Game/Models/Package_JP.png", TEXFMT.RGBA5551);
-                    this.meshCart = LoadMesh("Data/Game/Models/JPCartridge.bin", package);
+                    this.mesh = LoadMesh("Data/Game/Models/JPCartridge.bin", package);
                     break;
                 case REGION.US:
                     package = LoadTexture("Data/Game/Models/Package_US.png", TEXFMT.RGBA5551);
-                    this.meshCart = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                    this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
                     break;
                 case REGION.EU:
                     package = LoadTexture("Data/Game/Models/Package_EU.png", TEXFMT.RGBA5551);
-                    this.meshCart = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                    this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
                     break;
             }
             this.prevRegion = Engine.globalBoxRegion;
@@ -93,7 +92,7 @@ public class StartGameButton : MenuButton
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
 
             SetRenderMatrix(this.renderMatrix);
-            RenderMesh(this.meshCart, MESH.COLOURS, true);
+            RenderMesh(this.mesh, MESH.COLOURS, true);
             SetRenderMatrix(null);
 
             TextLabel label = this.label;

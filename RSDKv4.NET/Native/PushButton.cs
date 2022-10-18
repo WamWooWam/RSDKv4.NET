@@ -6,10 +6,7 @@ namespace RSDKv4.Native;
 
 public class PushButton : NativeEntity
 {
-    public enum STATE
-    {
-        UNSELECTED, SELECTED, FLASHING, SCALED
-    }
+    public enum STATE { UNSELECTED, SELECTED, FLASHING, SCALED }
 
     public float x;
     public float y;

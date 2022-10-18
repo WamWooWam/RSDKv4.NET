@@ -39,6 +39,14 @@ public static class Script
     private static int scriptDataOffset = 0;
     private static int jumpTableDataPos = 0;
     private static int jumpTableDataOffset = 0;
+    
+    //
+    // TODO: Function/Variable rewriter
+    // Code should be able to dynamically adjust between RSDK revisions by modifying script variable
+    // & function indicies on the fly at runtime. Get rid of RETRO_REV01/02/03 etc.
+    //
+    // This will probably just be a giant lookup table
+    //
 
     private static readonly FunctionInfo[] functions = new[]
     {
@@ -513,6 +521,14 @@ public static class Script
         ENGINETRIALMODE,
         ENGINEDEVICETYPE,
 
+        SCREENCURRENTID,
+        CAMERAENABLED,
+        CAMERATARGET,
+        CAMERASTYLE,
+        CAMERAXPOS,
+        CAMERAYPOS,
+        CAMERAADJUSTY,
+
         //#if RETRO_USE_HAPTICS
         HAPTICSENABLED,
         //#endif
@@ -819,7 +835,7 @@ public static class Script
                 fileBuffer = FileIO.ReadByte();
                 buf += (fileBuffer << 16);
                 fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType].eventMain.scriptCodePtr = buf + (fileBuffer << 24);
+                objectScriptList[objType].eventUpdate.scriptCodePtr = buf + (fileBuffer << 24);
 
                 fileBuffer = FileIO.ReadByte();
                 buf = fileBuffer;
@@ -850,7 +866,7 @@ public static class Script
                 fileBuffer = FileIO.ReadByte();
                 buf += (fileBuffer << 16);
                 fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType].eventMain.jumpTablePtr = buf + (fileBuffer << 24);
+                objectScriptList[objType].eventUpdate.jumpTablePtr = buf + (fileBuffer << 24);
 
                 fileBuffer = FileIO.ReadByte();
                 buf = fileBuffer;
@@ -1345,7 +1361,7 @@ public static class Script
                                 int x = entPtr.xpos >> 16;
                                 int y = entPtr.ypos >> 16;
 
-                                if (entPtr.priority == PRIORITY.ACTIVE_BOUNDS_SMALL || entPtr.priority == PRIORITY.ACTIVE_SMALL)
+                                if (entPtr.priority == PRIORITY.BOUNDS_SMALL || entPtr.priority == PRIORITY.ACTIVE_SMALL)
                                 {
                                     if (Scene.stageMode == STAGEMODE.TWOP)
                                     {
@@ -2041,6 +2057,26 @@ public static class Script
                             break;
                         case VAR.ENGINEDEVICETYPE:
                             scriptEng.operands[i] = Engine.deviceType;
+                            break;
+                        case VAR.SCREENCURRENTID:
+                            scriptEng.operands[i] = 0; break;
+                        case VAR.CAMERAENABLED:
+                            scriptEng.operands[i] = Scene.cameraEnabled ? 1 : 0;
+                            break;
+                        case VAR.CAMERATARGET:
+                            scriptEng.operands[i] = Scene.cameraTarget;
+                            break;
+                        case VAR.CAMERASTYLE:
+                            scriptEng.operands[i] = Scene.cameraStyle;
+                            break;
+                        case VAR.CAMERAXPOS:
+                            scriptEng.operands[i] = Scene.cameraXPos;
+                            break;
+                        case VAR.CAMERAYPOS:
+                            scriptEng.operands[i] = Scene.cameraYPos;
+                            break;
+                        case VAR.CAMERAADJUSTY:
+                            scriptEng.operands[i] = Scene.cameraAdjustY;
                             break;
                         case VAR.HAPTICSENABLED:
                             scriptEng.operands[i] = Engine.hapticsEnabled ? 1 : 0;
@@ -2979,7 +3015,7 @@ public static class Script
                         newEnt.xpos = scriptEng.operands[3];
                         newEnt.ypos = scriptEng.operands[4];
                         newEnt.direction = FLIP.NONE;
-                        newEnt.priority = PRIORITY.ACTIVE_BOUNDS;
+                        newEnt.priority = PRIORITY.BOUNDS;
                         newEnt.drawOrder = 3;
                         newEnt.scale = 512;
                         newEnt.inkEffect = INK.NONE;
@@ -3388,10 +3424,6 @@ public static class Script
                     loadStoreSize = 0;
                     scriptEng.checkResult = -1;
 
-                    var rect = new Rectangle(scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2] - scriptEng.operands[0], scriptEng.operands[3] - scriptEng.operands[1]);
-
-                    Drawing.rects.Add(rect);
-
                     for (int f = 0; f < Input.touches; ++f)
                     {
                         if (Input.touchDown[f] != 0 &&
@@ -3441,7 +3473,17 @@ public static class Script
                     {
                         scriptEng.operands[4] = scriptEng.operands[1] >> 7;
                         scriptEng.operands[5] = scriptEng.operands[2] >> 7;
-                        scriptEng.operands[6] = Scene.stageLayouts[0].tiles[scriptEng.operands[4] + (scriptEng.operands[5] << 8)] << 6;
+
+                        int tileIdx = scriptEng.operands[4] + (scriptEng.operands[5] << 8);
+                        if (tileIdx < 0 || tileIdx > Scene.stageLayouts[0].tiles.Length)
+                        {
+                            scriptEng.operands[6] = 0;
+                            scriptEng.operands[0] = 0;
+                            break;
+                        }
+
+                        // This reads out of bounds in OOZ Act 1 without bounds checking.
+                        scriptEng.operands[6] = Scene.stageLayouts[0].tiles[tileIdx] << 6;
                         scriptEng.operands[6] += ((scriptEng.operands[1] & 0x7F) >> 4) + 8 * ((scriptEng.operands[2] & 0x7F) >> 4);
                         int index = Scene.tiles128x128.tileIndex[scriptEng.operands[6]];
                         switch (scriptEng.operands[3])
@@ -3720,6 +3762,129 @@ public static class Script
                             Debug.WriteLine("");
                         break;
                     }
+                case FUNC.CHECKCAMERAPROXIMITY:
+                    scriptEng.checkResult = 0;
+
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = pos.x
+                    // scriptEng.operands[1] = pos.y
+                    // scriptEng.operands[2] = range.x
+                    // scriptEng.operands[3] = range.y
+                    //
+                    // FUNCTION NOTES:
+                    // - Sets scriptEng.checkResult
+
+                    if (scriptEng.operands[2] > 0 && scriptEng.operands[3] > 0)
+                    {
+                        int sx = Math.Abs(scriptEng.operands[0] - Scene.cameraXPos);
+                        int sy = Math.Abs(scriptEng.operands[1] - Scene.cameraYPos);
+
+                        if (sx < scriptEng.operands[2] && sy < scriptEng.operands[3])
+                        {
+                            scriptEng.checkResult = 1;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (scriptEng.operands[2] > 0)
+                        {
+                            int sx = Math.Abs(scriptEng.operands[0] - Scene.cameraXPos);
+
+                            if (sx < scriptEng.operands[2])
+                            {
+                                scriptEng.checkResult = 1;
+                                break;
+                            }
+                        }
+                        else if (scriptEng.operands[3] > 0)
+                        {
+                            int sy = Math.Abs(scriptEng.operands[1] - Scene.cameraYPos);
+
+                            if (sy < scriptEng.operands[3])
+                            {
+                                scriptEng.checkResult = 1;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+
+                case FUNC.SETSCREENCOUNT:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = screenCount
+
+                    break;
+
+                case FUNC.SETSCREENVERTICES:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = startVert2P_S1
+                    // scriptEng.operands[1] = startVert2P_S2
+                    // scriptEng.operands[2] = startVert3P_S1
+                    // scriptEng.operands[3] = startVert3P_S2
+                    // scriptEng.operands[4] = startVert3P_S3
+
+                    break;
+
+                case FUNC.GETINPUTDEVICEID:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = deviceID
+                    // scriptEng.operands[1] = inputSlot
+                    //
+                    // FUNCTION NOTES:
+                    // - Assigns the device's id to scriptEng.operands[0]
+
+                    break;
+
+                case FUNC.GETFILTEREDINPUTDEVICEID:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = deviceID
+                    // scriptEng.operands[1] = confirmOnly
+                    // scriptEng.operands[2] = unassignedOnly
+                    // scriptEng.operands[3] = maxInactiveTimer
+                    //
+                    // FUNCTION NOTES:
+                    // - Assigns the filtered device's id to scriptEng.operands[0]
+
+                    break;
+
+                case FUNC.GETINPUTDEVICETYPE:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = deviceType
+                    // scriptEng.operands[1] = deviceID
+                    //
+                    // FUNCTION NOTES:
+                    // - Assigns the device's type to scriptEng.operands[0]
+
+                    break;
+
+                case FUNC.ISINPUTDEVICEASSIGNED:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = deviceID
+
+                    break;
+
+                case FUNC.ASSIGNINPUTSLOTTODEVICE:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = inputSlot
+                    // scriptEng.operands[1] = deviceID
+
+                    break;
+
+                case FUNC.ISSLOTASSIGNED:
+                    // FUNCTION PARAMS:
+                    // scriptEng.operands[0] = inputSlot
+                    //
+                    // FUNCTION NOTES:
+                    // - Sets scriptEng.checkResult
+
+                    break;
+
+                case FUNC.RESETINPUTSLOTASSIGNMENTS:
+                    // FUNCTION PARAMS:
+                    // None
+
+                    break;
             }
 
             // Store Values
@@ -4708,6 +4873,31 @@ public static class Script
                         case VAR.ENGINEDEVICETYPE:
                             Engine.hapticsEnabled = scriptEng.operands[i] != 0;
                             break;
+                        case VAR.SCREENCURRENTID: break;
+                        case VAR.CAMERAENABLED:
+                            if (arrayVal <= 1)
+                                Scene.cameraEnabled = scriptEng.operands[i] != 0;
+                            break;
+                        case VAR.CAMERATARGET:
+                            if (arrayVal <= 1)
+                                Scene.cameraTarget = scriptEng.operands[i];
+                            break;
+                        case VAR.CAMERASTYLE:
+                            if (arrayVal <= 1)
+                                Scene.cameraStyle = scriptEng.operands[i];
+                            break;
+                        case VAR.CAMERAXPOS:
+                            if (arrayVal <= 1)
+                                Scene.cameraXPos = scriptEng.operands[i];
+                            break;
+                        case VAR.CAMERAYPOS:
+                            if (arrayVal <= 1)
+                                Scene.cameraYPos = scriptEng.operands[i];
+                            break;
+                        case VAR.CAMERAADJUSTY:
+                            if (arrayVal <= 1)
+                                Scene.cameraAdjustY = scriptEng.operands[i];
+                            break;
                     }
                 }
                 else if (storeType == SRC.SCRIPTINTCONST)
@@ -4765,8 +4955,8 @@ public static class Script
         for (int o = 0; o < Objects.OBJECT_COUNT; ++o)
         {
             ObjectScript scriptInfo = objectScriptList[o] = new ObjectScript();
-            scriptInfo.eventMain.scriptCodePtr = SCRIPTDATA_COUNT - 1;
-            scriptInfo.eventMain.jumpTablePtr = JUMPTABLE_COUNT - 1;
+            scriptInfo.eventUpdate.scriptCodePtr = SCRIPTDATA_COUNT - 1;
+            scriptInfo.eventUpdate.jumpTablePtr = JUMPTABLE_COUNT - 1;
             scriptInfo.eventDraw.scriptCodePtr = SCRIPTDATA_COUNT - 1;
             scriptInfo.eventDraw.jumpTablePtr = JUMPTABLE_COUNT - 1;
             scriptInfo.eventStartup.scriptCodePtr = SCRIPTDATA_COUNT - 1;

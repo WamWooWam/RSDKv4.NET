@@ -101,7 +101,7 @@ public class NativeRenderer
     public static Matrix CreatePerspectiveMatrix(float w, float h, float near, float far)
     {
         var result = new Matrix();
-        var val = Math.Tan(0.017453292 * w * 0.5);
+        var val = (float)Math.Tan((float)(0.017453292f * w) * 0.5f);
         result.M11 = (float)(1.0 / val);
         result.M22 = (float)(1.0 / (val * h));
         result.M33 = (far + near) / (far - near);
@@ -694,7 +694,8 @@ public class NativeRenderer
                 animator.animationTimer += animator.animationSpeed;
 
                 while (animator.animationTimer > 1.0f)
-                { // new frame (forwards)
+                { 
+                    // new frame (forwards)
                     animator.animationTimer -= 1.0f;
                     animator.frameId++;
 
@@ -711,7 +712,8 @@ public class NativeRenderer
                     }
                 }
                 while (animator.animationTimer < 0.0f)
-                { // new frame (backwards)
+                { 
+                    // new frame (backwards)
                     animator.animationTimer += 1.0f;
                     animator.frameId--;
 
@@ -747,12 +749,8 @@ public class NativeRenderer
                     var vert = mesh.frames[vertOffset];
                     var nextVert = mesh.frames[nextVertOffset];
 
-                    mesh.vertices[v].position.X = (vert.position.X * interp) + (nextVert.position.X * interp2);
-                    mesh.vertices[v].position.Y = (vert.position.Y * interp) + (nextVert.position.Y * interp2);
-                    mesh.vertices[v].position.Z = (vert.position.Z * interp) + (nextVert.position.Z * interp2);
-                    mesh.vertices[v].normal.X = (vert.normal.X * interp) + (nextVert.normal.X * interp2);
-                    mesh.vertices[v].normal.Y = (vert.normal.Y * interp) + (nextVert.normal.Y * interp2);
-                    mesh.vertices[v].normal.Z = (vert.normal.Z * interp) + (nextVert.normal.Z * interp2);
+                    mesh.vertices[v].position = (vert.position * interp) + (nextVert.position * interp2);
+                    mesh.vertices[v].normal = (vert.normal * interp) + (nextVert.normal * interp2);
 
                     vertOffset++;
                     nextVertOffset++;

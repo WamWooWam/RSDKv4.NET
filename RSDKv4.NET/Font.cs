@@ -1,19 +1,19 @@
-﻿using System;
+﻿using RSDKv4.Utility;
+using System;
 using System.Collections.Generic;
 
 namespace RSDKv4;
 
 public class Font
 {
-    public static int FONTLIST_CHAR_COUNT = 0x1000;
-    public static int FONTLIST_COUNT = 0x4;
+    public const int FONTLIST_CHAR_COUNT = 0x1000;
+    public const int FONTLIST_COUNT = 0x4;
 
     public static BitmapFont[] fontList = new BitmapFont[FONTLIST_COUNT];
 
     static Font()
     {
-        for (int i = 0; i < FONTLIST_COUNT; i++)
-            fontList[i] = new BitmapFont();
+        Helpers.Memset(fontList, () => new BitmapFont());
     }
 
     public static void LoadBitmapFont(string filePath, int index, int textureId)

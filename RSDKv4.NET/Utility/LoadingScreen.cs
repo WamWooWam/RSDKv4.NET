@@ -6,7 +6,7 @@ namespace RSDKv4.Utility;
 
 public class LoadingScreen
 {
-    private SpriteBatch spriteBatch;
+    public SpriteBatch spriteBatch;
     private Texture2D texture;
     private MiniEngine miniEngine;
 
@@ -46,7 +46,7 @@ public class LoadingScreen
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone);
 
-            for (int i = characters.Length - 1; i >= 0; i--)
+            for (int i = 0; i < characters.Length; i++)
                 characters[i]?.Draw(spriteBatch);
 
             spriteBatch.Draw(texture, new Rectangle(0, RSDKv4Game.HEIGHT - 16, (int)(RSDKv4Game.WIDTH * previousLoadProgress), 16), new Color(0x00, 0x21, 0xc6));

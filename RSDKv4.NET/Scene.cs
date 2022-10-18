@@ -27,7 +27,7 @@ public class Scene
 
     public const int CPATH_COUNT = (2);
 
-    public const int DRAWLAYER_COUNT = 7;
+    public const int DRAWLAYER_COUNT = 8;
 
     public static int stageMode = STAGEMODE.LOAD;
 
@@ -326,8 +326,7 @@ public class Scene
             Debug.WriteLine("Loading scene: {0} {1}", (object)Engine.stageListNames[activeStageList], Engine.stageList[activeStageList][stageListPosition].name);
             Audio.ReleaseStageSfx(); // again?
             Script.ClearScriptData();
-
-            for (int i = Drawing.SURFACE_MAX; i > 0; i--) Drawing.RemoveGraphicsFile("", i - 1);
+            Drawing.ClearGraphicsData();
 
             var loadGlobalScripts = false;
             if (LoadStageFile("StageConfig.bin", stageListPosition, out var info))

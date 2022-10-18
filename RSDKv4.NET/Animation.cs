@@ -142,7 +142,7 @@ public class Animation
         hitboxCount = 0;
 
         // Used for pause menu
-        Drawing.LoadGIFFile("Data/Game/SystemText.gif", Drawing.SURFACE_MAX - 1);
+        // Drawing.LoadGIFFile("Data/Game/SystemText.gif", Drawing.SURFACE_MAX - 1);
     }
 
     public static void ProcessObjectAnimation(ObjectScript objectScript, Entity entity)

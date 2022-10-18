@@ -445,12 +445,17 @@ public class Audio
             }
         }
 
+        if (pan > 100)
+            pan = 100;
+        if (pan < -100)
+            pan = -100;
+
         var instance = soundEffects[sfx].soundEffect?.CreateInstance();
         if (instance == null) return;
 
         instance.IsLooped = loop;
         instance.Pan = pan * 0.01f;
-        instance.Volume = sfxVolume / 100.0f;
+        instance.Volume = sfxVolume * 0.01f;
         soundChannels[currentChannel].instance = instance;
         soundChannels[currentChannel].sfx = sfx;
 

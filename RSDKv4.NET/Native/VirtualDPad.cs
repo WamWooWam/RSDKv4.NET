@@ -58,8 +58,8 @@ namespace RSDKv4.Native
 
         public override void Main()
         {
-            if (!TouchPanel.GetCapabilities().IsConnected)
-                return;
+            //if (!TouchPanel.GetCapabilities().IsConnected)
+            //    return;
 
             var saveGame = SaveData.saveGame;
             var inputDown = Input.inputDown;
@@ -149,7 +149,7 @@ namespace RSDKv4.Native
 
                 if (Engine.gameMode == ENGINE.MAINGAME)
                 {
-                    if (Engine.globalVariables[this.vsMode] == 0)
+                    if (this.vsMode > 0 && Engine.globalVariables[this.vsMode] == 0)
                     {
                         if (Scene.activeStageList == STAGELIST.SPECIAL)
                             RenderImage(this.pauseX_S, this.pauseY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, this.pauseAlpha,
