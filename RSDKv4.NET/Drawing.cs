@@ -26,7 +26,7 @@ public static class Drawing
 
     public const int GFXDATA_MAX = 0x800 * 0x800;
 
-    public const int SCREEN_XSIZE = 400;
+    public const int SCREEN_XSIZE = 424;
     public const int SCREEN_CENTERX = SCREEN_XSIZE / 2;
 
     public const int SCREEN_YSIZE = 240;
