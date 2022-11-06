@@ -193,7 +193,7 @@ public class RSDKv4Game : Game
 
                     Scene.ProcessStage();
 
-                    Engine.gameMode = ENGINE.MAINGAME;
+                    Engine.engineState = ENGINE_STATE.MAINGAME;
                     loadPercent = 1f;
                 }
             }

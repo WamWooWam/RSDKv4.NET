@@ -352,10 +352,10 @@ public class HardwareRenderer : IRenderer
         _spriteBatch.Draw(_renderTarget, _screenRect, Color.White);
 
 #if FAST_PALETTE
-        for (int i = 0; i < PALETTE_COUNT; i++)
-        {
-            _spriteBatch.Draw(_palettes[i], new Rectangle(32 * i, _screenRect.Height - 32, 32, 32), Color.White);
-        }
+        //for (int i = 0; i < PALETTE_COUNT; i++)
+        //{
+        //    _spriteBatch.Draw(_palettes[i], new Rectangle(32 * i, _screenRect.Height - 32, 32, 32), Color.White);
+        //}
 #endif
 
         _spriteBatch.End();

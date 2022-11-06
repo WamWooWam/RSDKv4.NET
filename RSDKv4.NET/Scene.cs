@@ -121,7 +121,7 @@ public class Scene
 
         Palette.SetActivePalette(0, 0, 0);
         stageMode = STAGEMODE.LOAD;
-        Engine.gameMode = ENGINE.WAIT;
+        Engine.engineState = ENGINE_STATE.WAIT;
         activeStageList = 0;
         stageListPosition = 0;
     }
@@ -143,7 +143,7 @@ public class Scene
 
         Palette.SetActivePalette(0, 0, 0);
         stageMode = STAGEMODE.LOAD;
-        Engine.gameMode = ENGINE.MAINGAME;
+        Engine.engineState = ENGINE_STATE.MAINGAME;
 
         stageListPosition = stage;
     }

@@ -52,8 +52,8 @@ public static class Engine
     public static int nativeFunctionCount;
     public static Delegate[] nativeFunctions = new Delegate[NATIVEFUNCTION_MAX];
 
-    public static int gameMode = ENGINE.WAIT;
-    public static int deviceType = DEVICE.MOBILE;
+    public static int engineState = ENGINE_STATE.WAIT;
+    public static int deviceType = DEVICE.STANDARD;
     public static int language = LANGUAGE.EN;
 
     public static bool trialMode = false;
@@ -63,7 +63,8 @@ public static class Engine
     public static float deltaTime = 0.016f;
 
     public static int globalBoxRegion = REGION.EU;
-    public static int gameType = GAME.SONIC2;
+    public static int gameType = GAME.SONIC1;
+    public static int engineType = ENGINE_TYPE.STANDARD;
 
     public static Hooks hooks = new Hooks();
 
@@ -121,11 +122,16 @@ public static class Engine
             {
                 int cat = i;
 
-                // Special Stages are stored as cat 2 in file, but cat 3 in game :(
-                if (i == 2)
-                    cat = 3;
-                else if (i == 3)
-                    cat = 2;
+                if (engineType == ENGINE_TYPE.STANDARD)
+                {
+                    // Special Stages are stored as cat 2 in file, but cat 3 in game :(
+                    // Except in Origins :((((
+                    if (i == 2)
+                        cat = 3;
+                    else if (i == 3)
+                        cat = 2;
+
+                }
 
                 stageListCount[cat] = FileIO.ReadByte();
                 stageList[cat] = new SceneInfo[stageListCount[cat]];

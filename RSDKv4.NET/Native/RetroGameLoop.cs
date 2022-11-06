@@ -9,12 +9,12 @@ public class RetroGameLoop : NativeEntity
 
     public override void Main()
     {
-        switch (Engine.gameMode)
+        switch (Engine.engineState)
         {
-            case ENGINE.DEVMENU:
+            case ENGINE_STATE.DEVMENU:
                 break;
 
-            case ENGINE.MAINGAME:
+            case ENGINE_STATE.MAINGAME:
                 //Scene.ProcessStage();
                 Drawing.Draw();
                 Drawing.Present();

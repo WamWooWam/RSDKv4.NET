@@ -147,7 +147,7 @@ namespace RSDKv4.Native
                     size = this.jumpSize;
                 RenderImage(this.jumpX, this.jumpY, 160.0f, size, size, 84.0f, 83.0f, 168.0f, 168.0f, 16.0f, 328.0f, this.alpha, this.textureID);
 
-                if (Engine.gameMode == ENGINE.MAINGAME)
+                if (Engine.engineState == ENGINE_STATE.MAINGAME)
                 {
                     if (this.vsMode > 0 && Engine.globalVariables[this.vsMode] == 0)
                     {

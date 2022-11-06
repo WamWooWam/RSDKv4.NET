@@ -30,6 +30,9 @@ public static class FileIO
             if (!rsdkContainer.LoadRSDK(fileHandle, fileReader, fileName))
                 return false;
 
+            if (rsdkContainer.dataVersion == RSDKVersion.vU)
+                Engine.engineType = ENGINE_TYPE.ULTIMATE;
+
             Engine.usingDataFile = true;
             Engine.usingBytecode = false;
             rsdkStream = new RSDKFileStream(rsdkContainer, fileHandle);
@@ -197,7 +200,7 @@ public static class FileIO
         var fileHandle = TitleContainer.OpenStream(fileName);
         var rsdkStream = new RSDKFileStream(rsdkContainer, fileHandle);
 
-        if(rsdkStream.LoadFile(file, out _))
+        if (rsdkStream.LoadFile(file, out _))
         {
             stream = rsdkStream;
             return true;

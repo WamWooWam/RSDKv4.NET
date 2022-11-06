@@ -198,7 +198,7 @@ public class MD5Hash
             num += (int)length1;
             destinationIndex = 0U;
         }
-        while (length >= 64U)
+        while (length >= 64)
         {
             md5_process(ref ctx, input, num);
             length -= 64U;
@@ -310,9 +310,6 @@ public struct MD5Digest
 
         for (int i = 0; i < bytes.Length; i++)
         {
-            var nb1 = bytes[i] / 16;
-            var nb2 = bytes[i] & 16;
-
             chars[2 * i] = BitHelper.ToHexDigit((bytes[i] >> 4) & 0xF);
             chars[2 * i + 1] = BitHelper.ToHexDigit(bytes[i] & 0xF);
         }

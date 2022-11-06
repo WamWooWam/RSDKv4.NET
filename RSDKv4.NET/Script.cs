@@ -20,6 +20,8 @@ public static class Script
     public static ObjectScript[] objectScriptList = new ObjectScript[Objects.OBJECT_COUNT];
     public static ScriptPtr[] functionScriptList = new ScriptPtr[FUNCTION_COUNT];
 
+    public static ScriptEngine scriptEng = new ScriptEngine();
+
     private static readonly int[] scriptData = new int[SCRIPTDATA_COUNT];
     private static readonly int[] jumpTableData = new int[JUMPTABLE_COUNT];
     private static readonly int[] jumpTableStack = new int[JUMPSTACK_COUNT];
@@ -32,14 +34,8 @@ public static class Script
     private static int functionStackPos = 0;
     private static int foreachStackPos = 0;
 
-    public static ScriptEngine scriptEng = new ScriptEngine();
-    private static char[] scriptTextBuffer = new char[0x4000]; // this is 32K, why
+    private static char[] scriptTextBuffer = new char[SCRIPTDATA_COUNT]; // this is 32K, why
 
-    private static int scriptDataPos = 0;
-    private static int scriptDataOffset = 0;
-    private static int jumpTableDataPos = 0;
-    private static int jumpTableDataOffset = 0;
-    
     //
     // TODO: Function/Variable rewriter
     // Code should be able to dynamically adjust between RSDK revisions by modifying script variable
@@ -512,7 +508,7 @@ public static class Script
         SAVERAM,
         ENGINESTATE,
 #if RETRO_REV00
-    ENGINEMESSAGE,
+        ENGINEMESSAGE,
 #endif
         ENGINELANGUAGE,
         ENGINEONLINEACTIVE,
@@ -723,17 +719,9 @@ public static class Script
 
         if (FileIO.LoadFile(scriptPath, out _))
         {
-            byte fileBuffer = 0;
+            byte fileBuffer;
             int scrOffset = scriptCodePos;
-            //int* scrData = &scriptData[scriptCodePos];
-            fileBuffer = FileIO.ReadByte();
-            int scriptCodeCount = fileBuffer;
-            fileBuffer = FileIO.ReadByte();
-            scriptCodeCount += (fileBuffer << 8);
-            fileBuffer = FileIO.ReadByte();
-            scriptCodeCount += (fileBuffer << 16);
-            fileBuffer = FileIO.ReadByte();
-            scriptCodeCount += (fileBuffer << 24);
+            int scriptCodeCount = FileIO.ReadInt32();
 
             while (scriptCodeCount > 0)
             {
@@ -743,14 +731,7 @@ public static class Script
                 {
                     while (blockSize > 0)
                     {
-                        fileBuffer = FileIO.ReadByte();
-                        int data = fileBuffer;
-                        fileBuffer = FileIO.ReadByte();
-                        data += fileBuffer << 8;
-                        fileBuffer = FileIO.ReadByte();
-                        data += fileBuffer << 16;
-                        fileBuffer = FileIO.ReadByte();
-                        data += fileBuffer << 24;
+                        int data = FileIO.ReadInt32();
                         scriptData[scrOffset] = data;
                         ++scrOffset;
                         ++scriptCodePos;
@@ -773,15 +754,7 @@ public static class Script
             }
 
             int jumpTableOffset = jumpTablePos;
-            //int* jumpPtr = &jumpTableData[jumpTablePos];
-            fileBuffer = FileIO.ReadByte();
-            int jumpDataCnt = fileBuffer;
-            fileBuffer = FileIO.ReadByte();
-            jumpDataCnt += fileBuffer << 8;
-            fileBuffer = FileIO.ReadByte();
-            jumpDataCnt += fileBuffer << 16;
-            fileBuffer = FileIO.ReadByte();
-            jumpDataCnt += fileBuffer << 24;
+            int jumpDataCnt = FileIO.ReadInt32();
 
             while (jumpDataCnt > 0)
             {
@@ -791,14 +764,7 @@ public static class Script
                 {
                     while (blockSize > 0)
                     {
-                        fileBuffer = FileIO.ReadByte();
-                        int data = fileBuffer;
-                        fileBuffer = FileIO.ReadByte();
-                        data += fileBuffer << 8;
-                        fileBuffer = FileIO.ReadByte();
-                        data += fileBuffer << 16;
-                        fileBuffer = FileIO.ReadByte();
-                        data += fileBuffer << 24;
+                        int data = FileIO.ReadInt32();
                         jumpTableData[jumpTableOffset] = data;
                         ++jumpTableOffset;
                         ++jumpTablePos;
@@ -820,100 +786,34 @@ public static class Script
                 }
             }
 
-            fileBuffer = FileIO.ReadByte();
-            int scriptCount = fileBuffer;
-            fileBuffer = FileIO.ReadByte();
-            scriptCount += fileBuffer << 8;
+            int scriptCount = FileIO.ReadInt16();
 
             int objType = scriptID;
             for (int i = 0; i < scriptCount; ++i)
             {
-                fileBuffer = FileIO.ReadByte();
-                int buf = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType].eventUpdate.scriptCodePtr = buf + (fileBuffer << 24);
-
-                fileBuffer = FileIO.ReadByte();
-                buf = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType].eventDraw.scriptCodePtr = buf + (fileBuffer << 24);
-
-                fileBuffer = FileIO.ReadByte();
-                buf = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType++].eventStartup.scriptCodePtr = buf + (fileBuffer << 24);
+                objectScriptList[objType].eventUpdate.scriptCodePtr = FileIO.ReadInt32();
+                objectScriptList[objType].eventDraw.scriptCodePtr = FileIO.ReadInt32();
+                objectScriptList[objType++].eventStartup.scriptCodePtr = FileIO.ReadInt32();
             }
 
             objType = scriptID;
             for (int i = 0; i < scriptCount; ++i)
             {
-                fileBuffer = FileIO.ReadByte();
-                int buf = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType].eventUpdate.jumpTablePtr = buf + (fileBuffer << 24);
-
-                fileBuffer = FileIO.ReadByte();
-                buf = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType].eventDraw.jumpTablePtr = buf + (fileBuffer << 24);
-
-                fileBuffer = FileIO.ReadByte();
-                buf = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                buf += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                objectScriptList[objType++].eventStartup.jumpTablePtr = buf + (fileBuffer << 24);
+                objectScriptList[objType].eventUpdate.jumpTablePtr = FileIO.ReadInt32();
+                objectScriptList[objType].eventDraw.jumpTablePtr = FileIO.ReadInt32();
+                objectScriptList[objType++].eventStartup.jumpTablePtr = FileIO.ReadInt32();
             }
 
-            fileBuffer = FileIO.ReadByte();
-            int functionCount = fileBuffer;
-            fileBuffer = FileIO.ReadByte();
-            functionCount += fileBuffer << 8;
+            int functionCount = FileIO.ReadInt16();
 
             for (int i = 0; i < functionCount; ++i)
             {
-                fileBuffer = FileIO.ReadByte();
-                int scrPos = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                scrPos += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                scrPos += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                functionScriptList[i].scriptCodePtr = scrPos + (fileBuffer << 24);
+                functionScriptList[i].scriptCodePtr = FileIO.ReadInt32();
             }
 
             for (int i = 0; i < functionCount; ++i)
             {
-                fileBuffer = FileIO.ReadByte();
-                int jmpPos = fileBuffer;
-                fileBuffer = FileIO.ReadByte();
-                jmpPos += (fileBuffer << 8);
-                fileBuffer = FileIO.ReadByte();
-                jmpPos += (fileBuffer << 16);
-                fileBuffer = FileIO.ReadByte();
-                functionScriptList[i].jumpTablePtr = jmpPos + (fileBuffer << 24);
+                functionScriptList[i].jumpTablePtr = FileIO.ReadInt32();
             }
 
             FileIO.CloseFile();
@@ -2035,7 +1935,7 @@ public static class Script
                             scriptEng.operands[i] = SaveData.saveRAM[arrayVal];
                             break;
                         case VAR.ENGINESTATE:
-                            scriptEng.operands[i] = Engine.gameMode;
+                            scriptEng.operands[i] = Engine.engineState;
                             break;
 #if RETRO_REV00
                         case ScrVar.ENGINEMESSAGE: scriptEng.operands[i] = Engine.message; break;
@@ -4848,7 +4748,7 @@ public static class Script
                             SaveData.saveRAM[arrayVal] = scriptEng.operands[i];
                             break;
                         case VAR.ENGINESTATE:
-                            Engine.gameMode = scriptEng.operands[i];
+                            Engine.engineState = scriptEng.operands[i];
                             break;
 #if RETRO_REV00
                     case ScrVar.ENGINEMESSAGE: break;
@@ -4944,11 +4844,6 @@ public static class Script
         jumpTablePos = 0;
         jumpTableStackPos = 0;
         functionStackPos = 0;
-
-        scriptDataPos = 0;
-        scriptDataOffset = 0;
-        jumpTableDataPos = 0;
-        jumpTableDataOffset = 0;
 
         Animation.ClearAnimationData();
 
