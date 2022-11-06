@@ -61,6 +61,9 @@ namespace RSDKv4.Native
             //if (!TouchPanel.GetCapabilities().IsConnected)
             //    return;
 
+            return;
+
+
             var saveGame = SaveData.saveGame;
             var inputDown = Input.inputDown;
 

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.Native;
-using RSDKv4.Utility;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using static RSDKv4.Drawing;
 using static RSDKv4.Palette;
 using static RSDKv4.Scene;
@@ -66,6 +66,8 @@ public class HardwareRenderer : IRenderer
 
     public static float PIXEL_TO_UV = 1.0f / (float)SURFACE_SIZE;
 
+    private List<ShaderDef> _retroShaders;
+
     public HardwareRenderer(Game game, GraphicsDevice device)
     {
         _game = game;
@@ -81,6 +83,12 @@ public class HardwareRenderer : IRenderer
         for (int index = 0; index < SURFACE_LIMIT; ++index)
             _textures[index] = new Texture2D(device, SURFACE_SIZE, SURFACE_SIZE, false, SurfaceFormat.Bgra5551);
 #endif
+
+        _retroShaders = new List<ShaderDef>();
+        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/None"), SamplerState.PointClamp));
+        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/Clean"), SamplerState.LinearClamp));
+        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/CRT-Yeetron"), SamplerState.LinearClamp));
+        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/CRT-Yee64"), SamplerState.LinearClamp));
 
         _renderTarget = new RenderTarget2D(device, SCREEN_XSIZE, SCREEN_YSIZE, false, SurfaceFormat.Bgr565, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
         _noScissorState = new RasterizerState() { CullMode = CullMode.None };
@@ -140,13 +148,15 @@ public class HardwareRenderer : IRenderer
         _projection3D = Matrix.CreatePerspectiveFieldOfView(1.832596f, viewAspect, 0.1f, 2000f) * Matrix.CreateScale(1f, -1f, 1f) * Matrix.CreateTranslation(0.0f, -0.045f, 0.0f);
 #endif
 
-        var ratio = Math.Min((double)viewWidth / SCREEN_XSIZE, (double)viewHeight / SCREEN_YSIZE);
-        var realWidth = SCREEN_XSIZE * ratio;
-        var realHeight = SCREEN_YSIZE * ratio;
-        var x = (viewWidth - realWidth) / 2;
-        var y = (viewHeight - realHeight) / 2;
+        //var ratio = Math.Min((double)viewWidth / SCREEN_XSIZE, (double)viewHeight / SCREEN_YSIZE);
+        //var realWidth = SCREEN_XSIZE * ratio;
+        //var realHeight = SCREEN_YSIZE * ratio;
+        //var x = (viewWidth - realWidth) / 2;
+        //var y = (viewHeight - realHeight) / 2;
 
-        _screenRect = new Rectangle((int)x, (int)y, (int)realWidth, (int)realHeight);
+        //_screenRect = new Rectangle((int)x, (int)y, (int)realWidth, (int)realHeight);
+
+        _screenRect = new Rectangle(0, 0, viewWidth, viewHeight);
     }
 
     public void SetScreenRenderSize(int width, int lineSize)
@@ -348,16 +358,13 @@ public class HardwareRenderer : IRenderer
 
     public void Present()
     {
-        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+        var shader = _retroShaders[0];
+        shader.effect.Parameters["pixelSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
+        shader.effect.Parameters["textureSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
+        shader.effect.Parameters["viewSize"].SetValue(new Vector2(_screenRect.Width, _screenRect.Height));
+
+        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, shader.samplerState, DepthStencilState.None, RasterizerState.CullNone, shader.effect);       
         _spriteBatch.Draw(_renderTarget, _screenRect, Color.White);
-
-#if FAST_PALETTE
-        //for (int i = 0; i < PALETTE_COUNT; i++)
-        //{
-        //    _spriteBatch.Draw(_palettes[i], new Rectangle(32 * i, _screenRect.Height - 32, 32, 32), Color.White);
-        //}
-#endif
-
         _spriteBatch.End();
     }
 

@@ -29,8 +29,8 @@ public class RSDKv4Game : Game
 
     private bool needsResize = false;
 
-    public const int WIDTH = 800;
-    public const int HEIGHT = 480;
+    public const int WIDTH = 1280;
+    public const int HEIGHT = 720;
 
     private LoadingScreen loadingScreen;
 

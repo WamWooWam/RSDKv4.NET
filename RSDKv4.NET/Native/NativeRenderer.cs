@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RSDKv4.Utility;
@@ -25,6 +26,8 @@ public class NativeRenderer
     private static Game _game;
     private static GraphicsDevice _device;
     private static BasicEffect _effect;
+
+    private static Effect _retroEffect;
 
     // general textures
     private static TextureInfo[] textures = new TextureInfo[TEXTURE_LIMIT];
@@ -61,6 +64,7 @@ public class NativeRenderer
         _game = game;
         _device = device;
         _effect = new BasicEffect(device) { TextureEnabled = true };
+
         SetScreenDimensions(800, 480);
         SetupDrawIndexList();
     }
@@ -209,7 +213,7 @@ public class NativeRenderer
     public static void SetRenderMatrix(Matrix? matrix)
     {
 #if FNA && DEBUG
-        matrix?.CheckForNaNs();
+        //matrix?.CheckForNaNs();
 #endif
         _effect.World = matrix.HasValue ? matrix.Value : Matrix.Identity;
     }
@@ -456,7 +460,7 @@ public class NativeRenderer
         byte a = (byte)alpha;
 
         _device.DepthStencilState = DepthStencilState.None;
-        _device.SamplerStates[0] = SamplerState.PointClamp;
+        _device.SamplerStates[0] = SamplerState.LinearClamp;
 
         _effect.TextureEnabled = true;
         _effect.Texture = Drawing.CopyRetroBuffer();

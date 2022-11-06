@@ -8,7 +8,7 @@ DECLARE_TEXTURE(Palette, 1);
 BEGIN_CONSTANTS
 MATRIX_CONSTANTS
 
-float4x4 MatrixTransform    _vs(c0) _cb(c0);
+float4x4 MatrixTransform;
 
 END_CONSTANTS
 
