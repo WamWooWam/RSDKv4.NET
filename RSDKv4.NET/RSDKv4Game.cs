@@ -110,7 +110,7 @@ public class RSDKv4Game : Game
         // new PaletteHack().Install(Engine.hooks);
 
         FastMath.CalculateTrigAngles();
-        if (!FileIO.CheckRSDKFile("DataS2u.rsdk"))
+        if (!FileIO.CheckRSDKFile("DataS2.rsdk"))
             FileIO.CheckRSDKFile("DataS2.rsdk");
 
         Strings.InitLocalizedStrings();

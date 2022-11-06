@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net40;net7.0;sl4</TargetFrameworks>
+    <TargetFrameworks>net40;net6.0;sl4</TargetFrameworks>
     <RootNamespace>RSDKv4</RootNamespace>
     <LangVersion>10</LangVersion>
   </PropertyGroup>
 	
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
     <ProjectReference Include="..\Dependencies\FNA\FNA.Core.csproj" />
     <PackageReference Include="NVorbis" Version="0.10.4" />
   </ItemGroup>
@@ -37,7 +37,7 @@
     <DefineConstants>$(DefineConstants);MONOGAME;FAST_PALETTE;NO_THREADS</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
     <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE;NO_THREADS</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <PublishAot>true</PublishAot>
@@ -91,4 +91,8 @@
   <ItemGroup>
     <Compile Remove="DllMap.cs" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(TargetFramework)' == 'net6.0' ">
+    <Exec Command="mkdir  $(OutDir)Content\Shaders &gt; NUL&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\Sharp.fxb Shaders\Sharp.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\Smooth.fxb Shaders\Smooth.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\CRT-Yee64.fxb Shaders\CRT-Yee64.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\CRT-Yeetron.fxb Shaders\CRT-Yeetron.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\Palette.fxb Shaders\Palette.fx" />
+  </Target>
 </Project>

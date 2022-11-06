@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderCompilerProject", "ShaderCompilerProject\ShaderCompilerProject\ShaderCompilerProject.csproj", "{E6B73E4C-70F4-4131-9DBB-4DA7D0E89C85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderCompilerProject.Content", "ShaderCompilerProject\ShaderCompilerProject.Content\ShaderCompilerProject.Content.contentproj", "{55CA86D4-2BCB-47D3-AD76-E49B530AD026}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E6B73E4C-70F4-4131-9DBB-4DA7D0E89C85}.Debug|x86.ActiveCfg = Debug|x86
+		{E6B73E4C-70F4-4131-9DBB-4DA7D0E89C85}.Debug|x86.Build.0 = Debug|x86
+		{E6B73E4C-70F4-4131-9DBB-4DA7D0E89C85}.Release|x86.ActiveCfg = Release|x86
+		{E6B73E4C-70F4-4131-9DBB-4DA7D0E89C85}.Release|x86.Build.0 = Release|x86
+		{55CA86D4-2BCB-47D3-AD76-E49B530AD026}.Debug|x86.ActiveCfg = Debug|x86
+		{55CA86D4-2BCB-47D3-AD76-E49B530AD026}.Release|x86.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

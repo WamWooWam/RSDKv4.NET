@@ -85,8 +85,9 @@ public class HardwareRenderer : IRenderer
 #endif
 
         _retroShaders = new List<ShaderDef>();
-        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/None"), SamplerState.PointClamp));
-        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/Clean"), SamplerState.LinearClamp));
+        _retroShaders.Add(new(null, SamplerState.PointClamp));
+        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/Sharp"), SamplerState.PointClamp));
+        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/Smooth"), SamplerState.LinearClamp));
         _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/CRT-Yeetron"), SamplerState.LinearClamp));
         _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/CRT-Yee64"), SamplerState.LinearClamp));
 
@@ -359,9 +360,12 @@ public class HardwareRenderer : IRenderer
     public void Present()
     {
         var shader = _retroShaders[0];
-        shader.effect.Parameters["pixelSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
-        shader.effect.Parameters["textureSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
-        shader.effect.Parameters["viewSize"].SetValue(new Vector2(_screenRect.Width, _screenRect.Height));
+        if (shader.effect != null)
+        {
+            shader.effect.Parameters["pixelSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
+            shader.effect.Parameters["textureSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
+            shader.effect.Parameters["viewSize"].SetValue(new Vector2(_screenRect.Width, _screenRect.Height));
+        }
 
         _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, shader.samplerState, DepthStencilState.None, RasterizerState.CullNone, shader.effect);       
         _spriteBatch.Draw(_renderTarget, _screenRect, Color.White);
