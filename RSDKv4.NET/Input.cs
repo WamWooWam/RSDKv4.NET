@@ -8,8 +8,8 @@ namespace RSDKv4;
 
 public partial class Input
 {
-    public static InputData inputDown = new InputData();
-    public static InputData inputPress = new InputData();
+    public static InputData keyDown = new InputData();
+    public static InputData keyPress = new InputData();
 
     public static int touchWidth;
     public static int touchHeight;
@@ -152,40 +152,40 @@ public partial class Input
     public static void CheckKeyPress(ref InputData input)
     {
 #if !RETRO_USE_ORIGINAL_CODE
-        input.up = buttons[0].press ? (byte)1 : (byte)0;
-        input.down = buttons[1].press ? (byte)1 : (byte)0;
-        input.left = buttons[2].press ? (byte)1 : (byte)0;
-        input.right = buttons[3].press ? (byte)1 : (byte)0;
-        input.A = buttons[4].press ? (byte)1 : (byte)0;
-        input.B = buttons[5].press ? (byte)1 : (byte)0;
-        input.C = buttons[6].press ? (byte)1 : (byte)0;
-        input.X = buttons[7].press ? (byte)1 : (byte)0;
-        input.Y = buttons[8].press ? (byte)1 : (byte)0;
-        input.Z = buttons[9].press ? (byte)1 : (byte)0;
-        input.L = buttons[10].press ? (byte)1 : (byte)0;
-        input.R = buttons[11].press ? (byte)1 : (byte)0;
-        input.start = buttons[12].press ? (byte)1 : (byte)0;
-        input.select = buttons[13].press ? (byte)1 : (byte)0;
+        input.up = buttons[0].press;
+        input.down = buttons[1].press;
+        input.left = buttons[2].press;
+        input.right = buttons[3].press;
+        input.A = buttons[4].press;
+        input.B = buttons[5].press;
+        input.C = buttons[6].press;
+        input.X = buttons[7].press;
+        input.Y = buttons[8].press;
+        input.Z = buttons[9].press;
+        input.L = buttons[10].press;
+        input.R = buttons[11].press;
+        input.start = buttons[12].press;
+        input.select = buttons[13].press;
 #endif
     }
 
     public static void CheckKeyDown(ref InputData input)
     {
 #if !RETRO_USE_ORIGINAL_CODE
-        input.up = buttons[0].hold ? (byte)1 : (byte)0;
-        input.down = buttons[1].hold ? (byte)1 : (byte)0;
-        input.left = buttons[2].hold ? (byte)1 : (byte)0;
-        input.right = buttons[3].hold ? (byte)1 : (byte)0;
-        input.A = buttons[4].hold ? (byte)1 : (byte)0;
-        input.B = buttons[5].hold ? (byte)1 : (byte)0;
-        input.C = buttons[6].hold ? (byte)1 : (byte)0;
-        input.X = buttons[7].hold ? (byte)1 : (byte)0;
-        input.Y = buttons[8].hold ? (byte)1 : (byte)0;
-        input.Z = buttons[9].hold ? (byte)1 : (byte)0;
-        input.L = buttons[10].hold ? (byte)1 : (byte)0;
-        input.R = buttons[11].hold ? (byte)1 : (byte)0;
-        input.start = buttons[12].hold ? (byte)1 : (byte)0;
-        input.select = buttons[13].hold ? (byte)1 : (byte)0;
+        input.up = buttons[0].hold;
+        input.down = buttons[1].hold;
+        input.left = buttons[2].hold;
+        input.right = buttons[3].hold;
+        input.A = buttons[4].hold;
+        input.B = buttons[5].hold;
+        input.C = buttons[6].hold;
+        input.X = buttons[7].hold;
+        input.Y = buttons[8].hold;
+        input.Z = buttons[9].hold;
+        input.L = buttons[10].hold;
+        input.R = buttons[11].hold;
+        input.start = buttons[12].hold;
+        input.select = buttons[13].hold;
 #endif
     }
 }

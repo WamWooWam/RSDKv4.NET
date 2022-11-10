@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using RSDKv4.Utility;
 using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
@@ -145,10 +146,10 @@ public class TitleScreen : NativeEntity
                         state = STATE.INTRO;
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 0, 0, 0, (int)introRectAlpha);
 
-                    Input.CheckKeyDown(ref Input.inputDown);
-                    Input.CheckKeyPress(ref Input.inputPress);
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
 
-                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.inputPress.start != 0 || Input.inputPress.A != 0))
+                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.keyPress.start || Input.keyPress.A))
                     {
                         state = STATE.TITLE;
                         x = -96.0f;
@@ -164,8 +165,8 @@ public class TitleScreen : NativeEntity
                 }
             case STATE.INTRO:
                 {
-                    Input.CheckKeyDown(ref Input.inputDown);
-                    Input.CheckKeyPress(ref Input.inputPress);
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
                     SetRenderBlendMode(RENDER_BLEND.NONE);
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 255, 255, 255, 255);
                     meshAnimator.animationSpeed = 6.0f * Engine.deltaTime;
@@ -177,7 +178,7 @@ public class TitleScreen : NativeEntity
                     if (meshAnimator.frameId > 26)
                         state = STATE.ENTERBOX;
 
-                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.inputPress.start != 0 || Input.inputPress.A != 0))
+                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.keyPress.start || Input.keyPress.A))
                     {
                         state = STATE.TITLE;
                         x = -96.0f;
@@ -235,7 +236,7 @@ public class TitleScreen : NativeEntity
                     rotationY += Engine.deltaTime;
 
                     renderMatrix = Matrix.CreateScale(meshScale);
-                    matrixTemp = Matrix.CreateRotationY(rotationY);
+                    matrixTemp = Helpers.CreateRotationY(rotationY);
                     renderMatrix = renderMatrix * matrixTemp;
                     matrixTemp = Matrix.CreateTranslation(0, 0, 200);
                     renderMatrix = renderMatrix * matrixTemp;
@@ -263,9 +264,9 @@ public class TitleScreen : NativeEntity
                     {
                         if (logoAlpha > 255)
                         {
-                            Input.CheckKeyDown(ref Input.inputDown);
-                            Input.CheckKeyPress(ref Input.inputPress);
-                            if (Input.inputPress.start != 0 || Input.touches > 0 || Input.inputPress.A != 0)
+                            Input.CheckKeyDown(ref Input.keyDown);
+                            Input.CheckKeyPress(ref Input.keyPress);
+                            if (Input.keyPress.start || Input.touches > 0 || Input.keyPress.A)
                             {
                                 //if (field_130 != 0)
                                 //{
@@ -293,7 +294,7 @@ public class TitleScreen : NativeEntity
                     }
                     NewRenderState();
                     renderMatrix = Matrix.CreateScale(meshScale);
-                    matrixTemp = Matrix.CreateRotationY(rotationY);
+                    matrixTemp = Helpers.CreateRotationY(rotationY);
                     renderMatrix = renderMatrix * matrixTemp;
                     matrixTemp = Matrix.CreateTranslation(x, 0, 200);
                     renderMatrix = renderMatrix * matrixTemp;
@@ -329,7 +330,7 @@ public class TitleScreen : NativeEntity
                     x /= div;
                     rotationY /= div;
                     NewRenderState();
-                    renderMatrix = Matrix.CreateRotationY(rotationY);
+                    renderMatrix = Helpers.CreateRotationY(rotationY);
                     matrixTemp = Matrix.CreateTranslation(0, 0, 200);
                     renderMatrix = renderMatrix * matrixTemp;
                     SetRenderMatrix(renderMatrix);

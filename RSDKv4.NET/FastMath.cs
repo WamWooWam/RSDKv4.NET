@@ -17,9 +17,9 @@ public class FastMath
 
     private static Random _random = new Random();
 
-    public static void SetRandomSeed(int x)
+    public static void SetRandomSeed(int seed)
     {
-        _random = new Random(x);
+        _random = new Random(seed);
     }
 
     public static void CalculateTrigAngles()
@@ -148,8 +148,8 @@ public class FastMath
         return cosVal256[angle];
     }
 
-    public static int Rand(int v)
+    public static int Rand(int max)
     {
-        return _random.Next(v);
+        return _random.Next(0, max);
     }
 }

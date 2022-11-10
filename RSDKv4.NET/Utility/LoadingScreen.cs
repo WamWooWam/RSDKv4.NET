@@ -23,7 +23,7 @@ public class LoadingScreen
         texture = new Texture2D(device, 1, 1);
         texture.SetData(new[] { Color.White });
 
-        miniEngine = new MiniEngine(game, spriteBatch, "DataS2.rsdk");
+        miniEngine = new MiniEngine(game, spriteBatch, "Data.rsdk");
 
         var x = FastMath.Rand(CHARACTERS.Length);
         characters[0] = miniEngine.CreateEntity($"{CHARACTERS[x]}.ani", "Running");

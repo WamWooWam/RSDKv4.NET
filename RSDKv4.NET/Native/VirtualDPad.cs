@@ -65,7 +65,7 @@ namespace RSDKv4.Native
 
 
             var saveGame = SaveData.saveGame;
-            var inputDown = Input.inputDown;
+            var inputDown = Input.keyDown;
 
             if (Engine.globalVariables[this.useTouchControls] != 0 && (Engine.globalVariables[this.usePhysicalControls] == 0 || this.editMode != 0))
             {
@@ -98,7 +98,7 @@ namespace RSDKv4.Native
                     this.offsetX = 0.0f;
                     this.offsetY = 0.0f;
                 }
-                else if (inputDown.up != 0)
+                else if (inputDown.up)
                 {
                     RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 256.0f, 120.0f, 256.0f, 256.0f, this.alpha,
                                 this.textureID);
@@ -106,7 +106,7 @@ namespace RSDKv4.Native
                     this.offsetX = 0.0f;
                     this.offsetY = 20.0f;
                 }
-                else if (inputDown.down != 0)
+                else if (inputDown.down)
                 {
                     RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, -8.0f, 256.0f, 120.0f, 256.0f, 392.0f, this.alpha,
                                 this.textureID);
@@ -114,7 +114,7 @@ namespace RSDKv4.Native
                     this.offsetX = 0.0f;
                     this.offsetY = -20.0f;
                 }
-                else if (inputDown.left != 0)
+                else if (inputDown.left)
                 {
                     RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 120.0f, 256.0f, 256.0f, 256.0f, this.alpha,
                                 this.textureID);
@@ -122,7 +122,7 @@ namespace RSDKv4.Native
                     this.offsetX = 20.0f;
                     this.offsetY = 0.0f;
                 }
-                else if (inputDown.right != 0)
+                else if (inputDown.right)
                 {
                     RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, -8.0f, 128.0f, 120.0f, 256.0f, 392.0f, 256.0f, this.alpha,
                                 this.textureID);
@@ -144,7 +144,7 @@ namespace RSDKv4.Native
                             this.textureID);
 
                 float size = 0.0f;
-                if (this.alpha == saveGame.vDPadOpacity && (inputDown.C != 0 || inputDown.A != 0 || inputDown.B != 0))
+                if (this.alpha == saveGame.vDPadOpacity && (inputDown.C || inputDown.A || inputDown.B))
                     size = this.pressedSize;
                 else
                     size = this.jumpSize;

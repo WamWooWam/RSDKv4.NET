@@ -22,7 +22,7 @@ public class Collision
 
     public static Hitbox GetHitbox(Entity entity)
     {
-        AnimationFile thisAnim = Script.objectScriptList[entity.type].animFile;
+        AnimationFile thisAnim = objectScriptList[entity.type].animFile;
         return Animation.hitboxList[thisAnim.hitboxListOffset
                            + Animation.animFrames[Animation.animationList[thisAnim.animListOffset + entity.animation].frameListOffset + entity.frame].hitboxId];
     }
@@ -968,7 +968,7 @@ public class Collision
 
         if (movingDown == 2)
         {
-            entity.gravity = 0;
+            entity.gravity = false;
             if (sensors[2].collided && sensors[3].collided)
             {
                 if (sensors[2].ypos >= sensors[3].ypos)
@@ -1009,7 +1009,7 @@ public class Collision
             entity.rotation = entity.angle << 1;
 
             int speed = 0;
-            if (entity.down != 0)
+            if (entity.down)
             {
                 if (entity.angle < 128)
                 {
@@ -1073,7 +1073,7 @@ public class Collision
                 speed = 0x180000;
             entity.speed = speed;
             entity.yvel = 0;
-            Script.scriptEng.checkResult = 1;
+            scriptEng.checkResult = 1;
         }
 
         if (movingUp == 2)
@@ -1107,7 +1107,7 @@ public class Collision
             int angle = FastMath.ArcTan(entity.xvel, entity.yvel);
             if (sensorAngle > 0x40 && sensorAngle < 0x62 && angle > 0xA0 && angle < 0xC2)
             {
-                entity.gravity = 0;
+                entity.gravity = false;
                 entity.angle = sensorAngle;
                 entity.rotation = entity.angle << 1;
                 entity.collisionMode = CMODE.RWALL;
@@ -1120,7 +1120,7 @@ public class Collision
             }
             if (sensorAngle > 0x9E && sensorAngle < 0xC0 && angle > 0xBE && angle < 0xE0)
             {
-                entity.gravity = 0;
+                entity.gravity = false;
                 entity.angle = sensorAngle;
                 entity.rotation = entity.angle << 1;
                 entity.collisionMode = CMODE.LWALL;
@@ -1133,7 +1133,7 @@ public class Collision
             }
             if (entity.yvel < 0)
                 entity.yvel = 0;
-            Script.scriptEng.checkResult = 2;
+            scriptEng.checkResult = 2;
         }
     }
 
@@ -1499,14 +1499,14 @@ public class Collision
                                 entity.xpos = (sensors[3].xpos - collisionLeft + 1) << 16;
 
                             entity.speed = 0;
-                            if ((entity.left != 0 || entity.right != 0) && entity.pushing < 2)
+                            if ((entity.left || entity.right) && entity.pushing < 2)
                                 entity.pushing++;
                         }
                         entity.ypos = sensors[4].ypos;
                     }
                     else
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.xvel = FastMath.cosVal256[entity.angle] * entity.speed >> 8;
                         entity.yvel = FastMath.sinVal256[entity.angle] * entity.speed >> 8;
@@ -1531,7 +1531,7 @@ public class Collision
                                 entity.xpos = (sensors[3].xpos - collisionLeft + 1) << 16;
 
                             entity.speed = 0;
-                            if ((entity.left != 0 || entity.right != 0) && entity.pushing < 2)
+                            if ((entity.left || entity.right) && entity.pushing < 2)
                                 entity.pushing++;
                         }
                         entity.ypos += entity.yvel;
@@ -1542,7 +1542,7 @@ public class Collision
                 {
                     if (!sensors[0].collided && !sensors[1].collided && !sensors[2].collided)
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.xvel = FastMath.cosVal256[entity.angle] * entity.speed >> 8;
                         entity.yvel = FastMath.sinVal256[entity.angle] * entity.speed >> 8;
@@ -1564,7 +1564,7 @@ public class Collision
                     }
                     else
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.angle = 0;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.speed = entity.xvel;
@@ -1591,7 +1591,7 @@ public class Collision
                 {
                     if (!sensors[0].collided && !sensors[1].collided && !sensors[2].collided)
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.xvel = FastMath.cosVal256[entity.angle] * entity.speed >> 8;
                         entity.yvel = FastMath.sinVal256[entity.angle] * entity.speed >> 8;
@@ -1641,7 +1641,7 @@ public class Collision
                     }
                     else
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.angle = 0;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.speed = entity.xvel;
@@ -1669,7 +1669,7 @@ public class Collision
                 {
                     if (!sensors[0].collided && !sensors[1].collided && !sensors[2].collided)
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.xvel = FastMath.cosVal256[entity.angle] * entity.speed >> 8;
                         entity.yvel = FastMath.sinVal256[entity.angle] * entity.speed >> 8;
@@ -1689,7 +1689,7 @@ public class Collision
                     }
                     else
                     {
-                        entity.gravity = 1;
+                        entity.gravity = true;
                         entity.angle = 0;
                         entity.collisionMode = CMODE.FLOOR;
                         entity.speed = entity.xvel;
@@ -1835,13 +1835,13 @@ public class Collision
         player.floorSensors[3] = 0;
         player.floorSensors[4] = 0;
 
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
 
         collisionTolerance = 15;
         if (player.speed < 0x60000)
             collisionTolerance = (sbyte)player.angle == 0 ? 8 : 15;
 
-        if (player.gravity == 1)
+        if (player.gravity)
             ProcessAirCollision(player);
         else
             ProcessPathGrip(player);
@@ -1849,7 +1849,7 @@ public class Collision
 
     public static void ObjectFloorCollision(int xOffset, int yOffset, int cPath)
     {
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int c = 0;
         int XPos = (entity.xpos >> 16) + xOffset;
@@ -1874,7 +1874,7 @@ public class Collision
                                 break;
                             }
                             YPos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 1:
@@ -1885,7 +1885,7 @@ public class Collision
                                 break;
                             }
                             YPos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 2:
@@ -1896,7 +1896,7 @@ public class Collision
                                 break;
                             }
                             YPos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 3:
@@ -1907,12 +1907,12 @@ public class Collision
                                 break;
                             }
                             YPos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (Script.scriptEng.checkResult != 0)
+            if (scriptEng.checkResult != 0)
             {
                 entity.ypos = (YPos - yOffset) << 16;
             }
@@ -1921,7 +1921,7 @@ public class Collision
     public static void ObjectLWallCollision(int xOffset, int yOffset, int cPath)
     {
         int c;
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -1946,7 +1946,7 @@ public class Collision
                                 break;
                             }
                             XPos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 1:
@@ -1957,7 +1957,7 @@ public class Collision
                                 break;
                             }
                             XPos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 2:
@@ -1968,7 +1968,7 @@ public class Collision
                                 break;
                             }
                             XPos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 3:
@@ -1979,12 +1979,12 @@ public class Collision
                                 break;
                             }
                             XPos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (Script.scriptEng.checkResult != 0)
+            if (scriptEng.checkResult != 0)
             {
                 entity.xpos = (XPos - xOffset) << 16;
             }
@@ -1993,7 +1993,7 @@ public class Collision
     public static void ObjectRoofCollision(int xOffset, int yOffset, int cPath)
     {
         int c;
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2018,7 +2018,7 @@ public class Collision
                                 break;
                             }
                             YPos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 1:
@@ -2029,7 +2029,7 @@ public class Collision
                                 break;
                             }
                             YPos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 2:
@@ -2040,7 +2040,7 @@ public class Collision
                                 break;
                             }
                             YPos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 3:
@@ -2051,12 +2051,12 @@ public class Collision
                                 break;
                             }
                             YPos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (Script.scriptEng.checkResult != 0)
+            if (scriptEng.checkResult != 0)
             {
                 entity.ypos = (YPos - yOffset) << 16;
             }
@@ -2065,7 +2065,7 @@ public class Collision
     public static void ObjectRWallCollision(int xOffset, int yOffset, int cPath)
     {
         int c;
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2090,7 +2090,7 @@ public class Collision
                                 break;
                             }
                             XPos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 1:
@@ -2101,7 +2101,7 @@ public class Collision
                                 break;
                             }
                             XPos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 2:
@@ -2112,7 +2112,7 @@ public class Collision
                                 break;
                             }
                             XPos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                     case 3:
@@ -2123,12 +2123,12 @@ public class Collision
                                 break;
                             }
                             XPos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            Script.scriptEng.checkResult = 1;
+                            scriptEng.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (Script.scriptEng.checkResult != 0)
+            if (scriptEng.checkResult != 0)
             {
                 entity.xpos = (XPos - xOffset) << 16;
             }
@@ -2139,7 +2139,7 @@ public class Collision
 
     public static void ObjectFloorGrip(int xOffset, int yOffset, int cPath)
     {
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2147,7 +2147,7 @@ public class Collision
         YPos = YPos - 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && (YPos > 0 && YPos < stageLayouts[0].ysize << 7) && Script.scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && (YPos > 0 && YPos < stageLayouts[0].ysize << 7) && scriptEng.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
@@ -2166,7 +2166,7 @@ public class Collision
                                 if (collisionMasks[cPath].floorMasks[c] < 64)
                                 {
                                     entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    Script.scriptEng.checkResult = 1;
+                                    scriptEng.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2177,7 +2177,7 @@ public class Collision
                                 if (collisionMasks[cPath].floorMasks[c] < 64)
                                 {
                                     entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    Script.scriptEng.checkResult = 1;
+                                    scriptEng.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2188,7 +2188,7 @@ public class Collision
                                 if (collisionMasks[cPath].roofMasks[c] > -64)
                                 {
                                     entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    Script.scriptEng.checkResult = 1;
+                                    scriptEng.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2199,7 +2199,7 @@ public class Collision
                                 if (collisionMasks[cPath].roofMasks[c] > -64)
                                 {
                                     entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    Script.scriptEng.checkResult = 1;
+                                    scriptEng.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2210,7 +2210,7 @@ public class Collision
             YPos += 16;
         }
 
-        if (Script.scriptEng.checkResult == 0)
+        if (scriptEng.checkResult == 0)
             return;
 
         if (Math.Abs(entity.ypos - chunkX1) < 16)
@@ -2227,7 +2227,7 @@ public class Collision
     public static void ObjectLWallGrip(int xOffset, int yOffset, int cPath)
     {
         int c;
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2235,7 +2235,7 @@ public class Collision
         XPos = XPos - 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && Script.scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
@@ -2255,7 +2255,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 1:
@@ -2266,7 +2266,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 2:
@@ -2277,7 +2277,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 3:
@@ -2288,7 +2288,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                     }
@@ -2296,7 +2296,7 @@ public class Collision
             }
             XPos += 16;
         }
-        if (Script.scriptEng.checkResult != 0)
+        if (scriptEng.checkResult != 0)
         {
             if (Math.Abs(entity.xpos - startX) < 16)
             {
@@ -2304,13 +2304,13 @@ public class Collision
                 return;
             }
             entity.xpos = (startX - xOffset) << 16;
-            Script.scriptEng.checkResult = 0;
+            scriptEng.checkResult = 0;
         }
     }
     public static void ObjectRoofGrip(int xOffset, int yOffset, int cPath)
     {
         int c;
-        Script.scriptEng.checkResult = 1;
+        scriptEng.checkResult = 1;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2318,7 +2318,7 @@ public class Collision
         YPos = YPos + 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && Script.scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
@@ -2338,7 +2338,7 @@ public class Collision
                                     break;
                                 }
                                 entity.ypos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 1:
@@ -2349,7 +2349,7 @@ public class Collision
                                     break;
                                 }
                                 entity.ypos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 2:
@@ -2360,7 +2360,7 @@ public class Collision
                                     break;
                                 }
                                 entity.ypos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 3:
@@ -2371,7 +2371,7 @@ public class Collision
                                     break;
                                 }
                                 entity.ypos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                     }
@@ -2379,7 +2379,7 @@ public class Collision
             }
             YPos -= 16;
         }
-        if (Script.scriptEng.checkResult != 0)
+        if (scriptEng.checkResult != 0)
         {
             if (Math.Abs(entity.ypos - startY) < 16)
             {
@@ -2387,13 +2387,13 @@ public class Collision
                 return;
             }
             entity.ypos = (startY - yOffset) << 16;
-            Script.scriptEng.checkResult = 0;
+            scriptEng.checkResult = 0;
         }
     }
     public static void ObjectRWallGrip(int xOffset, int yOffset, int cPath)
     {
         int c;
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2401,7 +2401,7 @@ public class Collision
         XPos = XPos + 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && Script.scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
@@ -2421,7 +2421,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 1:
@@ -2432,7 +2432,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 2:
@@ -2443,7 +2443,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                         case 3:
@@ -2454,7 +2454,7 @@ public class Collision
                                     break;
                                 }
                                 entity.xpos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                Script.scriptEng.checkResult = 1;
+                                scriptEng.checkResult = 1;
                                 break;
                             }
                     }
@@ -2462,7 +2462,7 @@ public class Collision
             }
             XPos -= 16;
         }
-        if (Script.scriptEng.checkResult != 0)
+        if (scriptEng.checkResult != 0)
         {
             if (Math.Abs(entity.xpos - startX) < 16)
             {
@@ -2470,7 +2470,7 @@ public class Collision
                 return;
             }
             entity.xpos = (startX - xOffset) << 16;
-            Script.scriptEng.checkResult = 0;
+            scriptEng.checkResult = 0;
         }
     }
 
@@ -2525,7 +2525,7 @@ public class Collision
         otherRight += otherEntity.xpos >> 16;
         otherBottom += otherEntity.ypos >> 16;
 
-        Script.scriptEng.checkResult = (otherRight > thisLeft && otherLeft < thisRight && otherBottom > thisTop && otherTop < thisBottom) ? 1 : 0;
+        scriptEng.checkResult = (otherRight > thisLeft && otherLeft < thisRight && otherBottom > thisTop && otherTop < thisBottom) ? 1 : 0;
 
 #if !RETRO_USE_ORIGINAL_CODE
         //if (showHitboxes)
@@ -2537,34 +2537,37 @@ public class Collision
         //}
 #endif
     }
+
+    private const int C_BOX = 0x10000;
+
     public static void BoxCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                       int otherRight, int otherBottom)
     {
         Hitbox thisHitbox = GetHitbox(thisEntity);
         Hitbox otherHitbox = GetHitbox(otherEntity);
 
-        if (thisLeft == 0x10000)
+        if (thisLeft == C_BOX)
             thisLeft = thisHitbox.left[0];
 
-        if (thisTop == 0x10000)
+        if (thisTop == C_BOX)
             thisTop = thisHitbox.top[0];
 
-        if (thisRight == 0x10000)
+        if (thisRight == C_BOX)
             thisRight = thisHitbox.right[0];
 
-        if (thisBottom == 0x10000)
+        if (thisBottom == C_BOX)
             thisBottom = thisHitbox.bottom[0];
 
-        if (otherLeft == 0x10000)
+        if (otherLeft == C_BOX)
             otherLeft = otherHitbox.left[0];
 
-        if (otherTop == 0x10000)
+        if (otherTop == C_BOX)
             otherTop = otherHitbox.top[0];
 
-        if (otherRight == 0x10000)
+        if (otherRight == C_BOX)
             otherRight = otherHitbox.right[0];
 
-        if (otherBottom == 0x10000)
+        if (otherBottom == C_BOX)
             otherBottom = otherHitbox.bottom[0];
 
 #if !RETRO_USE_ORIGINAL_CODE
@@ -2592,10 +2595,10 @@ public class Collision
         otherRight <<= 16;
         otherBottom <<= 16;
 
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
 
-        int rx = otherEntity.xpos >> 16 << 16;
-        int ry = otherEntity.ypos >> 16 << 16;
+        int rx = (otherEntity.xpos >> 16) << 16;
+        int ry = (otherEntity.ypos >> 16) << 16;
 
         int xDif = otherEntity.xpos - thisRight;
         if (thisEntity.xpos > otherEntity.xpos)
@@ -2634,18 +2637,18 @@ public class Collision
 
             if (sensors[0].collided || sensors[1].collided || sensors[2].collided)
             {
-                if (otherEntity.gravity == 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+                if (!otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
                 {
                     otherEntity.xvel = 0;
                     otherEntity.speed = 0;
                 }
                 otherEntity.ypos = thisTop - otherBottom;
-                otherEntity.gravity = 0;
+                otherEntity.gravity = false;
                 otherEntity.yvel = 0;
                 otherEntity.angle = 0;
                 otherEntity.rotation = 0;
                 otherEntity.controlLock = 0;
-                Script.scriptEng.checkResult = 1;
+                scriptEng.checkResult = 1;
             }
             else
             {
@@ -2667,12 +2670,12 @@ public class Collision
 
                 if (sensors[1].collided || sensors[0].collided)
                 {
-                    if (otherEntity.gravity == 1)
+                    if (otherEntity.gravity)
                         otherEntity.ypos = thisBottom - otherTop;
 
                     if (otherEntity.yvel <= 0)
                         otherEntity.yvel = 0;
-                    Script.scriptEng.checkResult = 4;
+                    scriptEng.checkResult = 4;
                 }
                 else
                 {
@@ -2700,12 +2703,12 @@ public class Collision
                                 otherEntity.pushing = 2;
 
                             otherEntity.xvel = 0;
-                            if (otherEntity.collisionMode != 0 || otherEntity.left == 0)
+                            if (otherEntity.collisionMode != 0 || !otherEntity.left)
                                 otherEntity.speed = 0;
                             else
                                 otherEntity.speed = -0x8000;
                         }
-                        Script.scriptEng.checkResult = 2;
+                        scriptEng.checkResult = 2;
                     }
                     else
                     {
@@ -2736,12 +2739,12 @@ public class Collision
                                     otherEntity.xpos += 0x8000;
 
                                 otherEntity.xvel = 0;
-                                if (otherEntity.collisionMode != 0 || otherEntity.right == 0)
+                                if (otherEntity.collisionMode != 0 || !otherEntity.right)
                                     otherEntity.speed = 0;
                                 else
                                     otherEntity.speed = 0x8000;
                             }
-                            Script.scriptEng.checkResult = 3;
+                            scriptEng.checkResult = 3;
                         }
                     }
                 }
@@ -2772,12 +2775,12 @@ public class Collision
                         otherEntity.pushing = 2;
 
                     otherEntity.xvel = 0;
-                    if (otherEntity.collisionMode != 0 || otherEntity.left == 0)
+                    if (otherEntity.collisionMode != 0 || !otherEntity.left)
                         otherEntity.speed = 0;
                     else
                         otherEntity.speed = -0x8000;
                 }
-                Script.scriptEng.checkResult = 2;
+                scriptEng.checkResult = 2;
             }
             else
             {
@@ -2808,12 +2811,12 @@ public class Collision
                             otherEntity.xpos += 0x8000;
 
                         otherEntity.xvel = 0;
-                        if (otherEntity.collisionMode != 0 || otherEntity.right == 0)
+                        if (otherEntity.collisionMode != 0 || !otherEntity.right)
                             otherEntity.speed = 0;
                         else
                             otherEntity.speed = 0x8000;
                     }
-                    Script.scriptEng.checkResult = 3;
+                    scriptEng.checkResult = 3;
                 }
                 else
                 {
@@ -2843,18 +2846,18 @@ public class Collision
                     }
                     if (sensors[2].collided || sensors[1].collided || sensors[0].collided)
                     {
-                        if (otherEntity.gravity == 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+                        if (!otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
                         {
                             otherEntity.xvel = 0;
                             otherEntity.speed = 0;
                         }
                         otherEntity.ypos = thisTop - otherBottom;
-                        otherEntity.gravity = 0;
+                        otherEntity.gravity = false;
                         otherEntity.yvel = 0;
                         otherEntity.angle = 0;
                         otherEntity.rotation = 0;
                         otherEntity.controlLock = 0;
-                        Script.scriptEng.checkResult = 1;
+                        scriptEng.checkResult = 1;
                     }
                     else
                     {
@@ -2875,12 +2878,12 @@ public class Collision
 
                         if (sensors[1].collided || sensors[0].collided)
                         {
-                            if (otherEntity.gravity == 1)
+                            if (otherEntity.gravity)
                                 otherEntity.ypos = thisBottom - otherTop;
 
                             if (otherEntity.yvel <= 0)
                                 otherEntity.yvel = 0;
-                            Script.scriptEng.checkResult = 4;
+                            scriptEng.checkResult = 4;
                         }
                     }
                 }
@@ -2897,6 +2900,7 @@ public class Collision
         //}
 #endif
     }
+
     public static void BoxCollision2(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                        int otherRight, int otherBottom)
     {
@@ -2952,7 +2956,7 @@ public class Collision
         otherRight <<= 16;
         otherBottom <<= 16;
 
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
 
         int rx = otherEntity.xpos >> 16 << 16;
         int ry = otherEntity.ypos >> 16 << 16;
@@ -2990,18 +2994,18 @@ public class Collision
 
             if (sensors[0].collided || sensors[1].collided || sensors[2].collided)
             {
-                if (otherEntity.gravity == 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+                if (!otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
                 {
                     otherEntity.xvel = 0;
                     otherEntity.speed = 0;
                 }
                 otherEntity.ypos = thisTop - otherBottom;
-                otherEntity.gravity = 0;
+                otherEntity.gravity = false;
                 otherEntity.yvel = 0;
                 otherEntity.angle = 0;
                 otherEntity.rotation = 0;
                 otherEntity.controlLock = 0;
-                Script.scriptEng.checkResult = 1;
+                scriptEng.checkResult = 1;
             }
             else
             {
@@ -3022,7 +3026,7 @@ public class Collision
 
                 if (sensors[1].collided || sensors[0].collided)
                 {
-                    if (otherEntity.gravity == 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+                    if (!otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
                     {
                         otherEntity.xvel = 0;
                         otherEntity.speed = 0;
@@ -3031,7 +3035,7 @@ public class Collision
                     otherEntity.ypos = thisBottom - otherTop;
                     if (otherEntity.yvel < 0)
                         otherEntity.yvel = 0;
-                    Script.scriptEng.checkResult = 4;
+                    scriptEng.checkResult = 4;
                 }
                 else
                 {
@@ -3061,7 +3065,7 @@ public class Collision
                             otherEntity.xvel = 0;
                             otherEntity.speed = 0;
                         }
-                        Script.scriptEng.checkResult = 2;
+                        scriptEng.checkResult = 2;
                     }
                     else
                     {
@@ -3094,7 +3098,7 @@ public class Collision
                                 otherEntity.xvel = 0;
                                 otherEntity.speed = 0;
                             }
-                            Script.scriptEng.checkResult = 3;
+                            scriptEng.checkResult = 3;
                         }
                     }
                 }
@@ -3126,7 +3130,7 @@ public class Collision
                     otherEntity.xvel = 0;
                     otherEntity.speed = 0;
                 }
-                Script.scriptEng.checkResult = 2;
+                scriptEng.checkResult = 2;
             }
             else
             {
@@ -3158,7 +3162,7 @@ public class Collision
                         otherEntity.xvel = 0;
                         otherEntity.speed = 0;
                     }
-                    Script.scriptEng.checkResult = 3;
+                    scriptEng.checkResult = 3;
                 }
                 else
                 {
@@ -3185,18 +3189,18 @@ public class Collision
 
                     if (sensors[0].collided || sensors[1].collided || sensors[2].collided)
                     {
-                        if (otherEntity.gravity == 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+                        if (!otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
                         {
                             otherEntity.xvel = 0;
                             otherEntity.speed = 0;
                         }
                         otherEntity.ypos = thisTop - otherBottom;
-                        otherEntity.gravity = 0;
+                        otherEntity.gravity = false;
                         otherEntity.yvel = 0;
                         otherEntity.angle = 0;
                         otherEntity.rotation = 0;
                         otherEntity.controlLock = 0;
-                        Script.scriptEng.checkResult = 1;
+                        scriptEng.checkResult = 1;
                     }
                     else
                     {
@@ -3218,7 +3222,7 @@ public class Collision
 
                         if (sensors[1].collided || sensors[0].collided)
                         {
-                            if (otherEntity.gravity == 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+                            if (!otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
                             {
                                 otherEntity.xvel = 0;
                                 otherEntity.speed = 0;
@@ -3228,7 +3232,7 @@ public class Collision
 
                             if (otherEntity.yvel < 0)
                                 otherEntity.yvel = 0;
-                            Script.scriptEng.checkResult = 4;
+                            scriptEng.checkResult = 4;
                         }
                     }
                 }
@@ -3249,7 +3253,7 @@ public class Collision
     public static void PlatformCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                            int otherRight, int otherBottom)
     {
-        Script.scriptEng.checkResult = 0;
+        scriptEng.checkResult = 0;
 
         Hitbox thisHitbox = GetHitbox(thisEntity);
         Hitbox otherHitbox = GetHitbox(otherEntity);
@@ -3325,18 +3329,18 @@ public class Collision
 
         if (sensors[0].collided || sensors[1].collided || sensors[2].collided)
         {
-            if (otherEntity.gravity != 0 && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
+            if (otherEntity.gravity && (otherEntity.collisionMode == CMODE.RWALL || otherEntity.collisionMode == CMODE.LWALL))
             {
                 otherEntity.xvel = 0;
                 otherEntity.speed = 0;
             }
             otherEntity.ypos = thisTop - (otherBottom << 16);
-            otherEntity.gravity = 0;
+            otherEntity.gravity = false;
             otherEntity.yvel = 0;
             otherEntity.angle = 0;
             otherEntity.rotation = 0;
             otherEntity.controlLock = 0;
-            Script.scriptEng.checkResult = 1;
+            scriptEng.checkResult = 1;
         }
 
 #if !RETRO_USE_ORIGINAL_CODE

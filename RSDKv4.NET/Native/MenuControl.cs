@@ -120,8 +120,8 @@ public class MenuControl : NativeEntity
         {
             case STATE.MAIN:
                 {
-                    Input.CheckKeyDown(ref Input.inputDown);
-                    Input.CheckKeyPress(ref Input.inputPress);
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
 
                     if (segaIDButton.alpha < 0x100 && Engine.language != LANGUAGE.JP && !(Engine.language == LANGUAGE.ZH || Engine.language == LANGUAGE.ZS)
                         && Engine.deviceType == DEVICE.MOBILE)
@@ -135,7 +135,7 @@ public class MenuControl : NativeEntity
                                 {
                                     if (Input.touches > 0)
                                     {
-                                        if (Input.inputDown.left == 0 && Input.inputDown.right == 0)
+                                        if (!Input.keyDown.left && !Input.keyDown.right)
                                         {
                                             segaIDButton.state = SegaIDButton.STATE.IDLE;
                                             if (Input.CheckTouchRect(0.0f, 16.0f, 56.0f, 56.0f) >= 0)
@@ -176,7 +176,7 @@ public class MenuControl : NativeEntity
                                         Audio.PlaySfxByName("Menu Select", false);
                                         //ShowPromoPopup(0, "MoreGames");
                                     }
-                                    else if (Input.inputDown.left != 0 || Input.inputDown.right != 0)
+                                    else if (Input.keyDown.left || Input.keyDown.right)
                                     {
                                         segaIDButton.state = SegaIDButton.STATE.IDLE;
                                         NativeGlobals.usePhysicalControls = true;
@@ -321,7 +321,7 @@ public class MenuControl : NativeEntity
                         {
                             if (Input.touches <= 0)
                             {
-                                if (Input.inputPress.right != 0 && this.float18 > -(this.float30 - this.float2C))
+                                if (Input.keyPress.right && this.float18 > -(this.float30 - this.float2C))
                                 {
                                     this.stateInput = STATEINPUT.HANDLEDRAG;
                                     this.float1C -= this.float2C;
@@ -331,7 +331,7 @@ public class MenuControl : NativeEntity
                                     if (this.buttonID >= this.buttonCount)
                                         this.buttonID = (byte)(this.buttonCount - 1);
                                 }
-                                else if (Input.inputPress.left != 0 && this.float18 < 0.0)
+                                else if (Input.keyPress.left && this.float18 < 0.0)
                                 {
                                     this.stateInput = STATEINPUT.HANDLEDRAG;
                                     this.float1C += this.float2C;
@@ -341,7 +341,7 @@ public class MenuControl : NativeEntity
                                     if (this.buttonID > this.buttonCount)
                                         this.buttonID = 0;
                                 }
-                                else if ((Input.inputPress.start != 0 || Input.inputPress.A != 0) && !NativeGlobals.nativeMenuFadeIn)
+                                else if ((Input.keyPress.start || Input.keyPress.A) && !NativeGlobals.nativeMenuFadeIn)
                                 {
                                     //BackupNativeObjects();
                                     this.buttons[this.buttonID].label.state = TextLabel.STATE.BLINK_FAST;
@@ -384,7 +384,7 @@ public class MenuControl : NativeEntity
                         {
                             this.dialogTimer--;
                         }
-                        else if (Input.inputPress.B != 0 && !NativeGlobals.nativeMenuFadeIn)
+                        else if (Input.keyPress.B && !NativeGlobals.nativeMenuFadeIn)
                         {
                             this.dialog = Objects.CreateNativeObject(() => new DialogPanel());
                             this.dialog.text = Font.GetCharactersForString(Strings.strExitGame, FONT.TEXT);
@@ -410,7 +410,7 @@ public class MenuControl : NativeEntity
                                 this.buttons[this.buttonID].label.state = TextLabel.STATE.NONE;
                                 this.backButton.visible = true;
                                 Engine.SetGlobalVariableByName("options.vsMode", 0);
-                                //CREATE_ENTITY(SaveSelect);
+                                Objects.CreateNativeObject(() => new SaveSelect());
                                 break;
                             case BUTTON.TIMEATTACK:
                                 this.state = STATE.ENTERSUBMENU;
@@ -438,7 +438,7 @@ public class MenuControl : NativeEntity
                                 if (Engine.onlineActive)
                                 {
                                     Scene.InitStartingStage(STAGELIST.PRESENTATION, 3, 0);
-                                    //CREATE_ENTITY(FadeScreen);
+                                    Objects.CreateNativeObject(() => new FadeScreen());
                                 }
                                 else
                                 {
@@ -543,8 +543,8 @@ public class MenuControl : NativeEntity
                 }
             case STATE.SUBMENU:
                 {
-                    Input.CheckKeyDown(ref Input.inputDown);
-                    Input.CheckKeyPress(ref Input.inputPress);
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
                     if (Input.touches <= 0)
                     {
                         if (this.backButton.g == 0xC0)
@@ -562,7 +562,7 @@ public class MenuControl : NativeEntity
                         else
                             backButton.g = 0xC0;
                     }
-                    if (Input.inputPress.B != 0)
+                    if (Input.keyPress.B)
                     {
                         Audio.PlaySfxByName("Menu Back", false);
                         this.backButton.g = 0xFF;

@@ -1,4 +1,5 @@
 ﻿using System;
+using RSDKv4.Utility;
 using Microsoft.Xna.Framework;
 using static RSDKv4.Native.NativeRenderer;
 
@@ -56,7 +57,7 @@ public class TimeAttackButton : MenuButton
 
             NewRenderState();
 
-            this.renderMatrix = Matrix.CreateRotationY((float)Math.Sin(this.angle) * 0.5f) *
+            this.renderMatrix = Helpers.CreateRotationY((float)Math.Sin(this.angle) * 0.5f) *
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
 
             SetRenderMatrix(this.renderMatrix);

@@ -91,14 +91,14 @@ public class Entity
     public bool visible;
     public bool tileCollisions;
     public bool objectInteractions;
-    public byte gravity;
-    public byte left;
-    public byte right;
-    public byte up;
-    public byte down;
-    public byte jumpPress;
-    public byte jumpHold;
-    public byte scrollTracking;
+    public bool gravity;
+    public bool left;
+    public bool right;
+    public bool up;
+    public bool down;
+    public bool jumpPress;
+    public bool jumpHold;
+    public bool scrollTracking;
     // was 3 on S1 release, but bumped up to 5 for S2
     public byte[] floorSensors = new byte[5];
 }

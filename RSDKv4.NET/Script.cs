@@ -1114,42 +1114,42 @@ public static class Script
                             }
                         case VAR.OBJECTGRAVITY:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].gravity;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].gravity ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTUP:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].up;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].up ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTDOWN:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].down;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].down ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTLEFT:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].left;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].left ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTRIGHT:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].right;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].right ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTJUMPPRESS:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].jumpPress;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].jumpPress ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTJUMPHOLD:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].jumpHold;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].jumpHold ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTSCROLLTRACKING:
                             {
-                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].scrollTracking;
+                                scriptEng.operands[i] = Objects.objectEntityList[arrayVal].scrollTracking ? 1 : 0;
                                 break;
                             }
                         case VAR.OBJECTFLOORSENSORL:
@@ -1246,7 +1246,7 @@ public static class Script
                             }
                         case VAR.OBJECTOUTOFBOUNDS:
                             {
-#if !RETRO_REV00
+#if !RETRO_REV0
                                 int boundX1_2P = -(0x200 << 16);
                                 int boundX2_2P = (0x200 << 16);
                                 int boundX3_2P = -(0x180 << 16);
@@ -1332,12 +1332,12 @@ public static class Script
                                 int x = Objects.objectEntityList[arrayVal].xpos >> 16;
                                 int y = Objects.objectEntityList[arrayVal].ypos >> 16;
 
-                                int boundL = Scene.xScrollOffset - OBJECT_BORDER_X1;
-                                int boundR = Scene.xScrollOffset + OBJECT_BORDER_X2;
-                                int boundT = Scene.yScrollOffset - OBJECT_BORDER_Y1;
-                                int boundB = Scene.yScrollOffset + OBJECT_BORDER_Y2;
+                                int boundL = Scene.xScrollOffset - Objects.OBJECT_BORDER_X1;
+                                int boundR = Scene.xScrollOffset + Objects.OBJECT_BORDER_X2;
+                                int boundT = Scene.yScrollOffset - Objects.OBJECT_BORDER_Y1;
+                                int boundB = Scene.yScrollOffset + Objects.OBJECT_BORDER_Y2;
 
-                                scriptEng.operands[i] = x <= boundL || x >= boundR || y <= boundT || y >= boundB;
+                                scriptEng.operands[i] = (x <= boundL || x >= boundR || y <= boundT || y >= boundB) ? 1 : 0;
 #endif
                                 break;
                             }
@@ -1686,7 +1686,7 @@ public static class Script
                             scriptEng.operands[i] = Scene.cameraYPos;
                             break;
                         case VAR.SCREENDRAWLISTSIZE:
-                            scriptEng.operands[i] = Scene.drawListEntries[arrayVal].entityRefs.Count;
+                            scriptEng.operands[i] = Scene.drawListEntries[arrayVal].listSize;
                             break;
                         case VAR.SCREENXCENTER:
                             scriptEng.operands[i] = Drawing.SCREEN_CENTERX;
@@ -1734,88 +1734,88 @@ public static class Script
                             scriptEng.operands[i] = Audio.musicPosition;
                             break;
                         case VAR.INPUTDOWNUP:
-                            scriptEng.operands[i] = Input.inputDown.up;
+                            scriptEng.operands[i] = Input.keyDown.up ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNDOWN:
-                            scriptEng.operands[i] = Input.inputDown.down;
+                            scriptEng.operands[i] = Input.keyDown.down ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNLEFT:
-                            scriptEng.operands[i] = Input.inputDown.left;
+                            scriptEng.operands[i] = Input.keyDown.left ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNRIGHT:
-                            scriptEng.operands[i] = Input.inputDown.right;
+                            scriptEng.operands[i] = Input.keyDown.right ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONA:
-                            scriptEng.operands[i] = Input.inputDown.A;
+                            scriptEng.operands[i] = Input.keyDown.A ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONB:
-                            scriptEng.operands[i] = Input.inputDown.B;
+                            scriptEng.operands[i] = Input.keyDown.B ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONC:
-                            scriptEng.operands[i] = Input.inputDown.C;
+                            scriptEng.operands[i] = Input.keyDown.C ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONX:
-                            scriptEng.operands[i] = Input.inputDown.X;
+                            scriptEng.operands[i] = Input.keyDown.X ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONY:
-                            scriptEng.operands[i] = Input.inputDown.Y;
+                            scriptEng.operands[i] = Input.keyDown.Y ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONZ:
-                            scriptEng.operands[i] = Input.inputDown.Z;
+                            scriptEng.operands[i] = Input.keyDown.Z ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONL:
-                            scriptEng.operands[i] = Input.inputDown.L;
+                            scriptEng.operands[i] = Input.keyDown.L ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNBUTTONR:
-                            scriptEng.operands[i] = Input.inputDown.R;
+                            scriptEng.operands[i] = Input.keyDown.R ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNSTART:
-                            scriptEng.operands[i] = Input.inputDown.start;
+                            scriptEng.operands[i] = Input.keyDown.start ? 1 : 0;
                             break;
                         case VAR.INPUTDOWNSELECT:
-                            scriptEng.operands[i] = Input.inputDown.select;
+                            scriptEng.operands[i] = Input.keyDown.select ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSUP:
-                            scriptEng.operands[i] = Input.inputPress.up;
+                            scriptEng.operands[i] = Input.keyPress.up ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSDOWN:
-                            scriptEng.operands[i] = Input.inputPress.down;
+                            scriptEng.operands[i] = Input.keyPress.down ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSLEFT:
-                            scriptEng.operands[i] = Input.inputPress.left;
+                            scriptEng.operands[i] = Input.keyPress.left ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSRIGHT:
-                            scriptEng.operands[i] = Input.inputPress.right;
+                            scriptEng.operands[i] = Input.keyPress.right ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONA:
-                            scriptEng.operands[i] = Input.inputPress.A;
+                            scriptEng.operands[i] = Input.keyPress.A ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONB:
-                            scriptEng.operands[i] = Input.inputPress.B;
+                            scriptEng.operands[i] = Input.keyPress.B ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONC:
-                            scriptEng.operands[i] = Input.inputPress.C;
+                            scriptEng.operands[i] = Input.keyPress.C ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONX:
-                            scriptEng.operands[i] = Input.inputPress.X;
+                            scriptEng.operands[i] = Input.keyPress.X ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONY:
-                            scriptEng.operands[i] = Input.inputPress.Y;
+                            scriptEng.operands[i] = Input.keyPress.Y ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONZ:
-                            scriptEng.operands[i] = Input.inputPress.Z;
+                            scriptEng.operands[i] = Input.keyPress.Z ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONL:
-                            scriptEng.operands[i] = Input.inputPress.L;
+                            scriptEng.operands[i] = Input.keyPress.L ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSBUTTONR:
-                            scriptEng.operands[i] = Input.inputPress.R;
+                            scriptEng.operands[i] = Input.keyPress.R ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSSTART:
-                            scriptEng.operands[i] = Input.inputPress.start;
+                            scriptEng.operands[i] = Input.keyPress.start ? 1 : 0;
                             break;
                         case VAR.INPUTPRESSSELECT:
-                            scriptEng.operands[i] = Input.inputPress.select;
+                            scriptEng.operands[i] = Input.keyPress.select ? 1 : 0;
                             break;
                         case VAR.MENU1SELECTION:
                             scriptEng.operands[i] = Text.gameMenu[0].selection1;
@@ -1877,7 +1877,6 @@ public static class Script
                         case VAR.VPARALLAXSCROLLPOS:
                             scriptEng.operands[i] = Scene.vParallax.scrollPos[arrayVal];
                             break;
-
                         case VAR.SCENE3DVERTEXCOUNT:
                             scriptEng.operands[i] = Scene3D.vertexCount;
                             break;
@@ -1959,7 +1958,8 @@ public static class Script
                             scriptEng.operands[i] = Engine.deviceType;
                             break;
                         case VAR.SCREENCURRENTID:
-                            scriptEng.operands[i] = 0; break;
+                            scriptEng.operands[i] = 0; 
+                            break;
                         case VAR.CAMERAENABLED:
                             scriptEng.operands[i] = Scene.cameraEnabled ? 1 : 0;
                             break;
@@ -2080,7 +2080,7 @@ public static class Script
                     scriptEng.operands[0] %= scriptEng.operands[1];
                     break;
                 case FUNC.FLIPSIGN:
-                    scriptEng.operands[0] = scriptEng.operands[0] * -1;
+                    scriptEng.operands[0] = -scriptEng.operands[0];
                     break;
                 case FUNC.CHECKEQUAL:
                     scriptEng.checkResult = (scriptEng.operands[0] == scriptEng.operands[1]) ? 1 : 0;
@@ -3354,12 +3354,12 @@ public static class Script
                     break;
                 case FUNC.CLEARDRAWLIST:
                     loadStoreSize = 0;
-                    Scene.drawListEntries[scriptEng.operands[0]].entityRefs.Clear();
+                    Scene.drawListEntries[scriptEng.operands[0]].listSize = 0;
                     break;
                 case FUNC.ADDDRAWLISTENTITYREF:
                     {
                         loadStoreSize = 0;
-                        Scene.drawListEntries[scriptEng.operands[0]].entityRefs.Add(scriptEng.operands[1]);
+                        Scene.drawListEntries[scriptEng.operands[0]].entityRefs[Scene.drawListEntries[scriptEng.operands[0]].listSize++] = scriptEng.operands[1];
                         break;
                     }
                 case FUNC.GETDRAWLISTENTITYREF:
@@ -4062,42 +4062,42 @@ public static class Script
                             }
                         case VAR.OBJECTGRAVITY:
                             {
-                                Objects.objectEntityList[arrayVal].gravity = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].gravity = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTUP:
                             {
-                                Objects.objectEntityList[arrayVal].up = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].up = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTDOWN:
                             {
-                                Objects.objectEntityList[arrayVal].down = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].down = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTLEFT:
                             {
-                                Objects.objectEntityList[arrayVal].left = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].left = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTRIGHT:
                             {
-                                Objects.objectEntityList[arrayVal].right = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].right = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTJUMPPRESS:
                             {
-                                Objects.objectEntityList[arrayVal].jumpPress = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].jumpPress = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTJUMPHOLD:
                             {
-                                Objects.objectEntityList[arrayVal].jumpHold = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].jumpHold = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTSCROLLTRACKING:
                             {
-                                Objects.objectEntityList[arrayVal].scrollTracking = (byte)scriptEng.operands[i];
+                                Objects.objectEntityList[arrayVal].scrollTracking = scriptEng.operands[i] != 0;
                                 break;
                             }
                         case VAR.OBJECTFLOORSENSORL:
@@ -4510,11 +4510,8 @@ public static class Script
                             Scene.cameraYPos = scriptEng.operands[i];
                             break;
                         case VAR.SCREENDRAWLISTSIZE:
-                            {
-                                Debug.Assert(false);
-                                //Scene.drawListEntries[arrayVal].listSize = scriptEng.operands[i];
-                                break;
-                            }
+                            Scene.drawListEntries[arrayVal].listSize = scriptEng.operands[i];
+                            break;
                         case VAR.SCREENXCENTER: break;
                         case VAR.SCREENYCENTER: break;
                         case VAR.SCREENXSIZE: break;
@@ -4543,88 +4540,88 @@ public static class Script
                         case VAR.MUSICCURRENTTRACK: break;
                         case VAR.MUSICPOSITION: break;
                         case VAR.INPUTDOWNUP:
-                            Input.inputDown.up = (byte)scriptEng.operands[i];
+                            Input.keyDown.up = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNDOWN:
-                            Input.inputDown.down = (byte)scriptEng.operands[i];
+                            Input.keyDown.down = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNLEFT:
-                            Input.inputDown.left = (byte)scriptEng.operands[i];
+                            Input.keyDown.left = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNRIGHT:
-                            Input.inputDown.right = (byte)scriptEng.operands[i];
+                            Input.keyDown.right = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONA:
-                            Input.inputDown.A = (byte)scriptEng.operands[i];
+                            Input.keyDown.A = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONB:
-                            Input.inputDown.B = (byte)scriptEng.operands[i];
+                            Input.keyDown.B = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONC:
-                            Input.inputDown.C = (byte)scriptEng.operands[i];
+                            Input.keyDown.C = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONX:
-                            Input.inputDown.X = (byte)scriptEng.operands[i];
+                            Input.keyDown.X = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONY:
-                            Input.inputDown.Y = (byte)scriptEng.operands[i];
+                            Input.keyDown.Y = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONZ:
-                            Input.inputDown.Z = (byte)scriptEng.operands[i];
+                            Input.keyDown.Z = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONL:
-                            Input.inputDown.L = (byte)scriptEng.operands[i];
+                            Input.keyDown.L = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNBUTTONR:
-                            Input.inputDown.R = (byte)scriptEng.operands[i];
+                            Input.keyDown.R = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNSTART:
-                            Input.inputDown.start = (byte)scriptEng.operands[i];
+                            Input.keyDown.start = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTDOWNSELECT:
-                            Input.inputDown.select = (byte)scriptEng.operands[i];
+                            Input.keyDown.select = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSUP:
-                            Input.inputPress.up = (byte)scriptEng.operands[i];
+                            Input.keyPress.up = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSDOWN:
-                            Input.inputPress.down = (byte)scriptEng.operands[i];
+                            Input.keyPress.down = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSLEFT:
-                            Input.inputPress.left = (byte)scriptEng.operands[i];
+                            Input.keyPress.left = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSRIGHT:
-                            Input.inputPress.right = (byte)scriptEng.operands[i];
+                            Input.keyPress.right = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONA:
-                            Input.inputPress.A = (byte)scriptEng.operands[i];
+                            Input.keyPress.A = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONB:
-                            Input.inputPress.B = (byte)scriptEng.operands[i];
+                            Input.keyPress.B = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONC:
-                            Input.inputPress.C = (byte)scriptEng.operands[i];
+                            Input.keyPress.C = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONX:
-                            Input.inputPress.X = (byte)scriptEng.operands[i];
+                            Input.keyPress.X = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONY:
-                            Input.inputPress.Y = (byte)scriptEng.operands[i];
+                            Input.keyPress.Y = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONZ:
-                            Input.inputPress.Z = (byte)scriptEng.operands[i];
+                            Input.keyPress.Z = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONL:
-                            Input.inputPress.L = (byte)scriptEng.operands[i];
+                            Input.keyPress.L = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSBUTTONR:
-                            Input.inputPress.R = (byte)scriptEng.operands[i];
+                            Input.keyPress.R = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSSTART:
-                            Input.inputPress.start = (byte)scriptEng.operands[i];
+                            Input.keyPress.start = scriptEng.operands[i] != 0;
                             break;
                         case VAR.INPUTPRESSSELECT:
-                            Input.inputPress.select = (byte)scriptEng.operands[i];
+                            Input.keyPress.select = scriptEng.operands[i] != 0;
                             break;
                         case VAR.MENU1SELECTION:
                             Text.gameMenu[0].selection1 = scriptEng.operands[i];

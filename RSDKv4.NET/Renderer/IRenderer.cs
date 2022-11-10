@@ -5,7 +5,6 @@ namespace RSDKv4.Render;
 public interface IRenderer
 {
     void Draw();
-    void Present();
     void Reset();
 
     void SetScreenDimensions(int width, int height);

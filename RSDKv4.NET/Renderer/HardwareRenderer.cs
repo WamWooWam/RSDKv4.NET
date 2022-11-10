@@ -29,11 +29,11 @@ public class HardwareRenderer : IRenderer
 
     private BlendState[] _blendStates;
 
-    // 1024x1024 atlases
 #if FAST_PALETTE
     private Texture2D _surface;
     private Texture2D[] _palettes = new Texture2D[PALETTE_COUNT];
 #else
+    // 1024x1024 atlases
     private Texture2D[] _textures = new Texture2D[SURFACE_LIMIT];
 #endif
 
@@ -66,7 +66,6 @@ public class HardwareRenderer : IRenderer
 
     public static float PIXEL_TO_UV = 1.0f / (float)SURFACE_SIZE;
 
-    private List<ShaderDef> _retroShaders;
 
     public HardwareRenderer(Game game, GraphicsDevice device)
     {
@@ -84,12 +83,6 @@ public class HardwareRenderer : IRenderer
             _textures[index] = new Texture2D(device, SURFACE_SIZE, SURFACE_SIZE, false, SurfaceFormat.Bgra5551);
 #endif
 
-        _retroShaders = new List<ShaderDef>();
-        _retroShaders.Add(new(null, SamplerState.PointClamp));
-        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/Sharp"), SamplerState.PointClamp));
-        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/Smooth"), SamplerState.LinearClamp));
-        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/CRT-Yeetron"), SamplerState.LinearClamp));
-        _retroShaders.Add(new(game.Content.Load<Effect>("Shaders/CRT-Yee64"), SamplerState.LinearClamp));
 
         _renderTarget = new RenderTarget2D(device, SCREEN_XSIZE, SCREEN_YSIZE, false, SurfaceFormat.Bgr565, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
         _noScissorState = new RasterizerState() { CullMode = CullMode.None };
@@ -304,7 +297,7 @@ public class HardwareRenderer : IRenderer
                     _effect.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, Drawing.vertexList, 0, (int)Drawing.vertexCountOpaque, Drawing.indexList, 0, (int)Drawing.indexCountOpaque);
             }
             _device.BlendState = BlendState.NonPremultiplied;
-            _effect.World = Matrix.CreateTranslation(Drawing.floor3DPos) * Matrix.CreateRotationY((float)(3.14159274101257 * (180.0 + (double)Drawing.floor3DAngle) / 180.0));
+            _effect.World = Matrix.CreateTranslation(Drawing.floor3DPos) * Helpers.CreateRotationY((float)(3.14159274101257 * (180.0 + (double)Drawing.floor3DAngle) / 180.0));
             _effect.Projection = _projection3D;
             foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
             {
@@ -355,21 +348,6 @@ public class HardwareRenderer : IRenderer
         _device.Textures[0] = null;
 #endif
         _device.SetRenderTarget(null);
-    }
-
-    public void Present()
-    {
-        var shader = _retroShaders[0];
-        if (shader.effect != null)
-        {
-            shader.effect.Parameters["pixelSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
-            shader.effect.Parameters["textureSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
-            shader.effect.Parameters["viewSize"].SetValue(new Vector2(_screenRect.Width, _screenRect.Height));
-        }
-
-        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, shader.samplerState, DepthStencilState.None, RasterizerState.CullNone, shader.effect);       
-        _spriteBatch.Draw(_renderTarget, _screenRect, Color.White);
-        _spriteBatch.End();
     }
 
     public Texture2D CopyRetroBuffer()

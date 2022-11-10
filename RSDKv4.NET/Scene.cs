@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using RSDKv4.Utility;
 
 namespace RSDKv4;
@@ -187,6 +188,7 @@ public class Scene
                     stageMilliseconds = 0;
                     stageSeconds = 0;
                     stageMinutes = 0;
+                    stageMode = STAGEMODE.NORMAL;
 
                     ResetBackgroundSettings();
                     LoadStageFiles();
@@ -194,7 +196,6 @@ public class Scene
                     Engine.hooks.OnStageDidLoad();
 
                     Drawing.Reset();
-                    stageMode = STAGEMODE.NORMAL;
                     break;
                 }
             case STAGEMODE.NORMAL:
@@ -207,8 +208,8 @@ public class Scene
 
                     lastXSize = -1;
                     lastYSize = -1;
-                    Input.CheckKeyDown(ref Input.inputDown);
-                    Input.CheckKeyPress(ref Input.inputPress);
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
                     //if (pauseEnabled && inputPress.start)
                     //{
                     //    stageMode = STAGEMODE_NORMAL_STEP;
@@ -235,7 +236,7 @@ public class Scene
                     }
 
                     // Update
-                    Objects.ProcessObjects(stageMode);
+                    Objects.ProcessObjects();
 
                     if (cameraTarget > -1)
                     {
@@ -266,42 +267,68 @@ public class Scene
                     Engine.hooks.OnStageDidStep();
                     break;
                 }
-            case STAGEMODE.FROZEN:
-                //drawStageGFXHQ = false;
-                if (Palette.fadeMode > 0)
-                    Palette.fadeMode--;
-
-                lastXSize = -1;
-                lastYSize = -1;
-
-                Input.CheckKeyDown(ref Input.inputDown);
-                Input.CheckKeyPress(ref Input.inputPress);
-
-                // Update
-                Objects.ProcessObjects(stageMode);
-
-                if (cameraTarget > -1)
+            case STAGEMODE.PAUSED:
                 {
-                    if (cameraEnabled)
+                    if (Palette.fadeMode > 0)
+                        Palette.fadeMode--;
+
+                    lastXSize = -1;
+                    lastYSize = -1;
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
+
+                    if (pauseEnabled && Input.keyPress.start)
                     {
-                        switch (cameraStyle)
+                        stageMode = STAGEMODE.PAUSED_STEP;
+                        Audio.PauseSound();
+                    }
+
+                    // Update
+                    Objects.ProcessPausedObjects();
+
+                    ProcessParallaxAutoScroll();
+                    Drawing.DrawStageGFX();
+
+                    break;
+                }
+            case STAGEMODE.FROZEN:
+                {
+                    //drawStageGFXHQ = false;
+                    if (Palette.fadeMode > 0)
+                        Palette.fadeMode--;
+
+                    lastXSize = -1;
+                    lastYSize = -1;
+
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
+
+                    // Update
+                    Objects.ProcessFrozenObjects();
+
+                    if (cameraTarget > -1)
+                    {
+                        if (cameraEnabled)
                         {
-                            case CAMERASTYLE.FOLLOW: SetPlayerScreenPosition(Objects.objectEntityList[cameraTarget]); break;
-                            case CAMERASTYLE.EXTENDED:
-                            case CAMERASTYLE.EXTENDED_OFFSET_L:
-                            //case CAMERASTYLE.EXTENDED_OFFSET_R: SetPlayerScreenPositionCDStyle(objectEntityList[cameraTarget]); break;
-                            //case CAMERASTYLE.HLOCKED: SetPlayerHLockedScreenPosition(objectEntityList[cameraTarget]); break;
-                            default: break;
+                            switch (cameraStyle)
+                            {
+                                case CAMERASTYLE.FOLLOW: SetPlayerScreenPosition(Objects.objectEntityList[cameraTarget]); break;
+                                case CAMERASTYLE.EXTENDED:
+                                case CAMERASTYLE.EXTENDED_OFFSET_L:
+                                //case CAMERASTYLE.EXTENDED_OFFSET_R: SetPlayerScreenPositionCDStyle(objectEntityList[cameraTarget]); break;
+                                //case CAMERASTYLE.HLOCKED: SetPlayerHLockedScreenPosition(objectEntityList[cameraTarget]); break;
+                                default: break;
+                            }
+                        }
+                        else
+                        {
+                            SetPlayerLockedScreenPosition(Objects.objectEntityList[cameraTarget]);
                         }
                     }
-                    else
-                    {
-                        SetPlayerLockedScreenPosition(Objects.objectEntityList[cameraTarget]);
-                    }
-                }
 
-                Drawing.DrawStageGFX();
-                break;
+                    Drawing.DrawStageGFX();
+                    break;
+                }
             default:
                 Debug.WriteLine("Invalid stage mode!!");
                 break;
@@ -1078,7 +1105,7 @@ public class Scene
         }
 
         int yPosDif = 0;
-        if (target.scrollTracking != 0)
+        if (target.scrollTracking)
         {
             if (targetY <= cameraYPos)
             {

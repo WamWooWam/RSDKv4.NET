@@ -6,20 +6,18 @@
 - 2D Rendering (sprites, blending, etc.)
 - 3D Rendering
 - Animation
-- Collision (mostly)
+- Collision
 - Scripting/Objects (mostly)
 - Keyboard input
 - Touch Input
 - Save Data
 - Music & Sound effects
-- 30% of Native Menus
-- Builds and runs flawlessly using NativeAoT on .NET 7
+- 40% of Native Menus
+- Builds and runs flawlessly using NativeAOT on .NET 7
 
 ## What doesn't
-- Replays desync so something must be broken somewhere
-    - Collision?
 - Controller Input
-- 70% of Native Menus
+- 60% of Native Menus
 - On the fly palette changing is incredibly slow on some hardware
     - There are two palette implementations, FAST_PALETTE uses a shader, default does not. 
     - FAST_PALETTE is unsupported on the XNA Reach profile (Windows Phone 7)

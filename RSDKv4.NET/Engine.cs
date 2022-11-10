@@ -68,6 +68,11 @@ public static class Engine
 
     public static Hooks hooks = new Hooks();
 
+    public static bool devMenu = false;
+    public static bool useHighResAssets = true;
+    public static bool skipStartMenu = false;
+    public static bool nativeMenuFadeIn = false;
+
     public static bool LoadGameConfig(string filePath)
     {
         FileInfo info;

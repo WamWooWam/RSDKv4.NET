@@ -1,0 +1,45 @@
+
+#----------------------------- Global Properties ----------------------------#
+
+/outputDir:bin\doesnt\exist
+/intermediateDir:obj\doesnt\exist
+/platform:WindowsStoreApp
+/config:
+/profile:Reach
+/compress:False
+
+#-------------------------------- References --------------------------------#
+
+
+#---------------------------------- Content ---------------------------------#
+
+#begin ../../RSDKv4.NET/Shaders/CRT-Yee64.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../RSDKv4.NET/Shaders/CRT-Yee64.fx
+
+#begin ../../RSDKv4.NET/Shaders/CRT-Yeetron.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../RSDKv4.NET/Shaders/CRT-Yeetron.fx
+
+#begin ../../RSDKv4.NET/Shaders/Palette.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../RSDKv4.NET/Shaders/Palette.fx
+
+#begin ../../RSDKv4.NET/Shaders/Sharp.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../RSDKv4.NET/Shaders/Sharp.fx
+
+#begin ../../RSDKv4.NET/Shaders/Smooth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../RSDKv4.NET/Shaders/Smooth.fx
+

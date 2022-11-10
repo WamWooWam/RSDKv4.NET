@@ -2,18 +2,18 @@
 
 public struct InputData
 {
-    public byte up;
-    public byte down;
-    public byte left;
-    public byte right;
-    public byte A;
-    public byte B;
-    public byte C;
-    public byte X;
-    public byte Y;
-    public byte Z;
-    public byte L;
-    public byte R;
-    public byte start;
-    public byte select;
+    public bool up;
+    public bool down;
+    public bool left;
+    public bool right;
+    public bool A;
+    public bool B;
+    public bool C;
+    public bool X;
+    public bool Y;
+    public bool Z;
+    public bool L;
+    public bool R;
+    public bool start;
+    public bool select;
 };

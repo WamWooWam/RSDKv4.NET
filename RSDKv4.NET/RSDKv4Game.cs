@@ -1,9 +1,12 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RSDKv4.Native;
+using RSDKv4.Render;
 using RSDKv4.Utility;
 
 #if NO_THREADS
@@ -29,8 +32,8 @@ public class RSDKv4Game : Game
 
     private bool needsResize = false;
 
-    public const int WIDTH = 1280;
-    public const int HEIGHT = 720;
+    public const int WIDTH = 800;
+    public const int HEIGHT = 480;
 
     private LoadingScreen loadingScreen;
 
@@ -46,8 +49,9 @@ public class RSDKv4Game : Game
         graphics.IsFullScreen = true;
         graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
 #endif
-#if FAST_PALETTE
+#if FAST_PALETTE && !MONOGAME
         graphics.GraphicsProfile = GraphicsProfile.HiDef;
+        graphics.PreferMultiSampling = true;
 #endif
         Content.RootDirectory = "Content";
         TargetElapsedTime = TimeSpan.FromSeconds(1.0 / 60.0);
@@ -58,8 +62,7 @@ public class RSDKv4Game : Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnClientSizeChange;
-#endif
-#if SILVERLIGHT
+#else
         System.Windows.Application.Current.UnhandledException += (o, e) =>
         {
             System.Windows.MessageBox.Show(e.ExceptionObject.ToString());
@@ -74,7 +77,11 @@ public class RSDKv4Game : Game
 
     private void OnPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
     {
+        e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PlatformContents;
         e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.One;
+#if FAST_PALETTE
+        e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 8;
+#endif
     }
 
     /// <summary>
@@ -110,7 +117,7 @@ public class RSDKv4Game : Game
         // new PaletteHack().Install(Engine.hooks);
 
         FastMath.CalculateTrigAngles();
-        if (!FileIO.CheckRSDKFile("DataS2.rsdk"))
+        if (!FileIO.CheckRSDKFile("Data.rsdk"))
             FileIO.CheckRSDKFile("DataS2.rsdk");
 
         Strings.InitLocalizedStrings();
@@ -187,7 +194,7 @@ public class RSDKv4Game : Game
                     }
 
                     // stage select
-                    // Scene.InitStartingStage(STAGELIST.REGULAR, 0, 0);
+                    // Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 4);
 
                     loadPercent = 0.95f;
 
@@ -211,6 +218,8 @@ public class RSDKv4Game : Game
 
     }
 
+    private bool hold = false;
+
     /// <summary>
     /// Allows the game to run logic such as updating the world,
     /// checking for collisions, gathering input, and playing audio.
@@ -224,8 +233,32 @@ public class RSDKv4Game : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             this.Exit();
 
-        if (!isLoaded)
-            return;
+        var keyboard = Keyboard.GetState();
+
+        if (keyboard.IsKeyDown(Keys.O))
+        {
+            if (!hold)
+            {
+                hold = true;
+                NativeRenderer.shaderNum--;
+                if (NativeRenderer.shaderNum < 0)
+                    NativeRenderer.shaderNum = 0;
+            }
+        }
+        else if (keyboard.IsKeyDown(Keys.P))
+        {
+            if (!hold)
+            {
+                hold = true;
+                NativeRenderer.shaderNum++;
+                if (NativeRenderer.shaderNum > 4)
+                    NativeRenderer.shaderNum = 4;
+            }
+        }
+        else
+        {
+            hold = false;
+        }
 
         if (needsResize)
         {
@@ -238,8 +271,13 @@ public class RSDKv4Game : Game
             needsResize = false;
         }
 
-        Input.ProcessInput();
-        Scene.ProcessStage();
+        if (!isLoaded)
+            return;
+
+        if (IsActive)
+            Input.ProcessInput();
+        if (Engine.engineState != ENGINE_STATE.WAIT)
+            Scene.ProcessStage();
     }
 
 
@@ -249,14 +287,15 @@ public class RSDKv4Game : Game
     /// <param name="gameTime">Provides a snapshot of timing values.</param>
     protected override void Draw(GameTime gameTime)
     {
+        GraphicsDevice.Clear(Color.Black);
+
         if (!isLoaded)
         {
-            GraphicsDevice.Clear(Color.Black);
             loadingScreen.Draw(gameTime);
         }
         else
         {
-            Engine.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Engine.deltaTime = 1.0f / 60;
             //Drawing.Draw();
             //Drawing.Present();
 

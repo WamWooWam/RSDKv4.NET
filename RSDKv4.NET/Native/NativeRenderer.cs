@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using RSDKv4.Render;
 using RSDKv4.Utility;
 
 using static RSDKv4.Drawing;
@@ -27,8 +29,6 @@ public class NativeRenderer
     private static GraphicsDevice _device;
     private static BasicEffect _effect;
 
-    private static Effect _retroEffect;
-
     // general textures
     private static TextureInfo[] textures = new TextureInfo[TEXTURE_LIMIT];
     private static int textureCount = 0;
@@ -53,6 +53,14 @@ public class NativeRenderer
     private static byte vertexG;
     private static byte vertexB;
 
+    private static ShaderDef[] _retroShaders = new ShaderDef[5];
+    private static Rectangle _screenRect;
+
+    public static int shaderNum = 0;
+
+    // todo: this is bad
+    private static SpriteBatch _spriteBatch;
+
     static NativeRenderer()
     {
         Helpers.Memset(meshes, () => new MeshInfo());
@@ -64,6 +72,22 @@ public class NativeRenderer
         _game = game;
         _device = device;
         _effect = new BasicEffect(device) { TextureEnabled = true };
+
+        _retroShaders[0] = new(null, SamplerState.PointClamp);
+
+#if !SILVERLIGHT
+        _retroShaders[1] = new(game.Content.Load<Effect>("Shaders\\Sharp"), SamplerState.PointClamp);
+        _retroShaders[2] = new(game.Content.Load<Effect>("Shaders\\Smooth"), SamplerState.LinearClamp);
+        _retroShaders[3] = new(game.Content.Load<Effect>("Shaders\\CRT-Yeetron"), SamplerState.LinearClamp);
+        _retroShaders[4] = new(game.Content.Load<Effect>("Shaders\\CRT-Yee64"), SamplerState.LinearClamp);
+#endif
+
+        _effect.LightingEnabled = true;
+        _effect.AmbientLightColor = new Vector3(2, 2, 2);
+        _effect.DirectionalLight0.DiffuseColor = new Vector3(1, 1, 1);
+        _effect.DirectionalLight0.Direction = new Vector3(0, 0, 0);
+
+        _spriteBatch = new SpriteBatch(_device);
 
         SetScreenDimensions(800, 480);
         SetupDrawIndexList();
@@ -81,6 +105,14 @@ public class NativeRenderer
 
         _effect.View = Matrix.Identity;
         _effect.World = Matrix.Identity;
+
+        var ratio = Math.Min((double)width / SCREEN_XSIZE, (double)height / SCREEN_YSIZE);
+        var realWidth = SCREEN_XSIZE * ratio;
+        var realHeight = SCREEN_YSIZE * ratio;
+        var x = (width - realWidth) / 2;
+        var y = (height - realHeight) / 2;
+
+        _screenRect = new Rectangle((int)x, (int)y, (int)realWidth, (int)realHeight);
     }
 
     public static void ResetRenderStates()
@@ -105,7 +137,7 @@ public class NativeRenderer
     public static Matrix CreatePerspectiveMatrix(float w, float h, float near, float far)
     {
         var result = new Matrix();
-        var val = (float)Math.Tan((float)(0.017453292f * w) * 0.5f);
+        var val = Math.Tan((0.017453292 * w) * 0.5);
         result.M11 = (float)(1.0 / val);
         result.M22 = (float)(1.0 / (val * h));
         result.M33 = (far + near) / (far - near);
@@ -233,7 +265,7 @@ public class NativeRenderer
         _device.BlendState = BlendState.NonPremultiplied;
         _device.RasterizerState = RasterizerState.CullNone;
         _device.DepthStencilState = DepthStencilState.None;
-        _device.Clear(Color.Green);
+        _device.Clear(Color.Black);
     }
 
     public static void EndDraw()
@@ -450,7 +482,7 @@ public class NativeRenderer
         DrawVertices(mesh.vertices, mesh.vertices.Length, mesh.indices, mesh.indices.Length / 3);
     }
 
-    public static void RenderRetroBuffer(int alpha, float z)
+    public static void RenderRetroBuffer(int alpha, float z, bool ensurePixelPerfect = false)
     {
         if (alpha < 0)
             alpha = 0;
@@ -459,14 +491,29 @@ public class NativeRenderer
 
         byte a = (byte)alpha;
 
-        _device.DepthStencilState = DepthStencilState.None;
-        _device.SamplerStates[0] = SamplerState.LinearClamp;
+        var shader = _retroShaders[shaderNum];
+        var effect = shader.effect ?? _effect;
 
-        _effect.TextureEnabled = true;
-        _effect.Texture = Drawing.CopyRetroBuffer();
-        _effect.VertexColorEnabled = false;
-        _effect.LightingEnabled = false;
         _device.BlendState = BlendState.Opaque;
+        _device.DepthStencilState = DepthStencilState.None;
+        _device.SamplerStates[0] = shader.samplerState;
+
+        if (shader.effect != null)
+        {
+            var matrixTransform = _effect.World * _effect.Projection;
+            shader.effect.Parameters["Texture"].SetValue(CopyRetroBuffer());
+            shader.effect.Parameters["MatrixTransform"].SetValue(matrixTransform);
+            shader.effect.Parameters["pixelSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
+            shader.effect.Parameters["textureSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
+            shader.effect.Parameters["viewSize"].SetValue(new Vector2(_screenRect.Width, _screenRect.Height));
+        }
+        else
+        {
+            _effect.Texture = CopyRetroBuffer();
+            _effect.TextureEnabled = true;
+            _effect.VertexColorEnabled = false;
+            _effect.LightingEnabled = false;
+        }
 
         RenderVertex vertex1 = new RenderVertex();
         vertex1.position.X = retroVertexList[0];
@@ -518,7 +565,11 @@ public class NativeRenderer
         drawVertexList[2] = vertex3;
         drawVertexList[3] = vertex4;
 
-        DrawVertices(drawVertexList, 4, drawIndexList, 2);
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            _device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, drawVertexList, 0, 4, drawIndexList, 0, 2);
+        }
     }
 
     // PRIMITIVES NOT INDICES YOU TWIT
@@ -698,7 +749,7 @@ public class NativeRenderer
                 animator.animationTimer += animator.animationSpeed;
 
                 while (animator.animationTimer > 1.0f)
-                { 
+                {
                     // new frame (forwards)
                     animator.animationTimer -= 1.0f;
                     animator.frameId++;
@@ -716,7 +767,7 @@ public class NativeRenderer
                     }
                 }
                 while (animator.animationTimer < 0.0f)
-                { 
+                {
                     // new frame (backwards)
                     animator.animationTimer += 1.0f;
                     animator.frameId--;

@@ -26,7 +26,7 @@ public static class Drawing
 
     public const int GFXDATA_MAX = 0x800 * 0x800;
 
-    public const int SCREEN_XSIZE = 424;
+    public const int SCREEN_XSIZE = 400;
     public const int SCREEN_CENTERX = SCREEN_XSIZE / 2;
 
     public const int SCREEN_YSIZE = 240;
@@ -86,11 +86,6 @@ public static class Drawing
     public static void Draw()
     {
         Instance.Draw();
-    }
-
-    public static void Present()
-    {
-        Instance.Present();
     }
 
     public static void Reset()
@@ -508,7 +503,7 @@ public static class Drawing
 
     public static void DrawObjectList(int layer)
     {
-        int size = drawListEntries[layer].entityRefs.Count;
+        int size = drawListEntries[layer].listSize;
         for (int i = 0; i < size; ++i)
         {
             Objects.objectEntityPos = drawListEntries[layer].entityRefs[i];

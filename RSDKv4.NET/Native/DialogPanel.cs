@@ -81,9 +81,10 @@ public class DialogPanel : NativeEntity
                     this.textX = Font.GetTextWidth(this.text, FONT.TEXT, this.scale) * -0.5f;
                     this.textY = Font.GetTextHeight(this.text, FONT.TEXT, this.scale) * 0.5f;
                     this.state = STATE.ENTER;
+
+                    // FallThrough
+                    goto case STATE.ENTER;
                 }
-                // FallThrough
-                goto case STATE.ENTER;
             case STATE.ENTER:
                 {
                     this.buttonScale += ((0.77f - this.buttonScale) / ((Engine.deltaTime * 60.0f) * 8.0f));
@@ -110,8 +111,8 @@ public class DialogPanel : NativeEntity
                 }
             case STATE.MAIN:
                 {
-                    Input.CheckKeyDown(ref Input.inputDown);
-                    Input.CheckKeyPress(ref Input.inputPress);
+                    Input.CheckKeyDown(ref Input.keyDown);
+                    Input.CheckKeyPress(ref Input.keyPress);
                     SetRenderMatrix(this.buttonMatrix);
                     if (!NativeGlobals.usePhysicalControls)
                     {
@@ -150,12 +151,12 @@ public class DialogPanel : NativeEntity
                                     ? PushButton.STATE.SELECTED : PushButton.STATE.UNSELECTED;
                             }
                         }
-                        if (Input.inputDown.left != 0)
+                        if (Input.keyDown.left)
                         {
                             NativeGlobals.usePhysicalControls = true;
                             this.buttonSelected = 1;
                         }
-                        else if (Input.inputDown.right != 0)
+                        else if (Input.keyDown.right)
                         {
                             NativeGlobals.usePhysicalControls = true;
                             this.buttonSelected = 0;
@@ -168,7 +169,7 @@ public class DialogPanel : NativeEntity
                     else if (this.buttonCount == (int)TYPE.OK)
                     {
                         this.buttonSelected = 0;
-                        if (Input.inputPress.start != 0 || Input.inputPress.A != 0)
+                        if (Input.keyPress.start || Input.keyPress.A)
                         {
                             this.state = STATE.ACTION;
                             Audio.PlaySfxByName("Menu Select", false);
@@ -177,13 +178,13 @@ public class DialogPanel : NativeEntity
                     }
                     else
                     {
-                        if (Input.inputPress.left != 0)
+                        if (Input.keyPress.left)
                         {
                             Audio.PlaySfxByName("Menu Move", false);
                             if (--this.buttonSelected < 0)
                                 this.buttonSelected = 1;
                         }
-                        if (Input.inputPress.right != 0)
+                        if (Input.keyPress.right)
                         {
                             Audio.PlaySfxByName("Menu Move", false);
                             if (++this.buttonSelected > 1)
@@ -193,14 +194,14 @@ public class DialogPanel : NativeEntity
                         this.buttons[1].state = 0;
                         this.buttons[this.buttonSelected].state = PushButton.STATE.SELECTED;
 
-                        if (Input.inputPress.start != 0 || Input.inputPress.A != 0)
+                        if (Input.keyPress.start || Input.keyPress.A)
                         {
                             this.state = STATE.ACTION;
                             Audio.PlaySfxByName("Menu Select", false);
                             this.buttons[this.buttonSelected].state = PushButton.STATE.FLASHING;
                         }
                     }
-                    if (this.state == STATE.MAIN && Input.inputPress.B != 0)
+                    if (this.state == STATE.MAIN && Input.keyPress.B)
                     {
                         Audio.PlaySfxByName("Menu Back", false);
                         this.selection = SELECTION.NO;

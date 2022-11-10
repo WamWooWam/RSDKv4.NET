@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using RSDKv4.Utility;
 
 using static RSDKv4.Native.NativeRenderer;
 
@@ -57,7 +58,7 @@ public class MultiplayerButton : MenuButton
 
             NewRenderState();
 
-            this.renderMatrix = Matrix.CreateRotationY(this.angle) *
+            this.renderMatrix = Helpers.CreateRotationY(this.angle) *
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
 
             SetRenderMatrix(this.renderMatrix);

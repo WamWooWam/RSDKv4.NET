@@ -47,7 +47,7 @@ internal class OggCache
             using (var storage = IsolatedStorageFile.GetUserStoreForApplication())
             using (var stream = storage.OpenFile($"{digest}.wav", FileMode.Create))
 #elif WINDOWS_UWP
-            using (var stream = File.Create(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, $"{digest}.wav"))
+            using (var stream = File.Create(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, $"{digest}.wav")))
 #else
             if (!Directory.Exists("Cache"))
                 Directory.CreateDirectory("Cache");

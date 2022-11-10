@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using RSDKv4.Utility;
 using static RSDKv4.Native.NativeRenderer;
 
 namespace RSDKv4.Native;
@@ -88,7 +89,7 @@ public class StartGameButton : MenuButton
             NewRenderState();
 
             this.renderMatrix = Matrix.CreateRotationX((float)Math.Sin(this.angle)) *
-                Matrix.CreateRotationY(this.angle) *
+                Helpers.CreateRotationY(this.angle) *
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
 
             SetRenderMatrix(this.renderMatrix);

@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using RSDKv4.Native;
 using RSDKv4.Utility;
+
+using static RSDKv4.Scene;
+using static RSDKv4.Script;
 
 namespace RSDKv4;
 
@@ -20,7 +24,7 @@ public class Objects
     public static byte[] objectRemoveFlag = new byte[NATIVEENTITY_COUNT];
 
     public static NativeEntity[] nativeEntityBank = new NativeEntity[NATIVEENTITY_COUNT];
-    public static int nativeEntityCount;
+    public static int nativeEntityCount = 0;
 
     public static int objectEntityPos = 0;
     public static int curObjectType;
@@ -34,12 +38,13 @@ public class Objects
     public static int OBJECT_BORDER_X3 = 0x20;
     public static int OBJECT_BORDER_X4 = Drawing.SCREEN_XSIZE + 0x20;
 
-    public static readonly int OBJECT_BORDER_Y1 = 0x100;
-    public static readonly int OBJECT_BORDER_Y2 = Drawing.SCREEN_YSIZE + 0x100;
-    public static readonly int OBJECT_BORDER_Y3 = 0x80;
-    public static readonly int OBJECT_BORDER_Y4 = Drawing.SCREEN_YSIZE + 0x80;
+    public static int OBJECT_BORDER_Y1 = 0x100;
+    public static int OBJECT_BORDER_Y2 = Drawing.SCREEN_YSIZE + 0x100;
+    public static int OBJECT_BORDER_Y3 = 0x80;
+    public static int OBJECT_BORDER_Y4 = Drawing.SCREEN_YSIZE + 0x80;
 
     public const int OBJ_TYPE_BLANKOBJECT = 0;
+    public const int GROUP_ALL = 0;
 
     static Objects()
     {
@@ -51,7 +56,7 @@ public class Objects
     {
         Animation.scriptFrameCount = 0;
         Animation.ClearAnimationData();
-        Script.scriptEng.arrayPosition[8] = TEMPENTITY_START;
+        scriptEng.arrayPosition[8] = TEMPENTITY_START;
 
         OBJECT_BORDER_X1 = 0x80;
         OBJECT_BORDER_X3 = 0x20;
@@ -61,18 +66,18 @@ public class Objects
         Entity entity = objectEntityList[TEMPENTITY_START];
         objectEntityList[TEMPENTITY_START + 1].type = objectEntityList[0].type;
 
-        Script.ClearStacks();
+        ClearStacks();
 
         for (int i = 0; i < OBJECT_COUNT; ++i)
         {
-            ObjectScript scriptInfo = Script.objectScriptList[i];
+            ObjectScript scriptInfo = objectScriptList[i];
             objectEntityPos = TEMPENTITY_START;
             curObjectType = i;
             scriptInfo.frameListOffset = Animation.scriptFrameCount;
             scriptInfo.spriteSheetId = 0;
             entity.type = (byte)i;
 
-            Script.ProcessScript(scriptInfo.eventStartup.scriptCodePtr, scriptInfo.eventStartup.jumpTablePtr, EVENT.SETUP);
+            ProcessScript(scriptInfo.eventStartup.scriptCodePtr, scriptInfo.eventStartup.jumpTablePtr, EVENT.SETUP);
 
             scriptInfo.frameCount = Animation.scriptFrameCount - scriptInfo.frameListOffset;
         }
@@ -80,21 +85,17 @@ public class Objects
         curObjectType = 0;
     }
 
-    public static void ProcessObjects(int stageMode)
+    public static void ProcessObjects()
     {
-        for (int i = 0; i < Scene.DRAWLAYER_COUNT; ++i) Scene.drawListEntries[i].entityRefs.Clear();
+        for (int i = 0; i < DRAWLAYER_COUNT; ++i) drawListEntries[i].listSize = 0;
 
         for (objectEntityPos = 0; objectEntityPos < ENTITY_COUNT; ++objectEntityPos)
         {
             processObjectFlag[objectEntityPos] = false;
 
-            int x = 0, y = 0;
-            Entity entity = objectEntityList[objectEntityPos];
-            x = entity.xpos >> 16;
-            y = entity.ypos >> 16;
-
-            var xScrollOffset = Scene.xScrollOffset;
-            var yScrollOffset = Scene.yScrollOffset;
+            var entity = objectEntityList[objectEntityPos];
+            var x = entity.xpos >> 16;
+            var y = entity.ypos >> 16;
 
             switch (entity.priority)
             {
@@ -129,15 +130,13 @@ public class Objects
                 default: break;
             }
 
-            if (processObjectFlag[objectEntityPos] && entity.type > 0)
+            if (processObjectFlag[objectEntityPos] && entity.type > OBJ_TYPE_BLANKOBJECT)
             {
-                ObjectScript scriptInfo = Script.objectScriptList[entity.type];
+                ObjectScript scriptInfo = objectScriptList[entity.type];
+                ProcessScript(scriptInfo.eventUpdate.scriptCodePtr, scriptInfo.eventUpdate.jumpTablePtr, EVENT.MAIN);
 
-                if (stageMode != STAGEMODE.FROZEN && stageMode != STAGEMODE.FROZEN_STEP || entity.priority == PRIORITY.ALWAYS)
-                    Script.ProcessScript(scriptInfo.eventUpdate.scriptCodePtr, scriptInfo.eventUpdate.jumpTablePtr, EVENT.MAIN);
-
-                if (entity.drawOrder < Scene.DRAWLAYER_COUNT && entity.drawOrder >= 0)
-                    Scene.drawListEntries[entity.drawOrder].entityRefs.Add(objectEntityPos);
+                if (entity.drawOrder >= 0 && entity.drawOrder < DRAWLAYER_COUNT)
+                    drawListEntries[entity.drawOrder].entityRefs[drawListEntries[entity.drawOrder].listSize++] = objectEntityPos;
             }
         }
 
@@ -146,7 +145,7 @@ public class Objects
         for (objectEntityPos = 0; objectEntityPos < ENTITY_COUNT; ++objectEntityPos)
         {
             Entity entity = objectEntityList[objectEntityPos];
-            if (processObjectFlag[objectEntityPos] && entity.objectInteractions && entity.type != 0)
+            if (processObjectFlag[objectEntityPos] && entity.objectInteractions)
             {
                 // Custom Group
                 if (entity.groupID >= OBJECT_COUNT)
@@ -157,11 +156,115 @@ public class Objects
 
                 // Type-Specific list
                 TypeGroupList listType = objectTypeGroupList[objectEntityList[objectEntityPos].type];
-                listType.entityRefs[listType.listSize++] = objectEntityPos;
+                if (listType.listSize < ENTITY_COUNT)
+                    listType.entityRefs[listType.listSize++] = objectEntityPos;
 
                 // All Entities list
-                TypeGroupList listAll = objectTypeGroupList[0];
-                listAll.entityRefs[listAll.listSize++] = objectEntityPos;
+                TypeGroupList listAll = objectTypeGroupList[GROUP_ALL];
+                if (listAll.listSize < ENTITY_COUNT)
+                    listAll.entityRefs[listAll.listSize++] = objectEntityPos;
+            }
+        }
+    }
+
+    public static void ProcessPausedObjects()
+    {
+        for (int i = 0; i < DRAWLAYER_COUNT; ++i) drawListEntries[i].listSize = 0;
+
+        for (objectEntityPos = 0; objectEntityPos < ENTITY_COUNT; ++objectEntityPos)
+        {
+            Entity entity = objectEntityList[objectEntityPos];
+
+            if (entity.priority == PRIORITY.ALWAYS && entity.type > OBJ_TYPE_BLANKOBJECT)
+            {
+                ObjectScript scriptInfo = objectScriptList[entity.type];
+                ProcessScript(scriptInfo.eventUpdate.scriptCodePtr, scriptInfo.eventUpdate.jumpTablePtr, EVENT.MAIN);
+
+                if (entity.drawOrder < DRAWLAYER_COUNT && entity.drawOrder >= 0)
+                    drawListEntries[entity.drawOrder].entityRefs[drawListEntries[entity.drawOrder].listSize++] = objectEntityPos;
+            }
+        }
+    }
+
+    public static void ProcessFrozenObjects()
+    {
+        for (int i = 0; i < DRAWLAYER_COUNT; ++i) drawListEntries[i].listSize = 0;
+
+        for (objectEntityPos = 0; objectEntityPos < ENTITY_COUNT; ++objectEntityPos)
+        {
+            processObjectFlag[objectEntityPos] = false;
+            int x = 0, y = 0;
+            Entity entity = objectEntityList[objectEntityPos];
+            x = entity.xpos >> 16;
+            y = entity.ypos >> 16;
+
+            switch (entity.priority)
+            {
+                case PRIORITY.BOUNDS:
+                    processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X1 && x < xScrollOffset + OBJECT_BORDER_X2
+                                                         && y > yScrollOffset - OBJECT_BORDER_Y1 && y < yScrollOffset + OBJECT_BORDER_Y2;
+                    break;
+
+                case PRIORITY.ACTIVE:
+                case PRIORITY.ALWAYS:
+                case PRIORITY.ACTIVE_SMALL: processObjectFlag[objectEntityPos] = true; break;
+
+                case PRIORITY.XBOUNDS:
+                    processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X1 && x < OBJECT_BORDER_X2 + xScrollOffset;
+                    break;
+
+                case PRIORITY.XBOUNDS_DESTROY:
+                    processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X1 && x < xScrollOffset + OBJECT_BORDER_X2;
+                    if (!processObjectFlag[objectEntityPos])
+                    {
+                        processObjectFlag[objectEntityPos] = false;
+                        entity.type = OBJ_TYPE_BLANKOBJECT;
+                    }
+                    break;
+
+                case PRIORITY.INACTIVE: processObjectFlag[objectEntityPos] = false; break;
+
+                case PRIORITY.BOUNDS_SMALL:
+                    processObjectFlag[objectEntityPos] = x > xScrollOffset - OBJECT_BORDER_X3 && x < OBJECT_BORDER_X4 + xScrollOffset
+                                                         && y > yScrollOffset - OBJECT_BORDER_Y3 && y < yScrollOffset + OBJECT_BORDER_Y4;
+                    break;
+
+                default: break;
+            }
+
+            if (entity.type > OBJ_TYPE_BLANKOBJECT)
+            {
+                ObjectScript scriptInfo = objectScriptList[entity.type];
+                if (entity.priority == PRIORITY.ALWAYS)
+                    ProcessScript(scriptInfo.eventUpdate.scriptCodePtr, scriptInfo.eventUpdate.jumpTablePtr, EVENT.MAIN);
+
+                if (entity.drawOrder < DRAWLAYER_COUNT && entity.drawOrder >= 0)
+                    drawListEntries[entity.drawOrder].entityRefs[drawListEntries[entity.drawOrder].listSize++] = objectEntityPos;
+            }
+        }
+
+        for (int i = 0; i < TYPEGROUP_COUNT; ++i) objectTypeGroupList[i].listSize = 0;
+
+        for (objectEntityPos = 0; objectEntityPos < ENTITY_COUNT; ++objectEntityPos)
+        {
+            Entity entity = objectEntityList[objectEntityPos];
+            if (processObjectFlag[objectEntityPos] && entity.objectInteractions)
+            {
+                // Custom Group
+                if (entity.groupID >= OBJECT_COUNT)
+                {
+                    TypeGroupList listCustom = objectTypeGroupList[objectEntityList[objectEntityPos].groupID];
+                    listCustom.entityRefs[listCustom.listSize++] = objectEntityPos;
+                }
+                // Type-Specific list
+                TypeGroupList listType = objectTypeGroupList[objectEntityList[objectEntityPos].type];
+                if (listType.listSize < ENTITY_COUNT)
+                    listType.entityRefs[listType.listSize++] = objectEntityPos;
+
+                // All Entities list
+                TypeGroupList listAll = objectTypeGroupList[GROUP_ALL];
+                if (listAll.listSize < ENTITY_COUNT)
+                    listAll.entityRefs[listAll.listSize++] = objectEntityPos;
             }
         }
     }
@@ -170,20 +273,20 @@ public class Objects
     {
         if (player.controlMode == 0)
         {
-            player.up = Input.inputDown.up;
-            player.down = Input.inputDown.down;
-            if (Input.inputDown.left == 0 || Input.inputDown.right == 0)
+            player.up = Input.keyDown.up;
+            player.down = Input.keyDown.down;
+            if (Input.keyDown.left || Input.keyDown.right)
             {
-                player.left = Input.inputDown.left;
-                player.right = Input.inputDown.right;
+                player.left = Input.keyDown.left;
+                player.right = Input.keyDown.right;
             }
             else
             {
-                player.left = 0;
-                player.right = 0;
+                player.left = false;
+                player.right = false;
             }
-            player.jumpHold = (Input.inputDown.C != 0 || Input.inputDown.B != 0 || Input.inputDown.A != 0) ? (byte)1 : (byte)0;
-            player.jumpPress = (Input.inputPress.C != 0 || Input.inputPress.B != 0 || Input.inputPress.A != 0) ? (byte)1 : (byte)0;
+            player.jumpHold = (Input.keyDown.C || Input.keyDown.B || Input.keyDown.A);
+            player.jumpPress = (Input.keyPress.C || Input.keyPress.B || Input.keyPress.A);
         }
     }
 
@@ -238,6 +341,20 @@ public class Objects
         nativeEntityBank[slotId].Create();
 
         return nativeEntityBank[slotId];
+    }
+
+    public static NativeEntity GetNativeObject(uint objId)
+    {
+        if (objId >= NATIVEENTITY_COUNT)
+            return null;
+        else
+            return nativeEntityBank[objId];
+    }
+
+    public static void ClearNativeObjects()
+    {
+        nativeEntityCount = 0;
+        nativeEntityBank = new NativeEntity[NATIVEENTITY_COUNT];
     }
 
     public static void ProcessNativeObjects()
