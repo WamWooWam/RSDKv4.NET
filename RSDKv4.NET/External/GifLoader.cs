@@ -1,10 +1,10 @@
 ﻿namespace RSDKv4.External;
 
-public static class GifLoader
+public class GifLoader
 {
-    private static GifDecoder gifDecoder = new GifDecoder();
+    private GifDecoder gifDecoder = new GifDecoder();
 
-    private static int[] codeMasks = new int[13] { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
+    private int[] codeMasks = new int[13] { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
     public const int LOADING_IMAGE = 0;
     public const int LOAD_COMPLETE = 1;
     public const int LZ_MAX_CODE = 4095;
@@ -15,7 +15,13 @@ public static class GifLoader
     public const int HT_SIZE = 8192;
     public const int HT_KEY_MASK = 8191;
 
-    public static void InitGifDecoder()
+    private FileIO FileIO;
+    public GifLoader(FileIO fileIO)
+    {
+        FileIO = fileIO;
+    }
+
+    public void InitGifDecoder()
     {
         int num = (int)FileIO.ReadByte();
         gifDecoder.fileState = 0;
@@ -36,7 +42,7 @@ public static class GifLoader
             gifDecoder.prefix[index] = 4098U;
     }
 
-    public static void ReadGifPictureData(
+    public void ReadGifPictureData(
       int width,
       int height,
       bool interlaced,
@@ -61,7 +67,7 @@ public static class GifLoader
         }
     }
 
-    public static void ReadGifLine(ref byte[] line, int length, int offset)
+    public void ReadGifLine(ref byte[] line, int length, int offset)
     {
         int num1 = 0;
         int stackPtr = gifDecoder.stackPtr;
@@ -142,7 +148,7 @@ public static class GifLoader
         gifDecoder.stackPtr = stackPtr;
     }
 
-    private static int ReadGifCode()
+    private int ReadGifCode()
     {
         for (; gifDecoder.shiftState < gifDecoder.runningBits; gifDecoder.shiftState += 8)
         {
@@ -160,7 +166,7 @@ public static class GifLoader
         return num1;
     }
 
-    private static byte ReadGifByte()
+    private byte ReadGifByte()
     {
         char minValue = char.MinValue;
         if (gifDecoder.fileState == 1)
@@ -184,7 +190,7 @@ public static class GifLoader
         return num1;
     }
 
-    private static byte TracePrefix(uint[] prefix, int code, int clearCode)
+    private byte TracePrefix(uint[] prefix, int code, int clearCode)
     {
         int num = 0;
         while (code > clearCode && num++ <= 4095)

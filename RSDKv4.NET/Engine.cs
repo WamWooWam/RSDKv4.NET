@@ -1,4 +1,9 @@
 using System;
+using System.Threading;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using RSDKv4.Native;
+using RSDKv4.Render;
 
 namespace RSDKv4;
 
@@ -8,80 +13,141 @@ public delegate void NativeFunction3(ref int param1, ref int param2);
 public delegate void NativeFunction4(ref int param1, string param2, ref int param3, ref int param4);
 public delegate void NativeFunction5(ref int param1, ref int param2, ref int param3, ref int param4);
 
-public static class Engine
+public class Engine
 {
-    public static string gameWindowText;
-    public static string gameDescriptionText;
+    public string gameWindowText;
+    public string gameDescriptionText;
 
-    public static string gamePlatform = "Mobile";
-    public static string gameRenderType = "HW_RENDERING";
-    public static string gameHapticsSetting = "USE_F_FEEDBACK";
+    public string gamePlatform = "Mobile";
+    public string gameRenderType = "HW_RENDERING";
+    public string gameHapticsSetting = "USE_F_FEEDBACK";
 
-    public static string gameVersion = "1.0.0";
+    public string gameVersion = "1.0.0";
 
-    public static bool usingDataFile;
-    public static bool usingBytecode;
+    public bool usingDataFile;
+    public bool usingBytecode;
 
-    public static int objectCount;
-    public static string[] objectNames;
-    public static string[] scriptPaths;
+    public int objectCount;
+    public string[] objectNames;
+    public string[] scriptPaths;
 
-    public static int globalVariablesCount;
-    public static string[] globalVariableNames;
-    public static int[] globalVariables;
+    public int globalVariablesCount;
+    public string[] globalVariableNames;
+    public int[] globalVariables;
 
-    public static int globalSfxCount;
-    public static string[] globalSfxNames;
-    public static string[] globalSfxPaths;
+    public int globalSfxCount;
+    public string[] globalSfxNames;
+    public string[] globalSfxPaths;
 
-    public static int playerCount;
-    public static string[] playerNames;
+    public int playerCount;
+    public string[] playerNames;
 
-    public static int[] stageListCount = new int[4];
-    public static string[] stageListNames = new string[4] {
+    public int[] stageListCount = new int[4];
+    public string[] stageListNames = new string[4] {
         "Presentation Stages",
         "Regular Stages",
         "Bonus Stages",
         "Special Stages",
     };
 
-    public static SceneInfo[][] stageList = new SceneInfo[4][];
+    public SceneInfo[][] stageList = new SceneInfo[4][];
 
     public const int NATIVEFUNCTION_MAX = 0x10;
 
-    public static int nativeFunctionCount;
-    public static Delegate[] nativeFunctions = new Delegate[NATIVEFUNCTION_MAX];
+    public int nativeFunctionCount;
+    public Delegate[] nativeFunctions = new Delegate[NATIVEFUNCTION_MAX];
 
-    public static int engineState = ENGINE_STATE.WAIT;
+    public int engineState = ENGINE_STATE.WAIT;
 #if SILVERLIGHT
-    public static int deviceType = DEVICE.MOBILE;
+    public int deviceType = DEVICE.MOBILE;
 #else
-    public static int deviceType = DEVICE.STANDARD;
+    public int deviceType = DEVICE.STANDARD;
 #endif
-    public static int language = LANGUAGE.EN;
+    public int language = LANGUAGE.EN;
 
-    public static bool trialMode = false;
-    public static bool hapticsEnabled = false;
-    public static bool onlineActive = true;
+    public bool trialMode = false;
+    public bool hapticsEnabled = false;
+    public bool onlineActive = true;
 
-    public static float deltaTime = 0.016f;
+    public float deltaTime = 0.016f;
 
-    public static int globalBoxRegion = REGION.EU;
-    public static int gameType = GAME.SONIC1;
-    public static int engineType = ENGINE_TYPE.STANDARD;
+    public int globalBoxRegion = REGION.EU;
+    public int gameType = GAME.SONIC1;
+    public int engineType = ENGINE_TYPE.STANDARD;
 
-    public static Hooks hooks = new Hooks();
+    public Hooks hooks = new Hooks();
 
-    public static bool devMenu = false;
-    public static bool useHighResAssets = true;
-    public static bool skipStartMenu = false;
-    public static bool nativeMenuFadeIn = false;
+    public bool devMenu = false;
+    public bool useHighResAssets = true;
+    public bool skipStartMenu = false;
+    public bool nativeMenuFadeIn = false;
 
-    public static int message = 0;
+    public int message = 0;
 
-    public static EngineRevision engineRevision = EngineRevision.Rev2;
+    public EngineRevision engineRevision = EngineRevision.Rev2;
 
-    public static bool LoadGameConfig(string filePath)
+    public readonly Animation Animation;
+    public readonly Audio Audio;
+    public readonly Collision Collision;
+    public readonly Drawing Drawing;
+    public readonly FileIO FileIO;
+    public readonly Font Font;
+    public readonly Input Input;
+    public readonly Objects Objects;
+    public readonly Palette Palette;
+    public readonly SaveData SaveData;
+    public readonly Scene Scene;
+    public readonly Scene3D Scene3D;
+    public readonly Script Script;
+    public readonly Strings Strings;
+    public readonly Text Text;
+    public readonly DevMenu DevMenu;
+
+    public readonly NativeRenderer Renderer;
+
+    public Engine(Game game, GraphicsDevice graphicsDevice)
+    {
+        FileIO = new FileIO(this);
+
+        Animation = new Animation();
+        Audio = new Audio();
+        Collision = new Collision();
+        Drawing = new HardwareDrawing(game, graphicsDevice);
+        Font = new Font();
+        Input = new Input();
+        Objects = new Objects();
+        Palette = new Palette();
+        SaveData = new SaveData();
+        Scene = new Scene();
+        Scene3D = new Scene3D();
+        Script = new Script();
+        Strings = new Strings();
+        Text = new Text();
+        DevMenu = new DevMenu();
+        Renderer = new NativeRenderer();
+
+        Renderer.Initialize(this);
+        Renderer.InitRenderDevice(game, graphicsDevice);
+
+        Animation.Initialize(this);
+        Audio.Initialize(this);
+        Collision.Initialize(this);
+        Drawing.Initialize(this);
+        Font.Initialize(this);
+        Input.Initialize(this);
+        Objects.Initialize(this);
+        Palette.Initialize(this);
+        //SaveData.Initialize(this);
+        Scene.Initialize(this);
+        Scene3D.Initialize(this);
+        Script.Initialize(this);
+        Strings.Initialize(this);
+        Text.Initialize(this);
+        DevMenu.Initialize(this);
+        
+    }
+
+    public bool LoadGameConfig(string filePath)
     {
         FileInfo info;
         byte[] buffer = new byte[256];
@@ -171,7 +237,7 @@ public static class Engine
         return false;
     }
 
-    public static int GetGlobalVariableByName(string name)
+    public int GetGlobalVariableByName(string name)
     {
         for (int v = 0; v < globalVariablesCount; ++v)
         {
@@ -181,7 +247,7 @@ public static class Engine
         return -1;
     }
 
-    public static void SetGlobalVariableByName(string name, int value)
+    public void SetGlobalVariableByName(string name, int value)
     {
         for (int v = 0; v < globalVariablesCount; ++v)
         {
@@ -193,7 +259,7 @@ public static class Engine
         }
     }
 
-    public static int GetGlobalVariableID(string name)
+    public int GetGlobalVariableID(string name)
     {
         for (int v = 0; v < globalVariablesCount; ++v)
         {
@@ -203,7 +269,7 @@ public static class Engine
         return -1;
     }
 
-    public static void AddNativeFunction(string name, Delegate function)
+    public void AddNativeFunction(string name, Delegate function)
     {
         if (nativeFunctionCount < nativeFunctions.Length)
         {

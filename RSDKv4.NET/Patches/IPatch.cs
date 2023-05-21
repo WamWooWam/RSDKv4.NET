@@ -2,5 +2,5 @@
 
 public interface IPatch
 {
-    public void Install(Hooks hooks);
+    public void Install(Engine engine);
 }

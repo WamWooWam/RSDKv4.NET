@@ -15,7 +15,7 @@ public class RetroGameLoop : NativeEntity
             case ENGINE_STATE.MAINGAME:
                 //Scene.ProcessStage();
                 Drawing.Draw();
-                NativeRenderer.RenderRetroBuffer(64, 160, true);
+                Renderer.RenderRetroBuffer(64, 160, true);
                 break;
 
             case ENGINE_STATE.INITPAUSE:
@@ -33,7 +33,7 @@ public class RetroGameLoop : NativeEntity
             case ENGINE_STATE.DEVMENU:
                 DevMenu.ProcessStageSelect();
                 Drawing.Draw();
-                NativeRenderer.RenderRetroBuffer(64, 160, true);
+                Renderer.RenderRetroBuffer(64, 160, true);
                 break;
         }
     }

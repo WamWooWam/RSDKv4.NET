@@ -53,7 +53,7 @@ namespace RSDKv4.Native
             this.useTouchControls = Engine.GetGlobalVariableID("options.touchControls");
             this.usePhysicalControls = Engine.GetGlobalVariableID("options.physicalControls");
             this.vsMode = Engine.GetGlobalVariableID("options.vsMode");
-            this.textureID = LoadTexture("Data/Game/Menu/VirtualDPad.png", TEXFMT.RGBA8888);
+            this.textureID = Renderer.LoadTexture("Data/Game/Menu/VirtualDPad.png", TEXFMT.RGBA8888);
         }
 
         public override void Main()
@@ -87,8 +87,8 @@ namespace RSDKv4.Native
 
             if (this.alpha > 0)
             {
-                SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 256.0f, 256.0f, 0.0f, 0.0f, this.alpha,
+                Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                Renderer.RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 256.0f, 256.0f, 0.0f, 0.0f, this.alpha,
                             this.textureID);
 
                 if (this.alpha != saveGame.vDPadOpacity)
@@ -98,7 +98,7 @@ namespace RSDKv4.Native
                 }
                 else if (inputDown.up)
                 {
-                    RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 256.0f, 120.0f, 256.0f, 256.0f, this.alpha,
+                    Renderer.RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 256.0f, 120.0f, 256.0f, 256.0f, this.alpha,
                                 this.textureID);
 
                     this.offsetX = 0.0f;
@@ -106,7 +106,7 @@ namespace RSDKv4.Native
                 }
                 else if (inputDown.down)
                 {
-                    RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, -8.0f, 256.0f, 120.0f, 256.0f, 392.0f, this.alpha,
+                    Renderer.RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, -8.0f, 256.0f, 120.0f, 256.0f, 392.0f, this.alpha,
                                 this.textureID);
 
                     this.offsetX = 0.0f;
@@ -114,7 +114,7 @@ namespace RSDKv4.Native
                 }
                 else if (inputDown.left)
                 {
-                    RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 120.0f, 256.0f, 256.0f, 256.0f, this.alpha,
+                    Renderer.RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, 128.0f, 128.0f, 120.0f, 256.0f, 256.0f, 256.0f, this.alpha,
                                 this.textureID);
 
                     this.offsetX = 20.0f;
@@ -122,7 +122,7 @@ namespace RSDKv4.Native
                 }
                 else if (inputDown.right)
                 {
-                    RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, -8.0f, 128.0f, 120.0f, 256.0f, 392.0f, 256.0f, this.alpha,
+                    Renderer.RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, -8.0f, 128.0f, 120.0f, 256.0f, 392.0f, 256.0f, this.alpha,
                                 this.textureID);
 
                     this.offsetX = -20.0f;
@@ -136,9 +136,9 @@ namespace RSDKv4.Native
 
                 this.pivotX += (this.offsetX - this.pivotX) * 0.25f;
                 this.pivotY += (this.offsetY - this.pivotY) * 0.25f;
-                RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, this.pivotX + 84.0f, this.pivotY + 84.0f, 168.0f, 168.0f, 16.0f,
+                Renderer.RenderImage(this.moveX, this.moveY, 160.0f, this.moveSize, this.moveSize, this.pivotX + 84.0f, this.pivotY + 84.0f, 168.0f, 168.0f, 16.0f,
                             328.0f, this.alpha, this.textureID);
-                RenderImage(this.jumpX, this.jumpY, 160.0f, this.pressedSize, this.pressedSize, 128.0f, 128.0f, 256.0f, 256.0f, 256.0f, 0.0f, this.alpha,
+                Renderer.RenderImage(this.jumpX, this.jumpY, 160.0f, this.pressedSize, this.pressedSize, 128.0f, 128.0f, 256.0f, 256.0f, 256.0f, 0.0f, this.alpha,
                             this.textureID);
 
                 float size = 0.0f;
@@ -146,17 +146,17 @@ namespace RSDKv4.Native
                     size = this.pressedSize;
                 else
                     size = this.jumpSize;
-                RenderImage(this.jumpX, this.jumpY, 160.0f, size, size, 84.0f, 83.0f, 168.0f, 168.0f, 16.0f, 328.0f, this.alpha, this.textureID);
+                Renderer.RenderImage(this.jumpX, this.jumpY, 160.0f, size, size, 84.0f, 83.0f, 168.0f, 168.0f, 16.0f, 328.0f, this.alpha, this.textureID);
 
                 if (Engine.engineState == ENGINE_STATE.MAINGAME)
                 {
                     if (this.vsMode > 0 && Engine.globalVariables[this.vsMode] == 0)
                     {
                         if (Scene.activeStageList == STAGELIST.SPECIAL)
-                            RenderImage(this.pauseX_S, this.pauseY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, this.pauseAlpha,
+                            Renderer.RenderImage(this.pauseX_S, this.pauseY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, this.pauseAlpha,
                                         this.textureID);
                         else
-                            RenderImage(this.pauseX, this.pauseY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, this.pauseAlpha,
+                            Renderer.RenderImage(this.pauseX, this.pauseY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, this.pauseAlpha,
                                         this.textureID);
                     }
                 }

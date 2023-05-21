@@ -50,16 +50,24 @@ internal class PaletteHack : IPatch
     private List<int> indicies = new List<int>();
     private int index;
 
+    private Scene Scene;
+    private Drawing Drawing;
+    private Engine Engine;
+
     public PaletteHack()
     {
         for (int i = 0; i < Drawing.PALETTE_COUNT; i++)
             previousPalettes[i] = new ushort[Drawing.PALETTE_SIZE];
     }
 
-    public void Install(Hooks hooks)
+    public void Install(Engine engine)
     {
-        hooks.StageDidLoad += OnStageLoaded;
-        hooks.StageDidStep += OnStageStepped;
+        Scene = engine.Scene;
+        Drawing = engine.Drawing;
+        Engine = engine;
+
+        engine.hooks.StageDidLoad += OnStageLoaded;
+        engine.hooks.StageDidStep += OnStageStepped;
     }
 
     private void OnStageLoaded(object sender, EventArgs e)

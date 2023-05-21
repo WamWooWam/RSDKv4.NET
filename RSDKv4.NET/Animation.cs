@@ -4,33 +4,43 @@ namespace RSDKv4;
 
 public class Animation
 {
+    
     public const int ANIFILE_COUNT = 0x100;
     public const int ANIMATION_COUNT = 0x400;
     public const int SPRITEFRAME_COUNT = 0x1000;
     public const int HITBOX_COUNT = 0x20;
     public const int HITBOX_DIR_COUNT = 0x8;
 
-    public static AnimationFile[] animationFileList = new AnimationFile[ANIFILE_COUNT];
-    public static int animationFileCount;
+    public AnimationFile[] animationFileList = new AnimationFile[ANIFILE_COUNT];
+    public int animationFileCount;
 
-    public static SpriteFrame[] scriptFrames = new SpriteFrame[SPRITEFRAME_COUNT];
-    public static int scriptFrameCount;
+    public SpriteFrame[] scriptFrames = new SpriteFrame[SPRITEFRAME_COUNT];
+    public int scriptFrameCount;
 
-    public static SpriteFrame[] animFrames = new SpriteFrame[SPRITEFRAME_COUNT];
-    public static int animFrameCount;
+    public SpriteFrame[] animFrames = new SpriteFrame[SPRITEFRAME_COUNT];
+    public int animFrameCount;
 
-    public static SpriteAnimation[] animationList = new SpriteAnimation[ANIMATION_COUNT];
-    public static int animationCount;
+    public SpriteAnimation[] animationList = new SpriteAnimation[ANIMATION_COUNT];
+    public int animationCount;
 
-    public static Hitbox[] hitboxList = new Hitbox[HITBOX_COUNT];
-    public static int hitboxCount;
+    public Hitbox[] hitboxList = new Hitbox[HITBOX_COUNT];
+    public int hitboxCount;
 
-    static Animation()
+    private FileIO FileIO;
+    private Drawing Drawing;
+
+    public Animation()
     {
         ClearAnimationData();
     }
 
-    public static void LoadAnimationFile(string filePath)
+    public void Initialize(Engine engine)
+    {
+        FileIO = engine.FileIO;
+        Drawing = engine.Drawing;
+    }
+
+    public void LoadAnimationFile(string filePath)
     {
         FileInfo info;
         if (FileIO.LoadFile(filePath, out info))
@@ -106,7 +116,7 @@ public class Animation
         }
     }
 
-    public static AnimationFile AddAnimationFile(string filePath)
+    public AnimationFile AddAnimationFile(string filePath)
     {
         string path = "Data/Animations/" + filePath;
 
@@ -127,7 +137,7 @@ public class Animation
         return null;
     }
 
-    public static void ClearAnimationData()
+    public void ClearAnimationData()
     {
         Helpers.Memset(scriptFrames, () => new SpriteFrame());
         Helpers.Memset(animFrames, () => new SpriteFrame());
@@ -142,10 +152,10 @@ public class Animation
         hitboxCount = 0;
 
         // Used for pause menu
-        Drawing.LoadGIFFile("Data/Game/SystemText.gif", Drawing.TEXTMENU_SURFACE);
+        // DrawingSystem.LoadGIFFile("Data/Game/SystemText.gif", Drawing.TEXTMENU_SURFACE);
     }
 
-    public static void ProcessObjectAnimation(ObjectScript objectScript, Entity entity)
+    public void ProcessObjectAnimation(ObjectScript objectScript, Entity entity)
     {
         var sprAnim = animationList[objectScript.animFile.animListOffset + entity.animation];
         if (entity.animationSpeed <= 0)

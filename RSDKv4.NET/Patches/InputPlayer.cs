@@ -11,10 +11,16 @@ public class InputPlayer : IPatch
     private short stageId;
     private List<int> data;
 
-    public void Install(Hooks hooks)
+    private Scene Scene;
+    private Input Input;
+  
+    public void Install(Engine engine)
     {
-        hooks.StageDidLoad += OnStageLoaded;
-        hooks.StageWillStep += OnStageStepped;
+        Scene = engine.Scene;
+        Input = engine.Input;
+
+        engine.hooks.StageDidLoad += OnStageLoaded;
+        engine.hooks.StageWillStep += OnStageStepped;
     }
 
     private void OnStageLoaded(object sender, EventArgs e)

@@ -40,6 +40,7 @@ public class RSDKv4Game : Game
     public const int HEIGHT = 480;
 
     private LoadingScreen loadingScreen;
+    private Engine engine;
 
     public RSDKv4Game()
     {
@@ -120,15 +121,16 @@ public class RSDKv4Game : Game
     {
         // new InputPlayer().Install(Engine.hooks);
         // new PaletteHack().Install(Engine.hooks);
+        engine = new Engine(this, GraphicsDevice);
 
         FastMath.CalculateTrigAngles();
-        if (!FileIO.CheckRSDKFile("Data.rsdk"))
-            FileIO.CheckRSDKFile("Data.rsdk");
+        //if (!FileIO.CheckRSDKFile("Data.rsdk"))
+        engine.FileIO.CheckRSDKFile("Data.rsdk");
 
-        Strings.InitLocalizedStrings();
-        SaveData.InitializeSaveRAM();
+        engine.Strings.InitLocalizedStrings();
+        engine.SaveData.InitializeSaveRAM();
 
-        var saveData = SaveData.saveGame;
+        var saveData = engine.SaveData.saveGame;
         var saveFile = saveData.files[0];
 
         var newGame = false;
@@ -143,44 +145,44 @@ public class RSDKv4Game : Game
             saveFile.specialStageId = 0;
             saveFile.characterId = 3;
 
-            SaveData.WriteSaveRAMData();
+            engine.SaveData.WriteSaveRAMData();
         }
 
-        NativeRenderer.InitRenderDevice(this, GraphicsDevice);
+        //NativeRenderer.InitRenderDevice(this, GraphicsDevice);
 
-        if (Engine.LoadGameConfig("Data/Game/GameConfig.bin"))
+        if (engine.LoadGameConfig("Data/Game/GameConfig.bin"))
         {
             loadPercent = 0.05f;
-            if (Drawing.InitRenderDevice(this, GraphicsDevice))
-            {
+            //if (engine.InitRenderDevice())
+            //{
                 loadPercent = 0.10f;
-                if (Audio.InitAudioPlayback())
+                if (engine.Audio.InitAudioPlayback())
                 {
-                    Objects.CreateNativeObject(() => new TitleScreen());
+                    engine.Objects.CreateNativeObject(() => new TitleScreen());
 
                     loadPercent = 0.85f;
 
-                    Engine.SetGlobalVariableByName("options.saveSlot", 0);
-                    Engine.SetGlobalVariableByName("options.gameMode", 1);
-                    Engine.SetGlobalVariableByName("options.stageSelectFlag", 0);
+                    engine.SetGlobalVariableByName("options.saveSlot", 0);
+                    engine.SetGlobalVariableByName("options.gameMode", 1);
+                    engine.SetGlobalVariableByName("options.stageSelectFlag", 0);
 
-                    Engine.SetGlobalVariableByName("player.lives", saveFile.lives);
-                    Engine.SetGlobalVariableByName("player.score", saveFile.score);
-                    Engine.SetGlobalVariableByName("player.scoreBonus", saveFile.scoreBonus);
+                    engine.SetGlobalVariableByName("player.lives", saveFile.lives);
+                    engine.SetGlobalVariableByName("player.score", saveFile.score);
+                    engine.SetGlobalVariableByName("player.scoreBonus", saveFile.scoreBonus);
 
-                    Engine.SetGlobalVariableByName("specialStage.emeralds", saveFile.emeralds);
-                    Engine.SetGlobalVariableByName("specialStage.listPos", saveFile.specialStageId);
+                    engine.SetGlobalVariableByName("specialStage.emeralds", saveFile.emeralds);
+                    engine.SetGlobalVariableByName("specialStage.listPos", saveFile.specialStageId);
 
-                    Engine.SetGlobalVariableByName("stage.player2Enabled", 0);
+                    engine.SetGlobalVariableByName("stage.player2Enabled", 0);
 
-                    Engine.SetGlobalVariableByName("lampPostID", 0); // For S1
-                    Engine.SetGlobalVariableByName("starPostID", 0); // For S2
+                    engine.SetGlobalVariableByName("lampPostID", 0); // For S1
+                    engine.SetGlobalVariableByName("starPostID", 0); // For S2
 
-                    Engine.SetGlobalVariableByName("options.vsMode", 0);
+                    engine.SetGlobalVariableByName("options.vsMode", 0);
 
                     //Scene.InitFirstStage();
 
-                    Script.ClearScriptData();
+                    engine.Script.ClearScriptData();
                     loadPercent = 0.9f;
 
                     //if (newGame)
@@ -199,16 +201,16 @@ public class RSDKv4Game : Game
                     //}
 
                     // stage select
-                   // Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 0);
+                    // Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 0);
 
                     loadPercent = 0.95f;
 
-                   // Scene.ProcessStage();
+                    // Scene.ProcessStage();
 
-                    Engine.engineState = ENGINE_STATE.WAIT;
+                    engine.engineState = ENGINE_STATE.WAIT;
                     loadPercent = 1f;
                 }
-            }
+            //}
         }
 
         isLoaded = true;
@@ -245,9 +247,9 @@ public class RSDKv4Game : Game
             if (!hold)
             {
                 hold = true;
-                NativeRenderer.shaderNum--;
-                if (NativeRenderer.shaderNum < 0)
-                    NativeRenderer.shaderNum = 0;
+                engine.Renderer.shaderNum--;
+                if (engine.Renderer.shaderNum < 0)
+                    engine.Renderer.shaderNum = 0;
             }
         }
         else if (keyboard.IsKeyDown(Keys.P))
@@ -255,9 +257,9 @@ public class RSDKv4Game : Game
             if (!hold)
             {
                 hold = true;
-                NativeRenderer.shaderNum++;
-                if (NativeRenderer.shaderNum > 4)
-                    NativeRenderer.shaderNum = 4;
+                engine.Renderer.shaderNum++;
+                if (engine.Renderer.shaderNum > 4)
+                    engine.Renderer.shaderNum = 4;
             }
         }
         else
@@ -272,11 +274,11 @@ public class RSDKv4Game : Game
                             if (Engine.gameMode == ENGINE_DEVMENU && stageMode == DEVMENU_MODMENU)
                                 RefreshEngine();
 #endif
-            Objects.ClearNativeObjects();
-            Objects.CreateNativeObject(() => new RetroGameLoop());
-            if (Engine.deviceType == DEVICE.MOBILE)
-                Objects.CreateNativeObject(() => new VirtualDPad());
-            Engine.engineState = ENGINE_STATE.INITDEVMENU;
+            engine.Objects.ClearNativeObjects();
+            engine.Objects.CreateNativeObject(() => new RetroGameLoop());
+            if (engine.deviceType == DEVICE.MOBILE)
+                engine.Objects.CreateNativeObject(() => new VirtualDPad());
+            engine.engineState = ENGINE_STATE.INITDEVMENU;
         }
 
         if (needsResize)
@@ -285,7 +287,7 @@ public class RSDKv4Game : Game
             graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
             graphics.ApplyChanges();
 
-            Drawing.SetScreenDimensions(Window.ClientBounds.Width, Window.ClientBounds.Height);
+            engine.Drawing.SetScreenDimensions(Window.ClientBounds.Width, Window.ClientBounds.Height);
 
             needsResize = false;
         }
@@ -294,9 +296,9 @@ public class RSDKv4Game : Game
             return;
 
         if (IsActive)
-            Input.ProcessInput();
-        if (Engine.engineState == ENGINE_STATE.MAINGAME)
-            Scene.ProcessStage();
+            engine.Input.ProcessInput();
+        if (engine.engineState == ENGINE_STATE.MAINGAME)
+            engine.Scene.ProcessStage();
     }
 
 
@@ -314,11 +316,11 @@ public class RSDKv4Game : Game
         }
         else
         {
-            Engine.deltaTime = 1.0f / 60;
+            engine.deltaTime = 1.0f / 60;
             //Drawing.Draw();
             //Drawing.Present();
 
-            Objects.ProcessNativeObjects();
+            engine.Objects.ProcessNativeObjects();
         }
 
         base.Draw(gameTime);

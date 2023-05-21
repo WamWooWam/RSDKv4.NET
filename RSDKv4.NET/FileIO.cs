@@ -8,18 +8,25 @@ using RSDKv4.Utility;
 
 namespace RSDKv4;
 
-public static class FileIO
+public class FileIO
 {
-    public static RSDKContainer rsdkContainer = new RSDKContainer();
+    public RSDKContainer rsdkContainer = new RSDKContainer();
 
-    public static string fileName;
-    public static Stream fileHandle;
-    public static BinaryReader fileReader;
+    public string fileName;
+    public Stream fileHandle;
+    public BinaryReader fileReader;
 
-    private static RSDKFileStream rsdkStream;
-    private static byte[] readBuffer = new byte[8];
+    private RSDKFileStream rsdkStream;
+    private byte[] readBuffer = new byte[8];
 
-    public static bool CheckRSDKFile(string filePath)
+    public Engine Engine { get; }
+
+    public FileIO(Engine engine)
+    {
+        Engine = engine;
+    }
+
+    public bool CheckRSDKFile(string filePath)
     {
         try
         {
@@ -52,69 +59,69 @@ public static class FileIO
         }
     }
 
-    public static void CloseRSDKContainers()
+    public void CloseRSDKContainers()
     {
     }
 
-    public static bool LoadFile(string filePath, out FileInfo fileInfo)
+    public bool LoadFile(string filePath, out FileInfo fileInfo)
     {
         // TODO: fix
         return rsdkStream.LoadFile(filePath, out fileInfo);
     }
 
-    public static bool CloseFile()
+    public bool CloseFile()
     {
         return false;
     }
 
-    public static byte ReadByte()
+    public byte ReadByte()
     {
         rsdkStream.Read(readBuffer, 0, 1);
         return readBuffer[0];
     }
 
-    public static sbyte ReadSByte()
+    public sbyte ReadSByte()
     {
         rsdkStream.Read(readBuffer, 0, 1);
         return (sbyte)readBuffer[0];
     }
 
-    public static int ReadInt32()
+    public int ReadInt32()
     {
         rsdkStream.Read(readBuffer, 0, 4);
         return BitConverter.ToInt32(readBuffer, 0);
     }
 
-    public static uint ReadUInt32()
+    public uint ReadUInt32()
     {
         rsdkStream.Read(readBuffer, 0, 4);
         return BitConverter.ToUInt32(readBuffer, 0);
     }
 
-    public static short ReadInt16()
+    public short ReadInt16()
     {
         rsdkStream.Read(readBuffer, 0, 2);
         return BitConverter.ToInt16(readBuffer, 0);
     }
 
-    public static ushort ReadUInt16()
+    public ushort ReadUInt16()
     {
         rsdkStream.Read(readBuffer, 0, 2);
         return BitConverter.ToUInt16(readBuffer, 0);
     }
 
-    public static float ReadFloat()
+    public float ReadFloat()
     {
         rsdkStream.Read(readBuffer, 0, 4);
         return BitConverter.ToSingle(readBuffer, 0);
     }
 
-    public static string ReadLengthPrefixedString()
+    public string ReadLengthPrefixedString()
     {
         return ReadString(ReadByte());
     }
 
-    public static string ReadString(int length)
+    public string ReadString(int length)
     {
         var buff = new char[length];
         for (int i = 0; i < length; i++)
@@ -123,7 +130,7 @@ public static class FileIO
         return new string(buff);
     }
 
-    public static string ReadStringLine()
+    public string ReadStringLine()
     {
         char curChar;
         var builder = new StringBuilder();
@@ -154,39 +161,39 @@ public static class FileIO
         return builder.ToString();
     }
 
-    public static void ReadFile(byte[] buffer, int offset, int count)
+    public void ReadFile(byte[] buffer, int offset, int count)
     {
         rsdkStream.Read(buffer, offset, count);
     }
 
-    public static void GetFileInfo(out FileInfo fileInfo)
+    public void GetFileInfo(out FileInfo fileInfo)
     {
         rsdkStream.GetFileInfo(out fileInfo);
     }
 
-    public static void SetFileInfo(FileInfo fileInfo)
+    public void SetFileInfo(FileInfo fileInfo)
     {
         // TODO: fix
         Debug.Assert(Engine.usingDataFile);
         rsdkStream.SetFileInfo(fileInfo);
     }
 
-    public static int GetFilePosition()
+    public int GetFilePosition()
     {
         return (int)rsdkStream.Position;
     }
 
-    public static void SetFilePosition(int newPos)
+    public void SetFilePosition(int newPos)
     {
         rsdkStream.Position = newPos;
     }
 
-    public static bool ReachedEndOfFile()
+    public bool ReachedEndOfFile()
     {
         return rsdkStream.EndOfFile;
     }
 
-    public static Stream CreateFileStream()
+    public Stream CreateFileStream()
     {
         var fileHandle = TitleContainer.OpenStream(fileName);
         var stream = new RSDKFileStream(rsdkContainer, fileHandle);
@@ -195,7 +202,7 @@ public static class FileIO
         return stream;
     }
 
-    public static bool TryGetFileStream(string file, out Stream stream)
+    public bool TryGetFileStream(string file, out Stream stream)
     {
         var fileHandle = TitleContainer.OpenStream(fileName);
         var rsdkStream = new RSDKFileStream(rsdkContainer, fileHandle);

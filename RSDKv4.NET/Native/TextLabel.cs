@@ -36,13 +36,13 @@ public class TextLabel : NativeEntity
     {
         if (useRenderMatrix)
         {
-            NewRenderState();
-            SetRenderMatrix(renderMatrix);
+            Renderer.NewRenderState();
+            Renderer.SetRenderMatrix(renderMatrix);
         }
 
 #if !RETRO_USE_ORIGINAL_CODE
         if (useColours)
-            SetRenderVertexColor(r, g, b);
+            Renderer.SetRenderVertexColor(r, g, b);
 #endif
 
         switch (state)
@@ -50,8 +50,8 @@ public class TextLabel : NativeEntity
             default: break;
             case STATE.NONE: break;
             case STATE.IDLE:
-                SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
+                Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                Renderer.RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
                 break;
             case STATE.BLINK:
                 timer += Engine.deltaTime;
@@ -60,9 +60,8 @@ public class TextLabel : NativeEntity
 
                 if (timer > 0.5)
                 {
-                    SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    
-                    RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
+                    Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                    Renderer.RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
                 }
                 break;
             case STATE.BLINK_FAST:
@@ -72,21 +71,21 @@ public class TextLabel : NativeEntity
 
                 if (timer > 0.05)
                 {
-                    SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
+                    Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                    Renderer.RenderText(text, fontId, x - alignOffset, y, (int)z, scale, alpha);
                 }
                 break;
         }
 
 #if !RETRO_USE_ORIGINAL_CODE
         if (useColours)
-            SetRenderVertexColor(0xFF, 0xFF, 0xFF);
+            Renderer.SetRenderVertexColor(0xFF, 0xFF, 0xFF);
 #endif
 
         if (useRenderMatrix)
         {
-            NewRenderState();
-            SetRenderMatrix(null);
+            Renderer.NewRenderState();
+            Renderer.SetRenderMatrix(null);
         }
     }
 

@@ -9,10 +9,10 @@ public class LeaderboardsButton : MenuButton
 {
     public override void Create()
     {
-        this.textureCircle = LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
+        this.textureCircle = Renderer.LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
 
-        int texture = LoadTexture("Data/Game/Menu/Intro.png", TEXFMT.RGBA4444);
-        this.mesh = LoadMesh("Data/Game/Models/Leaderboards.bin", texture);
+        int texture = Renderer.LoadTexture("Data/Game/Menu/Intro.png", TEXFMT.RGBA4444);
+        this.mesh = Renderer.LoadMesh("Data/Game/Models/Leaderboards.bin", texture);
         this.x = 0.0f;
         this.y = 16.0f;
         this.z = 160.0f;
@@ -38,24 +38,24 @@ public class LeaderboardsButton : MenuButton
                 if (this.scale > 0.2f)
                     this.scale = 0.2f;
             }
-            SetRenderBlendMode(RENDER_BLEND.ALPHA);
-            SetRenderVertexColor(this.r, this.g, this.b);
-            RenderImage(this.x, this.y, this.z, this.scale, this.scale, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureCircle);
-            SetRenderVertexColor(0xFF, 0xFF, 0xFF);
-            SetRenderBlendMode(RENDER_BLEND.NONE);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+            Renderer.SetRenderVertexColor(this.r, this.g, this.b);
+            Renderer.RenderImage(this.x, this.y, this.z, this.scale, this.scale, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureCircle);
+            Renderer.SetRenderVertexColor(0xFF, 0xFF, 0xFF);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
 
             this.angle -= Engine.deltaTime;
             if (this.angle < -MathHelper.TwoPi)
                 this.angle += MathHelper.TwoPi;
 
-            NewRenderState();
+            Renderer.NewRenderState();
 
             this.renderMatrix = Helpers.CreateRotationY(this.angle) *
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
-            
-            SetRenderMatrix(this.renderMatrix);
-            RenderMesh(this.mesh, MESH.COLOURS, true);
-            SetRenderMatrix(null);
+
+            Renderer.SetRenderMatrix(this.renderMatrix);
+            Renderer.RenderMesh(this.mesh, MESH.COLOURS, true);
+            Renderer.SetRenderMatrix(null);
 
             TextLabel label = this.label;
             label.x = this.x;

@@ -10,7 +10,7 @@ using static RSDKv4.Scene;
 
 namespace RSDKv4.Render;
 
-public class HardwareRenderer : IRenderer
+public class HardwareDrawing : Drawing
 {
     private static readonly Color MAX_COLOR
         = new Color(255, 255, 255, 255);
@@ -68,7 +68,7 @@ public class HardwareRenderer : IRenderer
     public const float TILE_UV_OFFSET = 1f / (SURFACE_SIZE / 8);
 
 
-    public HardwareRenderer(Game game, GraphicsDevice device)
+    public HardwareDrawing(Game game, GraphicsDevice device)
     {
         _game = game;
         _device = device;
@@ -104,14 +104,20 @@ public class HardwareRenderer : IRenderer
             AlphaDestinationBlend = Blend.One,
             AlphaBlendFunction = BlendFunction.ReverseSubtract
         };
+    }
 
-        SetScreenDimensions(device.PresentationParameters.BackBufferWidth, device.PresentationParameters.BackBufferHeight);
+    public override void Initialize(Engine engine)
+    {
+        base.Initialize(engine);
+
+
+        SetScreenDimensions(_device.PresentationParameters.BackBufferWidth, _device.PresentationParameters.BackBufferHeight);
         SetupPolygonLists();
     }
 
-    public void SetScreenDimensions(int width, int height)
+    public override void SetScreenDimensions(int width, int height)
     {
-        NativeRenderer.SetScreenDimensions(width, height);
+        Renderer.SetScreenDimensions(width, height);
 
         Input.touchWidth = width;
         Input.touchHeight = height;
@@ -162,8 +168,8 @@ public class HardwareRenderer : IRenderer
         GFX_LINESIZE_MINUSONE = lineSize - 1;
         GFX_LINESIZE_DOUBLE = 2 * lineSize;
 
-        SCREEN_SCROLL_LEFT = SCREEN_CENTERX - 8;
-        SCREEN_SCROLL_RIGHT = SCREEN_CENTERX + 8;
+        Scene.SCREEN_SCROLL_LEFT = SCREEN_CENTERX - 8;
+        Scene.SCREEN_SCROLL_RIGHT = SCREEN_CENTERX + 8;
 
         Objects.OBJECT_BORDER_X1 = 128;
         Objects.OBJECT_BORDER_X2 = SCREEN_XSIZE + 128;
@@ -205,9 +211,9 @@ public class HardwareRenderer : IRenderer
         fullPalette[texPaletteNum][255] = RGB_16BIT5551(0xFF, 0xFF, 0xFF, 1);
         _palettes[texPaletteNum].SetData(fullPalette[texPaletteNum]);
 
-        for (int i = 0; i < activePaletteCount; i++)
+        for (int i = 0; i < Palette.activePaletteCount; i++)
         {
-            var palette = activePalettes[i];
+            var palette = Palette.activePalettes[i];
 
             if ((palette.endLine - palette.startLine) == 0 || palette.paletteNum == texPaletteNum)
                 continue;
@@ -224,7 +230,7 @@ public class HardwareRenderer : IRenderer
     }
 
     private int frame = 0;
-    public void Draw()
+    public override void Draw()
     {
         frame++;
         _device.SetRenderTarget(_renderTarget);
@@ -238,11 +244,11 @@ public class HardwareRenderer : IRenderer
         }
 
 #if FAST_PALETTE
-        if (paletteDirty)
+        if (Palette.paletteDirty)
         {
             // Debug.WriteLine($"{frame} Updating palettes");
             UpdateActivePalettes();
-            paletteDirty = false;
+            Palette.paletteDirty = false;
         }
 #endif
 
@@ -265,13 +271,13 @@ public class HardwareRenderer : IRenderer
 #endif
 
         _device.BlendState = BlendState.Opaque;
-        _device.RasterizerState = activePaletteCount > 1 ? _scissorState : _noScissorState;
+        _device.RasterizerState = Palette.activePaletteCount > 1 ? _scissorState : _noScissorState;
 
-        for (int i = 0; i < Math.Max(activePaletteCount, 1); i++)
+        for (int i = 0; i < Math.Max(Palette.activePaletteCount, 1); i++)
         {
-            if (activePaletteCount > 0)
+            if (Palette.activePaletteCount > 0)
             {
-                var palette = activePalettes[i];
+                var palette = Palette.activePalettes[i];
 
                 if ((palette.endLine - palette.startLine) == 0)
                     continue;
@@ -350,24 +356,24 @@ public class HardwareRenderer : IRenderer
         _device.SetRenderTarget(null);
     }
 
-    public Texture2D CopyRetroBuffer()
+    public override Texture2D CopyRetroBuffer()
     {
         // no copying here sir
         return _renderTarget;
     }
 
-    public void Reset()
+    public override void Reset()
     {
         textureBufferMode = 0;
         for (int i = 0; i < LAYER_COUNT; i++)
         {
-            if (stageLayouts[i].type == LAYER.THREEDSKY)
+            if (Scene.stageLayouts[i].type == LAYER.THREEDSKY)
                 textureBufferMode = 1;
         }
 
-        for (int i = 0; i < hParallax.entryCount; i++)
+        for (int i = 0; i < Scene.hParallax.entryCount; i++)
         {
-            if (hParallax.deform[i] != 0)
+            if (Scene.hParallax.deform[i] != 0)
                 textureBufferMode = 1;
         }
 
@@ -409,10 +415,10 @@ public class HardwareRenderer : IRenderer
         indexCount = 0;
         vertexCount = 0;
         drawBlendStateIdx = 0;
-        drawListEntries[0] = new DrawListEntry();
+        Scene.drawListEntries[0] = new DrawListEntry();
     }
 
-    public void BeginDraw()
+    public override void BeginDraw()
     {
         vertexCount = 0;
         indexCount = 0;
@@ -420,18 +426,18 @@ public class HardwareRenderer : IRenderer
         drawBlendStates[0] = new DrawBlendState();
         drawBlendStateIdx = 0;
 
-        activePalettes[0] = new PaletteEntry(0, 0, SCREEN_YSIZE);
-        activePaletteCount = 0;
+        Palette.activePalettes[0] = new PaletteEntry(0, 0, SCREEN_YSIZE);
+        Palette.activePaletteCount = 0;
     }
 
-    public void EndDraw()
+    public override void EndDraw()
     {
         drawBlendStates[drawBlendStateIdx].vertexCount = vertexCount - drawBlendStates[drawBlendStateIdx].vertexOffset;
         drawBlendStates[drawBlendStateIdx].indexCount = indexCount - drawBlendStates[drawBlendStateIdx].indexOffset;
         drawBlendStateIdx++;
     }
 
-    public void EnsureBlendMode(BlendMode mode)
+    public override void EnsureBlendMode(BlendMode mode)
     {
         if (drawBlendStates[drawBlendStateIdx].blendMode != mode)
         {
@@ -446,7 +452,7 @@ public class HardwareRenderer : IRenderer
     }
 
 
-    public void Copy16x16Tile(int dest, int src)
+    public override void Copy16x16Tile(int dest, int src)
     {
         src <<= 2;
         dest <<= 2;
@@ -459,7 +465,7 @@ public class HardwareRenderer : IRenderer
         var cnt = 0;
         var bufPos = 0;
         var currentPalette = fullPalette[texPaletteNum];
-        var tilesetGFXData = Drawing.tilesetGFXData;
+        var tilesetGFXData = this.tilesetGFXData;
         var textureBuffer = this.textureBuffer;
 
         if (textureBufferMode == 0)
@@ -875,7 +881,7 @@ public class HardwareRenderer : IRenderer
 #endif
     }
 
-    public void ClearScreen(byte clearColour)
+    public override void ClearScreen(byte clearColour)
     {
         vertexList[vertexCount].position.X = 0.0f;
         vertexList[vertexCount].position.Y = 0.0f;
@@ -916,7 +922,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawAdditiveBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
+    public override void DrawAdditiveBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
     {
         EnsureBlendMode(BlendMode.Additive);
 
@@ -956,7 +962,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawAlphaBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
+    public override void DrawAlphaBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
     {
         EnsureBlendMode(BlendMode.Alpha);
 
@@ -997,7 +1003,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public override void DrawBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
     {
         EnsureBlendMode(BlendMode.Alpha);
 
@@ -1043,7 +1049,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawFadedQuad(Quad2D face, uint colour, uint fogColour, int alpha)
+    public override void DrawFadedQuad(Quad2D face, uint colour, uint fogColour, int alpha)
     {
         EnsureBlendMode(BlendMode.Alpha);
 
@@ -1088,19 +1094,20 @@ public class HardwareRenderer : IRenderer
         ++vertexCount;
         indexCount += 2;
     }
-    public void DrawHLineScrollLayer(byte layerNum)
+
+    public override void DrawHLineScrollLayer(byte layerNum)
     {
         int num1 = 0;
-        int[] gfxDataPos = tiles128x128.gfxDataPos;
-        byte[] direction = tiles128x128.direction;
-        byte[] visualPlane = tiles128x128.visualPlane;
-        TileLayer layer = stageLayouts[activeTileLayers[layerNum]];
+        int[] gfxDataPos = Scene.tiles128x128.gfxDataPos;
+        byte[] direction = Scene.tiles128x128.direction;
+        byte[] visualPlane = Scene.tiles128x128.visualPlane;
+        TileLayer layer = Scene.stageLayouts[Scene.activeTileLayers[layerNum]];
 
         int layerWidth = (int)layer.xsize;
         int layerHeight = (int)layer.ysize;
 
         int num4 = (SCREEN_XSIZE >> 4) + 3;
-        byte aboveMidPoint = layerNum < tLayerMidPoint ? (byte)0 : (byte)1;
+        byte aboveMidPoint = layerNum < Scene.tLayerMidPoint ? (byte)0 : (byte)1;
 
         ushort[] tileMap = layer.tiles;
         byte[] lineScrollRef;
@@ -1110,7 +1117,7 @@ public class HardwareRenderer : IRenderer
         int[] deformationDataW;
         int yscrollOffset;
 
-        if (activeTileLayers[layerNum] != 0)
+        if (Scene.activeTileLayers[layerNum] != 0)
         {
             // BG Layer
             int yScroll = Scene.yScrollOffset * layer.parallaxFactor >> 8;
@@ -1122,43 +1129,43 @@ public class HardwareRenderer : IRenderer
             layerHeight = fullheight >> 7;
             lineScrollRef = layer.lineScroll;
             deformationDataOffset = (byte)(yscrollOffset + layer.deformationOffset);
-            deformationDataWOffset = (byte)(yscrollOffset + waterDrawPos + layer.deformationOffsetW);
-            deformationData = bgDeformationData2;
-            deformationDataW = bgDeformationData3;
+            deformationDataWOffset = (byte)(yscrollOffset + Scene.waterDrawPos + layer.deformationOffsetW);
+            deformationData = Scene.bgDeformationData2;
+            deformationDataW = Scene.bgDeformationData3;
         }
         else
         {
             // FG Layer
-            lastXSize = layer.xsize;
-            yscrollOffset = yScrollOffset;
+            Scene.lastXSize = layer.xsize;
+            yscrollOffset = Scene.yScrollOffset;
             lineScrollRef = layer.lineScroll;
-            for (int i = 0; i < PARALLAX_COUNT; ++i) hParallax.linePos[i] = xScrollOffset;
+            for (int i = 0; i < PARALLAX_COUNT; ++i) Scene.hParallax.linePos[i] = Scene.xScrollOffset;
             deformationDataOffset = (byte)(yscrollOffset + layer.deformationOffset);
-            deformationDataWOffset = (byte)(yscrollOffset + waterDrawPos + layer.deformationOffsetW);
-            deformationData = bgDeformationData0;
-            deformationDataW = bgDeformationData1;
+            deformationDataWOffset = (byte)(yscrollOffset + Scene.waterDrawPos + layer.deformationOffsetW);
+            deformationData = Scene.bgDeformationData0;
+            deformationDataW = Scene.bgDeformationData1;
         }
 
         if (layer.type == LAYER.HSCROLL)
         {
-            if (lastXSize != layerWidth)
+            if (Scene.lastXSize != layerWidth)
             {
                 int fullLayerwidth = layerWidth << 7;
-                for (int i = 0; i < hParallax.entryCount; ++i)
+                for (int i = 0; i < Scene.hParallax.entryCount; ++i)
                 {
-                    hParallax.linePos[i] = xScrollOffset * hParallax.parallaxFactor[i] >> 8;
-                    if (hParallax.scrollPos[i] > fullLayerwidth << 16)
-                        hParallax.scrollPos[i] -= fullLayerwidth << 16;
-                    if (hParallax.scrollPos[i] < 0)
-                        hParallax.scrollPos[i] += fullLayerwidth << 16;
-                    hParallax.linePos[i] += hParallax.scrollPos[i] >> 16;
-                    hParallax.linePos[i] %= fullLayerwidth;
+                    Scene.hParallax.linePos[i] = Scene.xScrollOffset * Scene.hParallax.parallaxFactor[i] >> 8;
+                    if (Scene.hParallax.scrollPos[i] > fullLayerwidth << 16)
+                        Scene.hParallax.scrollPos[i] -= fullLayerwidth << 16;
+                    if (Scene.hParallax.scrollPos[i] < 0)
+                        Scene.hParallax.scrollPos[i] += fullLayerwidth << 16;
+                    Scene.hParallax.linePos[i] += Scene.hParallax.scrollPos[i] >> 16;
+                    Scene.hParallax.linePos[i] %= fullLayerwidth;
                 }
             }
             int w = -1;
-            if (activeTileLayers[layerNum] != 0)
+            if (Scene.activeTileLayers[layerNum] != 0)
                 w = layerWidth;
-            lastXSize = w;
+            Scene.lastXSize = w;
         }
 
         if (yscrollOffset < 0)
@@ -1175,21 +1182,21 @@ public class HardwareRenderer : IRenderer
         deformY = -(yscrollOffset & 15);
         int num13 = yscrollOffset >> 7;
         int num14 = (yscrollOffset & sbyte.MaxValue) >> 4;
-        waterDrawPos <<= 4;
+        Scene.waterDrawPos <<= 4;
         deformY = deformY << 4;
         for (int i1 = deformY != 0 ? 272 : 256; i1 > 0; i1 -= 16)
         {
-            int parallaxLinePos = hParallax.linePos[lineScrollRef[lineIdx]] - 16;
+            int parallaxLinePos = Scene.hParallax.linePos[lineScrollRef[lineIdx]] - 16;
             int lineIdx1 = lineIdx + 8;
             bool flag;
-            if (parallaxLinePos == hParallax.linePos[lineScrollRef[lineIdx1]] - 16)
+            if (parallaxLinePos == Scene.hParallax.linePos[lineScrollRef[lineIdx1]] - 16)
             {
-                if (hParallax.deform[(int)lineScrollRef[lineIdx1]] == (byte)1)
+                if (Scene.hParallax.deform[(int)lineScrollRef[lineIdx1]] == (byte)1)
                 {
-                    int deformX1 = deformY < waterDrawPos ? deformationData[deformOffset] : deformationDataW[deformOffsetW];
+                    int deformX1 = deformY < Scene.waterDrawPos ? deformationData[deformOffset] : deformationDataW[deformOffsetW];
                     int deformX1Offset = deformOffset + 8;
                     int deformY1Offset = deformOffsetW + 8;
-                    int deformY1 = deformY + 64 <= waterDrawPos ? deformationData[deformX1Offset] : deformationDataW[deformY1Offset];
+                    int deformY1 = deformY + 64 <= Scene.waterDrawPos ? deformationData[deformX1Offset] : deformationDataW[deformY1Offset];
                     flag = deformX1 != deformY1;
                     deformOffset = deformX1Offset - 8;
                     deformOffsetW = deformY1Offset - 8;
@@ -1214,15 +1221,15 @@ public class HardwareRenderer : IRenderer
                 int deformX2 = deformX1;
                 int index6;
                 int index7;
-                if (hParallax.deform[lineScrollRef[lineIdx2]] == 1)
+                if (Scene.hParallax.deform[lineScrollRef[lineIdx2]] == 1)
                 {
-                    if (deformY >= waterDrawPos)
+                    if (deformY >= Scene.waterDrawPos)
                         deformX1 -= deformationDataW[deformOffsetW];
                     else
                         deformX1 -= deformationData[deformOffset];
                     index6 = deformOffset + 8;
                     index7 = deformOffsetW + 8;
-                    if (deformY + 64 > waterDrawPos)
+                    if (deformY + 64 > Scene.waterDrawPos)
                         deformX2 -= deformationDataW[index7];
                     else
                         deformX2 -= deformationData[index6];
@@ -1378,7 +1385,7 @@ public class HardwareRenderer : IRenderer
                         ++index10;
                 }
                 int num34 = deformY + 128;
-                int num35 = hParallax.linePos[lineScrollRef[index9]] - 16;
+                int num35 = Scene.hParallax.linePos[lineScrollRef[index9]] - 16;
                 int num36 = layerWidth << 7;
                 if (num35 < 0)
                     num35 += num36;
@@ -1388,15 +1395,15 @@ public class HardwareRenderer : IRenderer
                 int num38 = (num35 & sbyte.MaxValue) >> 4;
                 int num39 = -((num35 & 15) << 4) - 256;
                 int num40 = num39;
-                if (hParallax.deform[lineScrollRef[index9]] == 1)
+                if (Scene.hParallax.deform[lineScrollRef[index9]] == 1)
                 {
-                    if (num34 >= waterDrawPos)
+                    if (num34 >= Scene.waterDrawPos)
                         num39 -= deformationDataW[index7];
                     else
                         num39 -= deformationData[index6];
                     deformOffset = index6 + 8;
                     deformOffsetW = index7 + 8;
-                    if (num34 + 64 > waterDrawPos)
+                    if (num34 + 64 > Scene.waterDrawPos)
                         num40 -= deformationDataW[deformOffsetW];
                     else
                         num40 -= deformationData[deformOffset];
@@ -1564,15 +1571,15 @@ public class HardwareRenderer : IRenderer
                 int num18 = (parallaxLinePos & sbyte.MaxValue) >> 4;
                 int num19 = -((parallaxLinePos & 15) << 4) - 256;
                 int num20 = num19;
-                if (hParallax.deform[lineScrollRef[lineIdx2]] == 1)
+                if (Scene.hParallax.deform[lineScrollRef[lineIdx2]] == 1)
                 {
-                    if (deformY >= waterDrawPos)
+                    if (deformY >= Scene.waterDrawPos)
                         num19 -= deformationDataW[deformOffsetW];
                     else
                         num19 -= deformationData[deformOffset];
                     deformOffset += 16;
                     deformOffsetW += 16;
-                    if (deformY + 128 > waterDrawPos)
+                    if (deformY + 128 > Scene.waterDrawPos)
                         num20 -= deformationDataW[deformOffsetW];
                     else
                         num20 -= deformationData[deformOffset];
@@ -1741,10 +1748,10 @@ public class HardwareRenderer : IRenderer
                 num14 = 0;
             }
         }
-        waterDrawPos >>= 4;
+        Scene.waterDrawPos >>= 4;
     }
 
-    public void DrawQuad(Quad2D face, int rgbVal)
+    public override void DrawQuad(Quad2D face, int rgbVal)
     {
         if (vertexCount >= VERTEX_LIMIT)
             return;
@@ -1779,7 +1786,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawRectangle(int xPos, int yPos, int xSize, int ySize, int r, int g, int b, int alpha)
+    public override void DrawRectangle(int xPos, int yPos, int xSize, int ySize, int r, int g, int b, int alpha)
     {
         if (alpha > byte.MaxValue)
             alpha = byte.MaxValue;
@@ -1818,7 +1825,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawRotatedSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xBegin, int yBegin, int xSize, int ySize, int rotAngle, int surfaceNum)
+    public override void DrawRotatedSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xBegin, int yBegin, int xSize, int ySize, int rotAngle, int surfaceNum)
     {
         xPos <<= 4;
         yPos <<= 4;
@@ -1906,7 +1913,7 @@ public class HardwareRenderer : IRenderer
         }
     }
 
-    public void DrawRotoZoomSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xBegin, int yBegin, int xSize, int ySize, int rotAngle, int scale, int surfaceNum)
+    public override void DrawRotoZoomSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xBegin, int yBegin, int xSize, int ySize, int rotAngle, int scale, int surfaceNum)
     {
         xPos <<= 4;
         yPos <<= 4;
@@ -1994,7 +2001,7 @@ public class HardwareRenderer : IRenderer
         }
     }
 
-    public void DrawScaledChar(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public override void DrawScaledChar(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
     {
         if (vertexCount >= VERTEX_LIMIT || xPos <= -8192 || xPos >= 13951 || yPos <= -1024 || yPos >= 4864)
             return;
@@ -2032,7 +2039,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawScaledSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public override void DrawScaledSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
     {
         if (vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
@@ -2072,7 +2079,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
+    public override void DrawSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
     {
         EnsureBlendMode(BlendMode.Alpha);
 
@@ -2106,7 +2113,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawSpriteFlipped(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int direction, int surfaceNum)
+    public override void DrawSpriteFlipped(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int direction, int surfaceNum)
     {
         EnsureBlendMode(BlendMode.Alpha);
 
@@ -2223,7 +2230,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawSubtractiveBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
+    public override void DrawSubtractiveBlendedSprite(int xPos, int yPos, int xSize, int ySize, int xBegin, int yBegin, int alpha, int surfaceNum)
     {
         EnsureBlendMode(BlendMode.Subtractive);
 
@@ -2263,7 +2270,7 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawTexturedBlendedQuad(Quad2D face, int surfaceNum)
+    public override void DrawTexturedBlendedQuad(Quad2D face, int surfaceNum)
     {
         if (vertexCount >= VERTEX_LIMIT)
             return;
@@ -2295,9 +2302,8 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawTexturedQuad(Quad2D face, int surfaceNum)
+    public override void DrawTexturedQuad(Quad2D face, int surfaceNum)
     {
-
         if (vertexCount >= VERTEX_LIMIT)
             return;
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
@@ -2328,31 +2334,31 @@ public class HardwareRenderer : IRenderer
         indexCount += 2;
     }
 
-    public void DrawVLineScrollLayer(int layer)
+    public override void DrawVLineScrollLayer(int layer)
     {
         // as yet unused
         Debug.WriteLine("DrawVLineScrollLayer({0})", layer);
     }
 
-    public void Draw3DSkyLayer(int layer)
+    public override void Draw3DSkyLayer(int layer)
     {
         // TODOv3: Required for Sonic CD
         Debug.WriteLine("Draw3DSkyLayer({0})", layer);
     }
 
-    public void Draw3DFloorLayer(int layer)
+    public override void Draw3DFloorLayer(int layer)
     {
         // TODOv3: Required for Sonic CD
         Debug.WriteLine("Draw3DFloorLayer({0})", layer);
     }
 
-    public void DrawTintRectangle(int xPos, int yPos, int xSize, int ySize)
+    public override void DrawTintRectangle(int xPos, int yPos, int xSize, int ySize)
     {
         // as yet unused (maybe required for Sonic CD)
         Debug.WriteLine("DrawTintRectangle({0},{1},{2},{3})", xPos, yPos, xSize, ySize);
     }
 
-    public void DrawTintSpriteMask(
+    public override void DrawTintSpriteMask(
       int xPos,
       int yPos,
       int xSize,
@@ -2366,7 +2372,7 @@ public class HardwareRenderer : IRenderer
         Debug.WriteLine("DrawTintSpriteMask({0},{1},{2},{3},{4},{5},{6},{7})", xPos, yPos, xSize, ySize, xBegin, yBegin, tableNo, surfaceNum);
     }
 
-    public void DrawScaledTintMask(
+    public override void DrawScaledTintMask(
       byte direction,
       int xPos,
       int yPos,

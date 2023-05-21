@@ -28,15 +28,15 @@ public class DialogPanel : NativeEntity
 
     public override void Create()
     {
-        panelMesh = LoadMesh("Data/Game/Models/Panel.bin", -1);
-        SetMeshVertexColors(panelMesh, 0x28, 0x5C, 0xB0, 0xFF);
+        panelMesh = Renderer.LoadMesh("Data/Game/Models/Panel.bin", -1);
+        Renderer.SetMeshVertexColors(panelMesh, 0x28, 0x5C, 0xB0, 0xFF);
         buttonCount = (int)TYPE.YESNO;
     }
 
     public override void Main()
     {
-        NewRenderState();
-        SetRenderBlendMode(RENDER_BLEND.ALPHA);
+        Renderer.NewRenderState();
+        Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
 
         switch (this.state)
         {
@@ -91,13 +91,13 @@ public class DialogPanel : NativeEntity
                     if (this.buttonScale > 0.75f)
                         this.buttonScale = 0.75f;
 
-                    NewRenderState();
+                    Renderer.NewRenderState();
 
                     this.buttonMatrix =
                         Matrix.CreateScale(this.buttonScale, this.buttonScale, 1.0f) *
                         Matrix.CreateTranslation(0.0f, 0.0f, 160.0f);
 
-                    SetRenderMatrix(this.buttonMatrix);
+                    Renderer.SetRenderMatrix(this.buttonMatrix);
                     for (int i = 0; i < this.buttonCount; ++i)
                         this.buttons[i].renderMatrix = this.buttonMatrix;
 
@@ -113,7 +113,7 @@ public class DialogPanel : NativeEntity
                 {
                     Input.CheckKeyDown(ref Input.keyDown);
                     Input.CheckKeyPress(ref Input.keyPress);
-                    SetRenderMatrix(this.buttonMatrix);
+                    Renderer.SetRenderMatrix(this.buttonMatrix);
                     if (!NativeGlobals.usePhysicalControls)
                     {
                         if (Input.touches < 1)
@@ -210,7 +210,7 @@ public class DialogPanel : NativeEntity
                     break;
                 }
             case STATE.ACTION:
-                SetRenderMatrix(this.buttonMatrix);
+                Renderer.SetRenderMatrix(this.buttonMatrix);
                 if (this.buttons[this.buttonSelected].state != PushButton.STATE.UNSELECTED)
                 {
                     this.state = STATE.EXIT;
@@ -225,13 +225,13 @@ public class DialogPanel : NativeEntity
                     this.buttonScale + ((((this.stateTimer < 0.2f) ? 1 : -1) - this.buttonScale) / (Engine.deltaTime * 60.0f * 8.0f));
                 if (this.buttonScale < 0.0)
                     this.buttonScale = 0.0f;
-                NewRenderState();
+                Renderer.NewRenderState();
 
                 this.buttonMatrix =
                     Matrix.CreateScale(this.buttonScale, this.buttonScale, 1.0f) *
                     Matrix.CreateTranslation(0.0f, 0.0f, 160.0f);
 
-                SetRenderMatrix(this.buttonMatrix);
+                Renderer.SetRenderMatrix(this.buttonMatrix);
 
                 for (int i = 0; i < this.buttonCount; ++i)
                     this.buttons[i].renderMatrix = this.buttonMatrix;
@@ -244,11 +244,11 @@ public class DialogPanel : NativeEntity
                     return;
                 }
                 break;
-            case STATE.IDLE: SetRenderMatrix(this.buttonMatrix); break;
+            case STATE.IDLE: Renderer.SetRenderMatrix(this.buttonMatrix); break;
             default: break;
         }
-        RenderMesh(this.panelMesh, MESH.COLOURS, false);
-        RenderText(this.text, FONT.TEXT, this.textX, this.textY, 0, this.scale, 255);
+        Renderer.RenderMesh(this.panelMesh, MESH.COLOURS, false);
+        Renderer.RenderText(this.text, FONT.TEXT, this.textX, this.textY, 0, this.scale, 255);
 
     }
 }

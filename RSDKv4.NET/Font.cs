@@ -11,15 +11,22 @@ public class Font
 
     public const int FONTCHAR_COUNT = 0x400;
 
-    public static BitmapFont[] fontList = new BitmapFont[FONTLIST_COUNT]; 
-    public static FontCharacter[] fontCharacterList = new FontCharacter[FONTCHAR_COUNT];
+    public BitmapFont[] fontList = new BitmapFont[FONTLIST_COUNT]; 
+    public FontCharacter[] fontCharacterList = new FontCharacter[FONTCHAR_COUNT];
 
-    static Font()
+    private FileIO FileIO;
+
+    public Font()
     {
         Helpers.Memset(fontList, () => new BitmapFont());
     }
 
-    public static void LoadBitmapFont(string filePath, int index, int textureId)
+    public void Initialize(Engine engine)
+    {
+        FileIO = engine.FileIO;
+    }
+
+    public void LoadBitmapFont(string filePath, int index, int textureId)
     {
         var entry = fontList[index];
         if (entry.count == 0)
@@ -84,7 +91,7 @@ public class Font
         }
     }
 
-    public static ushort[] GetCharactersForString(string str, int fontId)
+    public ushort[] GetCharactersForString(string str, int fontId)
     {
         var chars = new List<ushort>(str.Length);
         var font = fontList[fontId];
@@ -110,7 +117,7 @@ public class Font
         return chars.ToArray();
     }
 
-    public static float GetTextWidth(ushort[] text, int fontId, float scaleX)
+    public float GetTextWidth(ushort[] text, int fontId, float scaleX)
     {
         float width = 0.0f;
         float lineMax = 0.0f;
@@ -118,7 +125,7 @@ public class Font
         for (int i = 0; i < text.Length; i++)
         {
             var character = text[i];
-            w += Font.fontList[fontId].characters[character].xAdvance;
+            w += fontList[fontId].characters[character].xAdvance;
             if (character == 1)
             {
                 if (w > lineMax)
@@ -131,7 +138,7 @@ public class Font
         return width * scaleX;
     }
 
-    public static float GetTextHeight(ushort[] text, int fontId, float scaleY)
+    public float GetTextHeight(ushort[] text, int fontId, float scaleY)
     {
         float height = 0.0f;
 
@@ -139,13 +146,13 @@ public class Font
         {
             if (text[i] == 1)
             {
-                height += Font.fontList[fontId].lineHeight;
+                height += fontList[fontId].lineHeight;
             }
         }
         return height * scaleY;
     }
 
-    private static int ParseInt(string line, int firstPos, int nextPos, int len)
+    private int ParseInt(string line, int firstPos, int nextPos, int len)
     {
         var pos = firstPos + len >= nextPos ? 0 : nextPos - len - firstPos;
         var str = line.Substring(firstPos + len, pos);
@@ -155,7 +162,7 @@ public class Font
         return num;
     }
 
-    public static void LoadFontFile(string filePath)
+    public void LoadFontFile(string filePath)
     {
         byte fileBuffer = 0;
         int cnt = 0;

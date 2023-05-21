@@ -5,75 +5,88 @@ using System.Text;
 
 namespace RSDKv4;
 
-public static class Strings
+public class Strings
 {
-    public static string strPressStart;
-    public static string strTouchToStart;
-    public static string strStartGame;
-    public static string strTimeAttack;
-    public static string strAchievements;
-    public static string strLeaderboards;
-    public static string strHelpAndOptions;
-    public static string strSoundTest;
-    public static string str2PlayerVS;
-    public static string strSaveSelect;
-    public static string strPlayerSelect;
-    public static string strNoSave;
-    public static string strNewGame;
-    public static string strDelete;
-    public static string strDeleteMessage;
-    public static string strYes;
-    public static string strNo;
-    public static string strSonic;
-    public static string strTails;
-    public static string strKnuckles;
-    public static string strPause;
-    public static string strContinue;
-    public static string strRestart;
-    public static string strExit;
-    public static string strDevMenu;
-    public static string strRestartMessage;
-    public static string strExitMessage;
-    public static string strNSRestartMessage;
-    public static string strNSExitMessage;
-    public static string strExitGame;
-    public static string strNetworkMessage;
-    public static string[] strStageList = new string[16];
-    public static string[] strSaveStageList = new string[32];
-    public static string strNewBestTime;
-    public static string strRecords;
-    public static string strNextAct;
-    public static string strPlay;
-    public static string strTotalTime;
-    public static string strInstructions;
-    public static string strSettings;
-    public static string strStaffCredits;
-    public static string strAbout;
-    public static string strMusic;
-    public static string strSoundFX;
-    public static string strSpindash;
-    public static string strBoxArt;
-    public static string strControls;
-    public static string strOn;
-    public static string strOff;
-    public static string strCustomizeDPad;
-    public static string strDPadSize;
-    public static string strDPadOpacity;
-    public static string strHelpText1;
-    public static string strHelpText2;
-    public static string strHelpText3;
-    public static string strHelpText4;
-    public static string strHelpText5;
-    public static string strVersionName;
-    public static string strPrivacy;
-    public static string strTerms;
+    public string strPressStart;
+    public string strTouchToStart;
+    public string strStartGame;
+    public string strTimeAttack;
+    public string strAchievements;
+    public string strLeaderboards;
+    public string strHelpAndOptions;
+    public string strSoundTest;
+    public string str2PlayerVS;
+    public string strSaveSelect;
+    public string strPlayerSelect;
+    public string strNoSave;
+    public string strNewGame;
+    public string strDelete;
+    public string strDeleteMessage;
+    public string strYes;
+    public string strNo;
+    public string strSonic;
+    public string strTails;
+    public string strKnuckles;
+    public string strPause;
+    public string strContinue;
+    public string strRestart;
+    public string strExit;
+    public string strDevMenu;
+    public string strRestartMessage;
+    public string strExitMessage;
+    public string strNSRestartMessage;
+    public string strNSExitMessage;
+    public string strExitGame;
+    public string strNetworkMessage;
+    public string[] strStageList = new string[16];
+    public string[] strSaveStageList = new string[32];
+    public string strNewBestTime;
+    public string strRecords;
+    public string strNextAct;
+    public string strPlay;
+    public string strTotalTime;
+    public string strInstructions;
+    public string strSettings;
+    public string strStaffCredits;
+    public string strAbout;
+    public string strMusic;
+    public string strSoundFX;
+    public string strSpindash;
+    public string strBoxArt;
+    public string strControls;
+    public string strOn;
+    public string strOff;
+    public string strCustomizeDPad;
+    public string strDPadSize;
+    public string strDPadOpacity;
+    public string strHelpText1;
+    public string strHelpText2;
+    public string strHelpText3;
+    public string strHelpText4;
+    public string strHelpText5;
+    public string strVersionName;
+    public string strPrivacy;
+    public string strTerms;
 
-    public static int stageStrCount = 0;
+    public int stageStrCount = 0;
 
-    private static Dictionary<string, Dictionary<string, string>> stringDictionary
+    private Dictionary<string, Dictionary<string, string>> stringDictionary
         = new Dictionary<string, Dictionary<string, string>>();
 
-    public static void InitLocalizedStrings()
+    private Engine Engine;
+    private FileIO FileIO;
+
+    public Strings()
+    {
+    }
+
+    public void Initialize(Engine engine)
+    {
+        Engine = engine;
+        FileIO = engine.FileIO;
+    }
+
+    public void InitLocalizedStrings()
     {
         var langStr = Engine.language switch
         {
@@ -194,12 +207,12 @@ public static class Strings
         // strVirtualDPad   = ReadLocalizedString("VirtualDPad", langStr, "Data/Game/StringList.txt");
     }
 
-    public static string ReadLocalizedString(string key, string language, string path)
+    public string ReadLocalizedString(string key, string language, string path)
     {
         return stringDictionary[language].TryGetValue(key, out var v) ? v : null;
     }
 
-    public static void LoadStringList()
+    public void LoadStringList()
     {
         if (FileIO.LoadFile("Data/Game/StringList.txt", out var info))
         {

@@ -11,26 +11,41 @@ public class Scene3D
     public const int VERTEXBUFFER_SIZE = 0x1000;
     public const int FACEBUFFER_SIZE = 0x400;
 
-    public static Face3D[] faceBuffer = new Face3D[FACEBUFFER_SIZE];
-    public static Vertex3D[] vertexBuffer = new Vertex3D[VERTEXBUFFER_SIZE];
-    public static Vertex3D[] vertexBufferT = new Vertex3D[VERTEXBUFFER_SIZE];
+    public Face3D[] faceBuffer = new Face3D[FACEBUFFER_SIZE];
+    public Vertex3D[] vertexBuffer = new Vertex3D[VERTEXBUFFER_SIZE];
+    public Vertex3D[] vertexBufferT = new Vertex3D[VERTEXBUFFER_SIZE];
 
-    public static SortList[] drawList = new SortList[FACEBUFFER_SIZE];
+    public SortList[] drawList = new SortList[FACEBUFFER_SIZE];
 
-    public static int vertexCount = 0;
-    public static int faceCount = 0;
-    public static int projectionX = 136;
-    public static int projectionY = 160;
-    public static int fogColor = 0;
-    public static int fogStrength = 0;
-    public static int[] matWorld = new int[16];
-    public static int[] matView = new int[16];
-    public static int[] matFinal = new int[16];
-    public static int[] matTemp = new int[16];
+    public int vertexCount = 0;
+    public int faceCount = 0;
+    public int projectionX = 136;
+    public int projectionY = 160;
+    public int fogColor = 0;
+    public int fogStrength = 0;
+    public int[] matWorld = new int[16];
+    public int[] matView = new int[16];
+    public int[] matFinal = new int[16];
+    public int[] matTemp = new int[16];
 
-    public static SortListComparer listComparer = new SortListComparer();
+    public readonly SortListComparer listComparer = new SortListComparer();
 
-    public static void SetIdentityMatrix(ref int[] m)
+    private Animation Animation;
+    private Drawing Drawing;
+    private Script Script;
+
+    public Scene3D()
+    {
+    }
+
+    public void Initialize(Engine engine)
+    {
+        Animation = engine.Animation;
+        Drawing = engine.Drawing;
+        Script = engine.Script;
+    }
+
+    public void SetIdentityMatrix(ref int[] m)
     {
         m[0] = 0x100;
         m[1] = 0;
@@ -54,7 +69,7 @@ public class Scene3D
     }
 
 
-    public static void MatrixMultiply(ref int[] a, ref int[] b)
+    public void MatrixMultiply(ref int[] a, ref int[] b)
     {
         int[] output = new int[16];
 
@@ -70,7 +85,7 @@ public class Scene3D
             a[i] = output[i];
     }
 
-    public static void MatrixTranslateXYZ(ref int[] m, int xPos, int yPos, int zPos)
+    public void MatrixTranslateXYZ(ref int[] m, int xPos, int yPos, int zPos)
     {
         m[0] = 256;
         m[1] = 0;
@@ -93,7 +108,7 @@ public class Scene3D
         m[15] = 256;
     }
 
-    public static void MatrixScaleXYZ(ref int[] m, int xScale, int yScale, int zScale)
+    public void MatrixScaleXYZ(ref int[] m, int xScale, int yScale, int zScale)
     {
         m[0] = xScale;
         m[1] = 0;
@@ -116,7 +131,7 @@ public class Scene3D
         m[15] = 256;
     }
 
-    public static void MatrixRotateX(ref int[] m, int angle)
+    public void MatrixRotateX(ref int[] m, int angle)
     {
         angle &= 511;
         int sin = sinVal512[angle] >> 1;
@@ -143,7 +158,7 @@ public class Scene3D
         m[15] = 256;
     }
 
-    public static void MatrixRotateY(ref int[] m, int angle)
+    public void MatrixRotateY(ref int[] m, int angle)
     {
         angle &= 511;
         int sin = sinVal512[angle] >> 1;
@@ -170,7 +185,7 @@ public class Scene3D
         m[15] = 256;
     }
 
-    public static void MatrixRotateZ(ref int[] m, int angle)
+    public void MatrixRotateZ(ref int[] m, int angle)
     {
         angle &= 511;
         int sin = sinVal512[angle] >> 1;
@@ -197,7 +212,7 @@ public class Scene3D
         m[15] = 256;
     }
 
-    public static void MatrixRotateXYZ(ref int[] m, int angleX, int angleY, int angleZ)
+    public void MatrixRotateXYZ(ref int[] m, int angleX, int angleY, int angleZ)
     {
         angleX &= 511;
         angleY &= 511;
@@ -231,7 +246,7 @@ public class Scene3D
         m[15] = 256;
     }
 
-    public static void MatrixInverse(ref int[] matrix)
+    public void MatrixInverse(ref int[] matrix)
     {
         var m = new Matrix(matrix[0] / 256.0f, matrix[1] / 256.0f, matrix[2] / 256.0f, matrix[3] / 256.0f,
                            matrix[4] / 256.0f, matrix[5] / 256.0f, matrix[6] / 256.0f, matrix[7] / 256.0f,
@@ -261,7 +276,7 @@ public class Scene3D
         matrix[15] = (int)(inv.M44 * 256);
     }
 
-    public static void TransformVertexBuffer()
+    public void TransformVertexBuffer()
     {
         int index1 = 0;
         int index2 = 0;
@@ -284,7 +299,7 @@ public class Scene3D
         }
     }
 
-    public static void TransformVertices(ref int[] m, int startIndex, int endIndex)
+    public void TransformVertices(ref int[] m, int startIndex, int endIndex)
     {
         var vertex3D1 = new Vertex3D();
         for (int v = startIndex; v < endIndex; ++v)
@@ -299,7 +314,7 @@ public class Scene3D
         }
     }
 
-    public static void Sort3DDrawList()
+    public void Sort3DDrawList()
     {
         for (int index = 0; index < faceCount; ++index)
         {
@@ -327,10 +342,10 @@ public class Scene3D
         Array.Sort(drawList, 0, faceCount, listComparer);
     }
 
-    public static void Draw3DScene(int surfaceNum)
+    public void Draw3DScene(int surfaceNum)
     {
-        int projectionX = Scene3D.projectionX;
-        int projectionY = Scene3D.projectionY;
+        int projectionX = this.projectionX;
+        int projectionY = this.projectionY;
 
         Quad2D face = new Quad2D();
         for (int index = 0; index < faceCount; ++index)
@@ -369,7 +384,7 @@ public class Scene3D
                         face.vertex[2].v = c.v;
                         face.vertex[3].u = d.u;
                         face.vertex[3].v = d.v;
-                        DrawTexturedQuad(face, surfaceNum);
+                        Drawing.DrawTexturedQuad(face, surfaceNum);
                         break;
                     }
                     break;
@@ -390,7 +405,7 @@ public class Scene3D
                     face.vertex[2].v = c.v;
                     face.vertex[3].u = d.u;
                     face.vertex[3].v = d.v;
-                    DrawTexturedQuad(face, surfaceNum);
+                    Drawing.DrawTexturedQuad(face, surfaceNum);
                     break;
                 case FACE_FLAG.COLOURED_3D:
                     if (a.z > 0 && b.z > 0 && c.z > 0 && d.z > 0)
@@ -403,7 +418,7 @@ public class Scene3D
                         face.vertex[2].y = SCREEN_CENTERY - projectionY * c.y / c.z;
                         face.vertex[3].x = SCREEN_CENTERX + projectionX * d.x / d.z;
                         face.vertex[3].y = SCREEN_CENTERY - projectionY * d.y / d.z;
-                        DrawQuad(face, face3D.color);
+                        Drawing.DrawQuad(face, face3D.color);
                         break;
                     }
                     break;
@@ -416,7 +431,7 @@ public class Scene3D
                     face.vertex[2].y = c.y;
                     face.vertex[3].x = d.x;
                     face.vertex[3].y = d.y;
-                    DrawQuad(face, face3D.color);
+                    Drawing.DrawQuad(face, face3D.color);
                     break;
                 case FACE_FLAG.FADED:
                     if (a.z > 0 && b.z > 0 && c.z > 0 && d.z > 0)
@@ -436,7 +451,7 @@ public class Scene3D
                         if (fogStr > fogStrength)
                             fogStr = fogStrength;
 
-                        DrawFadedQuad(face, (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
+                        Drawing.DrawFadedQuad(face, (uint)face3D.color, (uint)fogColor, 0xFF - fogStr);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C:
@@ -465,7 +480,7 @@ public class Scene3D
                         face.vertex[3].u = a.u + c.u;
                         face.vertex[3].v = a.v + c.v;
 
-                        DrawTexturedQuad(face, surfaceNum);
+                        Drawing.DrawTexturedQuad(face, surfaceNum);
                     }
                     break;
                 case FACE_FLAG.TEXTURED_C_BLEND:
@@ -491,7 +506,7 @@ public class Scene3D
                         face.vertex[3].u = a.u + c.u;
                         face.vertex[3].v = a.v + c.v;
 
-                        DrawTexturedBlendedQuad(face, surfaceNum);
+                        Drawing.DrawTexturedBlendedQuad(face, surfaceNum);
                     }
                     break;
                 case FACE_FLAG.SPRITE_3D:
@@ -506,16 +521,16 @@ public class Scene3D
                         switch (a.v)
                         {
                             case FX.SCALE:
-                                DrawScaledSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, c.u,
+                                Drawing.DrawScaledSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, c.u,
                                                  c.u, frame.width, frame.height, frame.spriteX, frame.spriteY,
                                                  scriptInfo.spriteSheetId);
                                 break;
                             case FX.ROTATE:
-                                DrawRotatedSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
+                                Drawing.DrawRotatedSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
                                                   frame.width, frame.height, c.v, scriptInfo.spriteSheetId);
                                 break;
                             case FX.ROTOZOOM:
-                                DrawRotoZoomSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
+                                Drawing.DrawRotoZoomSprite((byte)b.v, xpos, ypos, -frame.pivotX, -frame.pivotY, frame.spriteX, frame.spriteY,
                                                    frame.width, frame.height, c.v, c.u,
                                                    scriptInfo.spriteSheetId);
                                 break;

@@ -59,28 +59,28 @@ public class PauseMenu : NativeEntity
 #if !RETRO_USE_ORIGINAL_CODE
         int heading = -1, labelTex = -1, textTex = -1;
 
-        if (fontList[FONT.HEADING].count <= 2)
+        if (Font.fontList[FONT.HEADING].count <= 2)
         {
             if (Engine.useHighResAssets)
-                heading = LoadTexture("Data/Game/Menu/Heading_EN.png", TEXFMT.RGBA4444);
+                heading = Renderer.LoadTexture("Data/Game/Menu/Heading_EN.png", TEXFMT.RGBA4444);
             else
-                heading = LoadTexture("Data/Game/Menu/Heading_EN@1x.png", TEXFMT.RGBA4444);
-            LoadBitmapFont("Data/Game/Menu/Heading_EN.fnt", FONT.HEADING, heading);
+                heading = Renderer.LoadTexture("Data/Game/Menu/Heading_EN@1x.png", TEXFMT.RGBA4444);
+            Font.LoadBitmapFont("Data/Game/Menu/Heading_EN.fnt", FONT.HEADING, heading);
         }
 
-        if (fontList[FONT.LABEL].count <= 2)
+        if (Font.fontList[FONT.LABEL].count <= 2)
         {
             if (Engine.useHighResAssets)
-                labelTex = LoadTexture("Data/Game/Menu/Label_EN.png", TEXFMT.RGBA4444);
+                labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_EN.png", TEXFMT.RGBA4444);
             else
-                labelTex = LoadTexture("Data/Game/Menu/Label_EN@1x.png", TEXFMT.RGBA4444);
-            LoadBitmapFont("Data/Game/Menu/Label_EN.fnt", FONT.LABEL, labelTex);
+                labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_EN@1x.png", TEXFMT.RGBA4444);
+            Font.LoadBitmapFont("Data/Game/Menu/Label_EN.fnt", FONT.LABEL, labelTex);
         }
 
-        if (fontList[FONT.TEXT].count <= 2)
+        if (Font.fontList[FONT.TEXT].count <= 2)
         {
-            textTex = LoadTexture("Data/Game/Menu/Text_EN.png", TEXFMT.RGBA4444);
-            LoadBitmapFont("Data/Game/Menu/Text_EN.fnt", FONT.TEXT, textTex);
+            textTex = Renderer.LoadTexture("Data/Game/Menu/Text_EN.png", TEXFMT.RGBA4444);
+            Font.LoadBitmapFont("Data/Game/Menu/Text_EN.fnt", FONT.TEXT, textTex);
         }
 
         switch (Engine.language)
@@ -88,95 +88,95 @@ public class PauseMenu : NativeEntity
             case LANGUAGE.JP:
                 if (heading >= 0)
                 {
-                    heading = LoadTexture("Data/Game/Menu/Heading_JA@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Heading_JA.fnt", FONT.HEADING, heading);
+                    heading = Renderer.LoadTexture("Data/Game/Menu/Heading_JA@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Heading_JA.fnt", FONT.HEADING, heading);
                 }
 
                 if (labelTex >= 0)
                 {
-                    labelTex = LoadTexture("Data/Game/Menu/Label_JA@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Label_JA.fnt", FONT.LABEL, labelTex);
+                    labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_JA@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Label_JA.fnt", FONT.LABEL, labelTex);
                 }
 
                 if (textTex >= 0)
                 {
-                    textTex = LoadTexture("Data/Game/Menu/Text_JA@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Text_JA.fnt", FONT.TEXT, textTex);
+                    textTex = Renderer.LoadTexture("Data/Game/Menu/Text_JA@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Text_JA.fnt", FONT.TEXT, textTex);
                 }
                 break;
             case LANGUAGE.RU:
                 if (heading >= 0)
                 {
                     if (Engine.useHighResAssets)
-                        heading = LoadTexture("Data/Game/Menu/Heading_RU.png", TEXFMT.RGBA4444);
+                        heading = Renderer.LoadTexture("Data/Game/Menu/Heading_RU.png", TEXFMT.RGBA4444);
                     else
-                        heading = LoadTexture("Data/Game/Menu/Heading_RU@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Heading_RU.fnt", FONT.HEADING, heading);
+                        heading = Renderer.LoadTexture("Data/Game/Menu/Heading_RU@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Heading_RU.fnt", FONT.HEADING, heading);
                 }
 
                 if (labelTex >= 0)
                 {
                     if (Engine.useHighResAssets)
-                        labelTex = LoadTexture("Data/Game/Menu/Label_RU.png", TEXFMT.RGBA4444);
+                        labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_RU.png", TEXFMT.RGBA4444);
                     else
-                        labelTex = LoadTexture("Data/Game/Menu/Label_RU@1x.png", TEXFMT.RGBA4444);
+                        labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_RU@1x.png", TEXFMT.RGBA4444);
                 }
                 break;
             case LANGUAGE.KO:
                 if (heading >= 0)
                 {
-                    heading = LoadTexture("Data/Game/Menu/Heading_KO@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Heading_KO.fnt", FONT.HEADING, heading);
+                    heading = Renderer.LoadTexture("Data/Game/Menu/Heading_KO@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Heading_KO.fnt", FONT.HEADING, heading);
                 }
 
                 if (labelTex >= 0)
                 {
-                    labelTex = LoadTexture("Data/Game/Menu/Label_KO@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Label_KO.fnt", FONT.LABEL, labelTex);
+                    labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_KO@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Label_KO.fnt", FONT.LABEL, labelTex);
                 }
 
                 if (textTex >= 0)
                 {
-                    textTex = LoadTexture("Data/Game/Menu/Text_KO.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Text_KO.fnt", FONT.TEXT, textTex);
+                    textTex = Renderer.LoadTexture("Data/Game/Menu/Text_KO.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Text_KO.fnt", FONT.TEXT, textTex);
                 }
                 break;
             case LANGUAGE.ZH:
                 if (heading >= 0)
                 {
-                    heading = LoadTexture("Data/Game/Menu/Heading_ZH@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Heading_ZH.fnt", FONT.HEADING, heading);
+                    heading = Renderer.LoadTexture("Data/Game/Menu/Heading_ZH@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Heading_ZH.fnt", FONT.HEADING, heading);
                 }
 
                 if (labelTex >= 0)
                 {
-                    labelTex = LoadTexture("Data/Game/Menu/Label_ZH@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Label_ZH.fnt", FONT.LABEL, labelTex);
+                    labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_ZH@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Label_ZH.fnt", FONT.LABEL, labelTex);
                 }
 
                 if (textTex >= 0)
                 {
-                    textTex = LoadTexture("Data/Game/Menu/Text_ZH@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Text_ZH.fnt", FONT.TEXT, textTex);
+                    textTex = Renderer.LoadTexture("Data/Game/Menu/Text_ZH@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Text_ZH.fnt", FONT.TEXT, textTex);
                 }
                 break;
             case LANGUAGE.ZS:
                 if (heading >= 0)
                 {
-                    heading = LoadTexture("Data/Game/Menu/Heading_ZHS@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Heading_ZHS.fnt", FONT.HEADING, heading);
+                    heading = Renderer.LoadTexture("Data/Game/Menu/Heading_ZHS@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Heading_ZHS.fnt", FONT.HEADING, heading);
                 }
 
                 if (labelTex >= 0)
                 {
-                    labelTex = LoadTexture("Data/Game/Menu/Label_ZHS@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Label_ZHS.fnt", FONT.LABEL, labelTex);
+                    labelTex = Renderer.LoadTexture("Data/Game/Menu/Label_ZHS@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Label_ZHS.fnt", FONT.LABEL, labelTex);
                 }
 
                 if (textTex >= 0)
                 {
-                    textTex = LoadTexture("Data/Game/Menu/Text_ZHS@1x.png", TEXFMT.RGBA4444);
-                    LoadBitmapFont("Data/Game/Menu/Text_ZHS.fnt", FONT.TEXT, textTex);
+                    textTex = Renderer.LoadTexture("Data/Game/Menu/Text_ZHS@1x.png", TEXFMT.RGBA4444);
+                    Font.LoadBitmapFont("Data/Game/Menu/Text_ZHS.fnt", FONT.TEXT, textTex);
                 }
                 break;
             default: break;
@@ -193,14 +193,14 @@ public class PauseMenu : NativeEntity
         this.label.scale = 0.2f;
         this.label.alpha = 0;
         this.label.fontId = FONT.HEADING;
-        this.label.text = GetCharactersForString(Strings.strPause, FONT.HEADING);
+        this.label.text = Font.GetCharactersForString(Strings.strPause, FONT.HEADING);
         this.label.alignOffset = 512.0f;
         this.renderRot = MathHelper.ToRadians(22.5f);
         this.label.renderMatrix = Helpers.CreateRotationY(MathHelper.ToRadians(22.5f))
             * Matrix.CreateTranslation(-128.0f, 80.0f, 160.0f);
         this.label.useRenderMatrix = true;
 
-        this.buttonX = ((SCREEN_CENTERX_F + -160.0f) * -0.5f) + -128.0f;
+        this.buttonX = ((Renderer.SCREEN_CENTERX_F + -160.0f) * -0.5f) + -128.0f;
         for (int i = 0; i < pauseMenuButtonCount; ++i)
         {
             SubMenuButton button = Objects.CreateNativeObject(() => new SubMenuButton());
@@ -222,26 +222,26 @@ public class PauseMenu : NativeEntity
             this.buttons[PMB.RESTART].g = 0x80;
             this.buttons[PMB.RESTART].b = 0x80;
         }
-        this.buttons[PMB.CONTINUE].text = GetCharactersForString(Strings.strContinue, FONT.LABEL);
-        this.buttons[PMB.RESTART].text = GetCharactersForString(Strings.strRestart, FONT.LABEL);
-        this.buttons[PMB.SETTINGS].text = GetCharactersForString(Strings.strSettings, FONT.LABEL);
-        this.buttons[PMB.EXIT].text = GetCharactersForString(Strings.strExit, FONT.LABEL);
+        this.buttons[PMB.CONTINUE].text = Font.GetCharactersForString(Strings.strContinue, FONT.LABEL);
+        this.buttons[PMB.RESTART].text = Font.GetCharactersForString(Strings.strRestart, FONT.LABEL);
+        this.buttons[PMB.SETTINGS].text = Font.GetCharactersForString(Strings.strSettings, FONT.LABEL);
+        this.buttons[PMB.EXIT].text = Font.GetCharactersForString(Strings.strExit, FONT.LABEL);
         if (pauseMenuButtonCount == 5)
-            this.buttons[PMB.DEVMENU].text = GetCharactersForString(Strings.strDevMenu, FONT.LABEL);
-        this.textureCircle = LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
+            this.buttons[PMB.DEVMENU].text = Font.GetCharactersForString(Strings.strDevMenu, FONT.LABEL);
+        this.textureCircle = Renderer.LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
         this.rotationY = 0.0f;
         this.rotYOff = MathHelper.ToRadians(-16.0f);
         this.matrixX = 0.0f;
         this.matrixY = 0.0f;
         this.matrixZ = 160.0f;
-        this.width = (1.75f * SCREEN_CENTERX_F) - ((SCREEN_CENTERX_F - 160) * 2);
+        this.width = (1.75f * Renderer.SCREEN_CENTERX_F) - ((Renderer.SCREEN_CENTERX_F - 160) * 2);
         if (Engine.deviceType == DEVICE.MOBILE)
-            this.textureDPad = LoadTexture("Data/Game/Menu/VirtualDPad.png", TEXFMT.RGBA8888);
+            this.textureDPad = Renderer.LoadTexture("Data/Game/Menu/VirtualDPad.png", TEXFMT.RGBA8888);
         this.dpadY = 104.0f;
         this.state = STATE.ENTER;
         this.miniPauseDisabled = true;
-        this.dpadX = SCREEN_CENTERX_F - 76.0f;
-        this.dpadXSpecial = SCREEN_CENTERX_F - 52.0f;
+        this.dpadX = Renderer.SCREEN_CENTERX_F - 76.0f;
+        this.dpadXSpecial = Renderer.SCREEN_CENTERX_F - 52.0f;
     }
 
     public override void Main()
@@ -375,13 +375,13 @@ public class PauseMenu : NativeEntity
                     if (this.timer > 0.9)
                     {
                         //mixFiltersOnJekyll = true;
-                        RenderRetroBuffer(64, 160.0f);
+                        Renderer.RenderRetroBuffer(64, 160.0f);
                         if (Engine.deviceType == DEVICE.MOBILE)
                         {
                             if (Scene.activeStageList == STAGELIST.SPECIAL)
-                                RenderImage(this.dpadXSpecial, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
+                                Renderer.RenderImage(this.dpadXSpecial, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
                             else
-                                RenderImage(this.dpadX, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
+                                Renderer.RenderImage(this.dpadX, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
                         }
                         this.timer = 0.0f;
                         Objects.ClearNativeObjects();
@@ -407,7 +407,7 @@ public class PauseMenu : NativeEntity
                             case PMB.RESTART:
                                 this.dialog = Objects.CreateNativeObject(() => new DialogPanel());
                                 this.dialog.text =
-                                    GetCharactersForString(Engine.GetGlobalVariableByName("options.gameMode") != 0 ? Strings.strRestartMessage : Strings.strNSRestartMessage, FONT.TEXT);
+                                    Font.GetCharactersForString(Engine.GetGlobalVariableByName("options.gameMode") != 0 ? Strings.strRestartMessage : Strings.strNSRestartMessage, FONT.TEXT);
                                 this.state = STATE.RESTART;
                                 break;
                             case PMB.SETTINGS:
@@ -424,7 +424,7 @@ public class PauseMenu : NativeEntity
                             case PMB.EXIT:
                                 this.dialog = Objects.CreateNativeObject(() => new DialogPanel());
                                 this.dialog.text =
-                                    GetCharactersForString(Engine.GetGlobalVariableByName("options.gameMode") != 0 ? Strings.strExitMessage : Strings.strNSExitMessage, FONT.TEXT);
+                                    Font.GetCharactersForString(Engine.GetGlobalVariableByName("options.gameMode") != 0 ? Strings.strExitMessage : Strings.strNSExitMessage, FONT.TEXT);
                                 this.state = STATE.EXIT;
                                 if (Engine.gameType == GAME.SONIC1)
                                     Engine.SetGlobalVariableByName("timeAttack.result", 1000000);
@@ -605,25 +605,25 @@ public class PauseMenu : NativeEntity
             default: break;
         }
 
-        SetRenderBlendMode(RENDER_BLEND.NONE);
-        NewRenderState();
+        Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
+        Renderer.NewRenderState();
 
         this.matrix = Helpers.CreateRotationY(this.rotationY)
             * Matrix.CreateTranslation(this.matrixX, this.matrixY, this.matrixZ);
 
-        SetRenderMatrix(this.matrix);
-        RenderRect(-SCREEN_CENTERX_F - 4.0f, SCREEN_CENTERY_F + 4.0f, 0.0f, SCREEN_XSIZE_F + 8.0f, SCREEN_YSIZE_F + 8.0f, 0, 0, 0, 255);
-        RenderRetroBuffer(64, 0.0f);
-        NewRenderState();
-        SetRenderMatrix(null);
+        Renderer.SetRenderMatrix(this.matrix);
+        Renderer.RenderRect(-SCREEN_CENTERX_F - 4.0f, SCREEN_CENTERY_F + 4.0f, 0.0f, SCREEN_XSIZE_F + 8.0f, SCREEN_YSIZE_F + 8.0f, 0, 0, 0, 255);
+        Renderer.RenderRetroBuffer(64, 0.0f);
+        Renderer.NewRenderState();
+        Renderer.SetRenderMatrix(null);
         if (Engine.deviceType == DEVICE.MOBILE && this.state != STATE.SUBMENU)
         {
             if (Scene.activeStageList == STAGELIST.SPECIAL)
-                RenderImage(this.dpadXSpecial, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
+                Renderer.RenderImage(this.dpadXSpecial, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
             else
-                RenderImage(this.dpadX, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
+                Renderer.RenderImage(this.dpadX, this.dpadY, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 160.0f, 258.0f, 255, this.textureDPad);
         }
-        SetRenderBlendMode(RENDER_BLEND.ALPHA);
-        NewRenderState();
+        Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+        Renderer.NewRenderState();
     }
 }

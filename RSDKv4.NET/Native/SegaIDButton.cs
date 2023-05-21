@@ -24,27 +24,27 @@ public class SegaIDButton : NativeEntity
     {
         this.z = 160.0f;
         this.state = STATE.IDLE;
-        this.textureID = LoadTexture("Data/Game/Menu/SegaID.png", TEXFMT.RGBA8888);
+        this.textureID = Renderer.LoadTexture("Data/Game/Menu/SegaID.png", TEXFMT.RGBA8888);
     }
 
     public override void Main()
     {
         if (this.useRenderMatrix)
-            SetRenderMatrix(this.renderMatrix);
-        SetRenderBlendMode(RENDER_BLEND.ALPHA);
+            Renderer.SetRenderMatrix(this.renderMatrix);
+        Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
 
         switch (this.state)
         {
             case STATE.IDLE:
-                RenderImage(this.x, this.y, this.z, 0.25f, 0.25f, 64.0f, 64.0f, 128.0f, 128.0f, this.texX, 0.0f, this.alpha, this.textureID);
+                Renderer.RenderImage(this.x, this.y, this.z, 0.25f, 0.25f, 64.0f, 64.0f, 128.0f, 128.0f, this.texX, 0.0f, this.alpha, this.textureID);
                 break;
             case STATE.PRESSED:
-                RenderImage(this.x, this.y, this.z, 0.3f, 0.3f, 64.0f, 64.0f, 128.0f, 128.0f, this.texX, 0.0f, this.alpha, this.textureID);
+                Renderer.RenderImage(this.x, this.y, this.z, 0.3f, 0.3f, 64.0f, 64.0f, 128.0f, 128.0f, this.texX, 0.0f, this.alpha, this.textureID);
                 break;
         }
-        SetRenderVertexColor(0xFF, 0xFF, 0xFF);
-        NewRenderState();
+        Renderer.SetRenderVertexColor(0xFF, 0xFF, 0xFF);
+        Renderer.NewRenderState();
         if (this.useRenderMatrix)
-            SetRenderMatrix(null);
+            Renderer.SetRenderMatrix(null);
     }
 }

@@ -30,19 +30,19 @@ public class MenuBG : NativeEntity
     public override void Create()
     {
         this.animator = new MeshAnimator();
-        this.textureID = LoadTexture("Data/Game/Menu/BG1.png", TEXFMT.RGBA5551);
-        this.bgCircle1 = LoadMesh("Data/Game/Models/BGCircle1.bin", -1);
-        this.bgCircle2 = LoadMesh("Data/Game/Models/BGCircle2.bin", -1);
-        this.bgLines = LoadMesh("Data/Game/Models/BGLines.bin", -1);
-        SetMeshAnimation(this.bgLines, this.animator, 0, 40, 0.0f);
+        this.textureID = Renderer.LoadTexture("Data/Game/Menu/BG1.png", TEXFMT.RGBA5551);
+        this.bgCircle1 = Renderer.LoadMesh("Data/Game/Models/BGCircle1.bin", -1);
+        this.bgCircle2 = Renderer.LoadMesh("Data/Game/Models/BGCircle2.bin", -1);
+        this.bgLines = Renderer.LoadMesh("Data/Game/Models/BGLines.bin", -1);
+        Renderer.SetMeshAnimation(this.bgLines, this.animator, 0, 40, 0.0f);
         this.animator.loopAnimation = true;
         this.fadeR = 0xA0;
         this.fadeG = 0xC0;
         this.fadeB = 0xF8;
         this.isFading = true;
-        SetMeshVertexColors(this.bgCircle1, 0xE0, 0xD0, 0xC0, 0xFF);
-        SetMeshVertexColors(this.bgCircle2, 0xE0, 0xD0, 0xC0, 0xFF);
-        SetMeshVertexColors(this.bgLines, 0xE0, 0, 0, 0xFF);
+        Renderer.SetMeshVertexColors(this.bgCircle1, 0xE0, 0xD0, 0xC0, 0xFF);
+        Renderer.SetMeshVertexColors(this.bgCircle2, 0xE0, 0xD0, 0xC0, 0xFF);
+        Renderer.SetMeshVertexColors(this.bgLines, 0xE0, 0, 0, 0xFF);
         this.Ztrans1 = -32.0f;
         this.Ztrans2 = -64.0f;
         this.ZtransRender = -128.0f;
@@ -52,7 +52,7 @@ public class MenuBG : NativeEntity
     {
         if (this.isFading)
         {
-            SetRenderBlendMode(RENDER_BLEND.NONE);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
             this.fadeTimer += Engine.deltaTime;
             if (this.fadeTimer > 1.5)
                 this.isFading = false;
@@ -72,69 +72,69 @@ public class MenuBG : NativeEntity
             this.Ztrans1 = ((160.0f - this.Ztrans1) / (16.0f * Engine.deltaTime * 60.0f)) + this.Ztrans1;
             this.Ztrans2 = ((160.0f - this.Ztrans2) / (18.0f * Engine.deltaTime * 60.0f)) + this.Ztrans2;
             this.ZtransRender = ((160.0f - this.ZtransRender) / (Engine.deltaTime * 60.0f * 20.0f)) + this.ZtransRender;
-            RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB, 255);
-            SetRenderBlendMode(RENDER_BLEND.ALPHA);
-            SetRenderVertexColor(224, 208, 192);
-            RenderImage(-64.0f, 0.0f, 160.0f, 0.45f, 0.45f, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, this.alpha, this.textureID);
-            SetRenderVertexColor(255, 255, 255);
-            SetRenderBlendMode(RENDER_BLEND.NONE);
+            Renderer.RenderRect(-Renderer.SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, Renderer.SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB, 255);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+            Renderer.SetRenderVertexColor(224, 208, 192);
+            Renderer.RenderImage(-64.0f, 0.0f, 160.0f, 0.45f, 0.45f, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, this.alpha, this.textureID);
+            Renderer.SetRenderVertexColor(255, 255, 255);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
             this.circle1Rot = this.circle1Rot - Engine.deltaTime;
             if (this.circle1Rot < -MathHelper.TwoPi)
                 this.circle1Rot += MathHelper.TwoPi;
             this.circle2Rot += Engine.deltaTime;
             if (this.circle2Rot > MathHelper.TwoPi)
                 this.circle2Rot -= MathHelper.TwoPi;
-            NewRenderState();
+            Renderer.NewRenderState();
 
             this.circle1 = Matrix.CreateRotationZ(this.circle1Rot) *
                 Matrix.CreateTranslation(120.0f, 94.0f, this.Ztrans1);
 
-            SetRenderMatrix(this.circle1);
-            RenderMesh(this.bgCircle1, MESH.COLOURS, false);
+            Renderer.SetRenderMatrix(this.circle1);
+            Renderer.RenderMesh(this.bgCircle1, MESH.COLOURS, false);
 
             this.circle2 = Matrix.CreateRotationZ(this.circle2Rot) *
                 Matrix.CreateTranslation(4.0f, 150.0f, this.Ztrans2);
 
-            SetRenderMatrix(this.circle2);
-            RenderMesh(this.bgCircle2, MESH.COLOURS, false);
+            Renderer.SetRenderMatrix(this.circle2);
+            Renderer.RenderMesh(this.bgCircle2, MESH.COLOURS, false);
 
             this.renderMatrix = Matrix.CreateTranslation(0.0f, 0.0f, this.ZtransRender);
         }
         else
         {
-            SetRenderBlendMode(RENDER_BLEND.NONE);
-            RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 248, 248, 248, 255);
-            SetRenderBlendMode(RENDER_BLEND.ALPHA);
-            SetRenderVertexColor(0xE0, 0xD0, 0xC0);
-            RenderImage(-64.0f, 0.0f, 160.0f, 0.45f, 0.45f, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureID);
-            SetRenderVertexColor(0xFF, 0xFF, 0xFF);
-            SetRenderBlendMode(RENDER_BLEND.NONE);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
+            Renderer.RenderRect(-Renderer.SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, Renderer.SCREEN_XSIZE_F, SCREEN_YSIZE_F, 248, 248, 248, 255);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+            Renderer.SetRenderVertexColor(0xE0, 0xD0, 0xC0);
+            Renderer.RenderImage(-64.0f, 0.0f, 160.0f, 0.45f, 0.45f, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureID);
+            Renderer.SetRenderVertexColor(0xFF, 0xFF, 0xFF);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
             this.circle1Rot -= Engine.deltaTime;
             if (this.circle1Rot < -MathHelper.TwoPi)
                 this.circle1Rot += MathHelper.TwoPi;
             this.circle2Rot += Engine.deltaTime;
             if (this.circle2Rot > MathHelper.TwoPi)
                 this.circle2Rot -= MathHelper.TwoPi;
-            NewRenderState();
+            Renderer.NewRenderState();
 
             this.circle1 = Matrix.CreateRotationZ(this.circle1Rot) *
                 Matrix.CreateTranslation(120.0f, 94.0f, 160.0f);
 
-            SetRenderMatrix(this.circle1);
-            RenderMesh(this.bgCircle1, MESH.COLOURS, false);
+            Renderer.SetRenderMatrix(this.circle1);
+            Renderer.RenderMesh(this.bgCircle1, MESH.COLOURS, false);
 
             this.circle2 = Matrix.CreateRotationZ(this.circle2Rot) *
                 Matrix.CreateTranslation(4.0f, 150.0f, 160.0f);
 
-            SetRenderMatrix(this.circle2);
-            RenderMesh(this.bgCircle2, MESH.COLOURS, false);
+            Renderer.SetRenderMatrix(this.circle2);
+            Renderer.RenderMesh(this.bgCircle2, MESH.COLOURS, false);
 
             this.renderMatrix = Matrix.CreateTranslation(0.0f, 0.0f, 160.0f);
         }
-        SetRenderMatrix(this.renderMatrix);
+        Renderer.SetRenderMatrix(this.renderMatrix);
         this.animator.animationSpeed = 8.0f * Engine.deltaTime;
-        AnimateMesh(this.bgLines, this.animator);
-        RenderMesh(this.bgLines, MESH.COLOURS, false);
-        SetRenderMatrix(null);
+        Renderer.AnimateMesh(this.bgLines, this.animator);
+        Renderer.RenderMesh(this.bgLines, MESH.COLOURS, false);
+        Renderer.SetRenderMatrix(null);
     }
 }

@@ -15,37 +15,40 @@ namespace RSDKv4;
 public class Audio
 {
     public const int TRACK_COUNT = 0x10;
-    public static TrackInfo[] musicTracks = new TrackInfo[TRACK_COUNT];
-    public static int currentTrack;
+    public TrackInfo[] musicTracks = new TrackInfo[TRACK_COUNT];
+    public int currentTrack;
 
     public const int SFX_COUNT = 0x100;
-    public static SfxInfo[] soundEffects = new SfxInfo[SFX_COUNT];
-    public static byte stageSfxCount;
+    public SfxInfo[] soundEffects = new SfxInfo[SFX_COUNT];
+    public byte stageSfxCount;
 
     public const int SFX_CHANNELS = 0x10;
-    public static SfxChannel[] soundChannels = new SfxChannel[SFX_CHANNELS];
-    public static int currentChannel = 0;
+    public SfxChannel[] soundChannels = new SfxChannel[SFX_CHANNELS];
+    public int currentChannel = 0;
 
-    public static int sfxVolume = 50;
-    public static int bgmVolume = 100;
-    public static int masterVolume = 100;
-    public static int trackId = -1;
-    public static int musicPosition = 0;
-    public static int musicRatio = 0;
-    public static int musicStartPos = 0;
+    public int sfxVolume = 50;
+    public int bgmVolume = 100;
+    public int masterVolume = 100;
+    public int trackId = -1;
+    public int musicPosition = 0;
+    public int musicRatio = 0;
+    public int musicStartPos = 0;
 
-    public static int musicStatus;
+    public int musicStatus;
 
-    public static StreamInfo[] streams = new StreamInfo[2];
-    public static int currentStream = 0;
+    public StreamInfo[] streams = new StreamInfo[2];
+    public int currentStream = 0;
 
 #if NO_THREADS
-    private static Task musicThread;
+    private Task musicThread;
 #else
-    private static Thread musicThread;
+    private Thread musicThread;
 #endif
 
-    static Audio()
+    private Engine Engine;
+    private FileIO FileIO;
+
+    public Audio()
     {
         for (int i = 0; i < soundChannels.Length; i++)
             soundChannels[i].sfx = -1;
@@ -53,7 +56,13 @@ public class Audio
         Helpers.Memset(streams, () => new StreamInfo());
     }
 
-    public static bool InitAudioPlayback()
+    public void Initialize(Engine engine)
+    {
+        Engine = engine;
+        FileIO = engine.FileIO;
+    }
+
+    public bool InitAudioPlayback()
     {
         for (int i = 0; i < Engine.globalSfxCount; i++)
         {
@@ -73,7 +82,7 @@ public class Audio
         return true; // for now
     }
 
-    public static void LoadSfx(string filePath, byte sfxId)
+    public void LoadSfx(string filePath, byte sfxId)
     {
         Debug.WriteLine("Load SFX ({0}) from {1}", sfxId, filePath);
 
@@ -122,23 +131,23 @@ public class Audio
         }
     }
 
-    public static void StopAllSfx()
+    public void StopAllSfx()
     {
 
     }
 
-    public static void ReleaseStageSfx()
+    public void ReleaseStageSfx()
     {
 
     }
 
-    public static void SetMusicTrack(string filePath, byte trackId, bool loop, uint loopPoint)
+    public void SetMusicTrack(string filePath, byte trackId, bool loop, uint loopPoint)
     {
         var nextTrack = "Data/Music/" + filePath;
         musicTracks[trackId] = new TrackInfo() { name = nextTrack, loop = loop, loopPoint = loopPoint };
     }
 
-    public static void PlayMusic(int track, int musStartPos)
+    public void PlayMusic(int track, int musStartPos)
     {
         if (track < 0 || track >= TRACK_COUNT)
         {
@@ -167,7 +176,7 @@ public class Audio
         }
     }
 
-    public static void SwapMusicTrack(string filePath, byte trackId, uint loopPoint, int ratio)
+    public void SwapMusicTrack(string filePath, byte trackId, uint loopPoint, int ratio)
     {
         if (string.IsNullOrEmpty(filePath))
         {
@@ -184,7 +193,7 @@ public class Audio
         }
     }
 
-    private static void LoadAudio()
+    private void LoadAudio()
     {
         int oldStream = currentStream;
         int newStream = (currentStream + 1) % 2;
@@ -236,19 +245,19 @@ public class Audio
         }
     }
 
-    public static void StopMusic(bool setStatus)
+    public void StopMusic(bool setStatus)
     {
         if (setStatus)
             musicStatus = MUSIC.STOPPED;
         musicPosition = 0;
     }
 
-    public static void StopAllMusic()
+    public void StopAllMusic()
     {
 
     }
 
-    public static void PauseSound()
+    public void PauseSound()
     {
         if (musicStatus == MUSIC.PLAYING)
         {
@@ -256,7 +265,7 @@ public class Audio
         }
     }
 
-    public static void ResumeSound()
+    public void ResumeSound()
     {
         if (musicStatus == MUSIC.PAUSED)
         {
@@ -264,7 +273,7 @@ public class Audio
         }
     }
 
-    private static void MusicThreadLoop()
+    private void MusicThreadLoop()
     {
 #if NO_THREADS
         var wait = new SpinWait();
@@ -362,7 +371,7 @@ public class Audio
         }
     }
 
-    public static void SetGameVolumes(int bgmVol, int sfxVol)
+    public void SetGameVolumes(int bgmVol, int sfxVol)
     {
         bgmVolume = bgmVol;
         sfxVolume = sfxVol;
@@ -378,7 +387,7 @@ public class Audio
             sfxVolume = 100;
     }
 
-    public static void SetMusicVolume(int volume)
+    public void SetMusicVolume(int volume)
     {
         if (volume < 0)
             volume = 0;
@@ -388,12 +397,12 @@ public class Audio
         bgmVolume = volume;
     }
 
-    public static void PlaySfx(int sfx, bool loop)
+    public void PlaySfx(int sfx, bool loop)
     {
         PlaySfxWithAttributes(sfx, sfxVolume, 0, loop);
     }
 
-    public static void StopSfx(int sfx)
+    public void StopSfx(int sfx)
     {
         for (int i = 0; i < soundChannels.Length; i++)
         {
@@ -402,7 +411,7 @@ public class Audio
         }
     }
 
-    public static bool PlaySfxByName(string sfx, bool loopCnt)
+    public bool PlaySfxByName(string sfx, bool loopCnt)
     {
         for (int s = 0; s < Engine.globalSfxCount + stageSfxCount; ++s)
         {
@@ -417,7 +426,7 @@ public class Audio
         return false;
     }
 
-    public static bool StopSFXByName(string sfx)
+    public bool StopSFXByName(string sfx)
     {
         for (int s = 0; s < TRACK_COUNT; ++s)
         {
@@ -430,12 +439,12 @@ public class Audio
         return false;
     }
 
-    public static void SetSfxAttributes(int sfx, int volume, int pan)
+    public void SetSfxAttributes(int sfx, int volume, int pan)
     {
         PlaySfxWithAttributes(sfx, volume, pan, false);
     }
 
-    private static void PlaySfxWithAttributes(int sfx, int volume, int pan, bool loop)
+    private void PlaySfxWithAttributes(int sfx, int volume, int pan, bool loop)
     {
         for (int index = 0; index < SFX_CHANNELS; ++index)
         {
@@ -470,7 +479,7 @@ public class Audio
         currentChannel = 0;
     }
 
-    public static void SetSfxName(string name, int index)
+    public void SetSfxName(string name, int index)
     {
         soundEffects[index].name = name;
         Debug.WriteLine("Set SFX ({0}) name to: {1}", index, name);

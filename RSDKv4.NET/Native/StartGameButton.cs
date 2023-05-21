@@ -11,22 +11,22 @@ public class StartGameButton : MenuButton
 
     public override void Create()
     {
-        this.textureCircle = LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
+        this.textureCircle = Renderer.LoadTexture("Data/Game/Menu/Circle.png", TEXFMT.RGBA4444);
 
         int package = 0;
         switch (Engine.globalBoxRegion)
         {
             case REGION.JP:
-                package = LoadTexture("Data/Game/Models/Package_JP.png", TEXFMT.RGBA5551);
-                this.mesh = LoadMesh("Data/Game/Models/JPCartridge.bin", package);
+                package = Renderer.LoadTexture("Data/Game/Models/Package_JP.png", TEXFMT.RGBA5551);
+                this.mesh = Renderer.LoadMesh("Data/Game/Models/JPCartridge.bin", package);
                 break;
             case REGION.US:
-                package = LoadTexture("Data/Game/Models/Package_US.png", TEXFMT.RGBA5551);
-                this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                package = Renderer.LoadTexture("Data/Game/Models/Package_US.png", TEXFMT.RGBA5551);
+                this.mesh = Renderer.LoadMesh("Data/Game/Models/Cartridge.bin", package);
                 break;
             case REGION.EU:
-                package = LoadTexture("Data/Game/Models/Package_EU.png", TEXFMT.RGBA5551);
-                this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                package = Renderer.LoadTexture("Data/Game/Models/Package_EU.png", TEXFMT.RGBA5551);
+                this.mesh = Renderer.LoadMesh("Data/Game/Models/Cartridge.bin", package);
                 break;
         }
         this.prevRegion = Engine.globalBoxRegion;
@@ -53,16 +53,16 @@ public class StartGameButton : MenuButton
             switch (Engine.globalBoxRegion)
             {
                 case REGION.JP:
-                    package = LoadTexture("Data/Game/Models/Package_JP.png", TEXFMT.RGBA5551);
-                    this.mesh = LoadMesh("Data/Game/Models/JPCartridge.bin", package);
+                    package = Renderer.LoadTexture("Data/Game/Models/Package_JP.png", TEXFMT.RGBA5551);
+                    this.mesh = Renderer.LoadMesh("Data/Game/Models/JPCartridge.bin", package);
                     break;
                 case REGION.US:
-                    package = LoadTexture("Data/Game/Models/Package_US.png", TEXFMT.RGBA5551);
-                    this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                    package = Renderer.LoadTexture("Data/Game/Models/Package_US.png", TEXFMT.RGBA5551);
+                    this.mesh = Renderer.LoadMesh("Data/Game/Models/Cartridge.bin", package);
                     break;
                 case REGION.EU:
-                    package = LoadTexture("Data/Game/Models/Package_EU.png", TEXFMT.RGBA5551);
-                    this.mesh = LoadMesh("Data/Game/Models/Cartridge.bin", package);
+                    package = Renderer.LoadTexture("Data/Game/Models/Package_EU.png", TEXFMT.RGBA5551);
+                    this.mesh = Renderer.LoadMesh("Data/Game/Models/Cartridge.bin", package);
                     break;
             }
             this.prevRegion = Engine.globalBoxRegion;
@@ -76,25 +76,25 @@ public class StartGameButton : MenuButton
                 if (this.scale > 0.2f)
                     this.scale = 0.2f;
             }
-            SetRenderBlendMode(RENDER_BLEND.ALPHA);
-            SetRenderVertexColor(this.r, this.g, this.b);
-            RenderImage(this.x, this.y, this.z, this.scale, this.scale, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureCircle);
-            SetRenderVertexColor(0xFF, 0xFF, 0xFF);
-            SetRenderBlendMode(RENDER_BLEND.NONE);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+            Renderer.SetRenderVertexColor(this.r, this.g, this.b);
+            Renderer.RenderImage(this.x, this.y, this.z, this.scale, this.scale, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureCircle);
+            Renderer.SetRenderVertexColor(0xFF, 0xFF, 0xFF);
+            Renderer.SetRenderBlendMode(RENDER_BLEND.NONE);
 
             this.angle -= Engine.deltaTime;
             if (this.angle < -MathHelper.TwoPi)
                 this.angle += MathHelper.TwoPi;
 
-            NewRenderState();
+            Renderer.NewRenderState();
 
             this.renderMatrix = Matrix.CreateRotationX((float)Math.Sin(this.angle)) *
                 Helpers.CreateRotationY(this.angle) *
                 Matrix.CreateTranslation(this.x, this.y, this.z - 8.0f);
 
-            SetRenderMatrix(this.renderMatrix);
-            RenderMesh(this.mesh, MESH.COLOURS, true);
-            SetRenderMatrix(null);
+            Renderer.SetRenderMatrix(this.renderMatrix);
+            Renderer.RenderMesh(this.mesh, MESH.COLOURS, true);
+            Renderer.SetRenderMatrix(null);
 
             TextLabel label = this.label;
             label.x = this.x;

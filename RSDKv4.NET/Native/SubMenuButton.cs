@@ -47,31 +47,31 @@ public class SubMenuButton : NativeEntity
         this.r = 0xFF;
         this.g = 0xFF;
         this.b = 0xFF;
-        this.textureSymbols = LoadTexture("Data/Game/Menu/Symbols.png", TEXFMT.RGBA4444);
-        this.meshButton = LoadMesh("Data/Game/Models/Button.bin", 255);
-        this.meshButtonH = LoadMesh("Data/Game/Models/ButtonH.bin", 255);
-        SetMeshVertexColors(this.meshButton, 0, 0, 0, 0xC0);
-        SetMeshVertexColors(this.meshButtonH, 0xA0, 0, 0, 0xC0);
+        this.textureSymbols = Renderer.LoadTexture("Data/Game/Menu/Symbols.png", TEXFMT.RGBA4444);
+        this.meshButton = Renderer.LoadMesh("Data/Game/Models/Button.bin", 255);
+        this.meshButtonH = Renderer.LoadMesh("Data/Game/Models/ButtonH.bin", 255);
+        Renderer.SetMeshVertexColors(this.meshButton, 0, 0, 0, 0xC0);
+        Renderer.SetMeshVertexColors(this.meshButtonH, 0xA0, 0, 0, 0xC0);
     }
 
     public override void Main()
     {
         if (this.useMatrix)
         {
-            NewRenderState();
+            Renderer.NewRenderState();
             this.renderMatrix = Matrix.CreateTranslation(this.matX - this.matXOff, this.matY, this.matZ)
                 * this.matrix;
-            SetRenderMatrix(this.renderMatrix);
+            Renderer.SetRenderMatrix(this.renderMatrix);
         }
-        SetRenderVertexColor(this.r, this.g, this.b);
+        Renderer.SetRenderVertexColor(this.r, this.g, this.b);
 
         switch (this.state)
         {
             case STATE.IDLE:
                 {
-                    SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    RenderMesh(this.meshButton, MESH.COLOURS, false);
-                    RenderText(this.text, FONT.LABEL, -80.0f, this.textY, 0, this.scale, this.alpha);
+                    Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                    Renderer.RenderMesh(this.meshButton, MESH.COLOURS, false);
+                    Renderer.RenderText(this.text, FONT.LABEL, -80.0f, this.textY, 0, this.scale, this.alpha);
                     break;
                 }
             case STATE.FLASHING1:
@@ -80,10 +80,10 @@ public class SubMenuButton : NativeEntity
                     if (this.flashTimer > 1.0)
                         this.flashTimer -= 1.0f;
 
-                    SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    RenderMesh(this.meshButton, MESH.COLOURS, false);
+                    Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                    Renderer.RenderMesh(this.meshButton, MESH.COLOURS, false);
                     if (this.flashTimer > 0.5)
-                        RenderText(this.text, FONT.LABEL, -80.0f, this.textY, 0, this.scale, this.alpha);
+                        Renderer.RenderText(this.text, FONT.LABEL, -80.0f, this.textY, 0, this.scale, this.alpha);
                     break;
                 }
             case STATE.FLASHING2:
@@ -91,10 +91,10 @@ public class SubMenuButton : NativeEntity
                     this.flashTimer += Engine.deltaTime;
                     if (this.flashTimer > 0.1)
                         this.flashTimer -= 0.1f;
-                    SetRenderBlendMode(RENDER_BLEND.ALPHA);
-                    RenderMesh(this.meshButton, MESH.COLOURS, false);
+                    Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                    Renderer.RenderMesh(this.meshButton, MESH.COLOURS, false);
                     if (this.flashTimer > 0.05)
-                        RenderText(this.text, FONT.LABEL, -80.0f, this.textY, 0, this.scale, this.alpha);
+                        Renderer.RenderText(this.text, FONT.LABEL, -80.0f, this.textY, 0, this.scale, this.alpha);
 
                     this.afterFlashTimer += Engine.deltaTime;
                     if (this.afterFlashTimer > 0.5f)
@@ -122,22 +122,22 @@ public class SubMenuButton : NativeEntity
                 }
             case STATE.SAVEBUTTON_SELECTED:
                 {
-                    SetRenderBlendMode(RENDER_BLEND.ALPHA);
+                    Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
                     if (this.useMeshH)
-                        RenderMesh(this.meshButtonH, MESH.COLOURS, false);
+                        Renderer.RenderMesh(this.meshButtonH, MESH.COLOURS, false);
                     else
-                        RenderMesh(this.meshButton, MESH.COLOURS, false);
+                        Renderer.RenderMesh(this.meshButton, MESH.COLOURS, false);
                     if (this.flashTimer < 0.05)
-                        RenderText(this.text, FONT.LABEL, -64.0f, this.textY, 0, this.scale, this.alpha);
+                        Renderer.RenderText(this.text, FONT.LABEL, -64.0f, this.textY, 0, this.scale, this.alpha);
 
                     switch (this.symbol)
                     {
-                        case 0: RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 28.0f, 43.0f, 56.0f, 86.0f, 0.0f, 170.0f, 255, this.textureSymbols); break;
-                        case 1: RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 34.0f, 43.0f, 68.0f, 86.0f, 58.0f, 170.0f, 255, this.textureSymbols); break;
-                        case 2: RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 29.0f, 43.0f, 58.0f, 86.0f, 130.0f, 170.0f, 255, this.textureSymbols); break;
+                        case 0: Renderer.RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 28.0f, 43.0f, 56.0f, 86.0f, 0.0f, 170.0f, 255, this.textureSymbols); break;
+                        case 1: Renderer.RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 34.0f, 43.0f, 68.0f, 86.0f, 58.0f, 170.0f, 255, this.textureSymbols); break;
+                        case 2: Renderer.RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 29.0f, 43.0f, 58.0f, 86.0f, 130.0f, 170.0f, 255, this.textureSymbols); break;
                         case 3:
-                            RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 34.0f, 43.0f, 68.0f, 86.0f, 58.0f, 170.0f, 255, this.textureSymbols);
-                            RenderImage(-84.0f, 0.0f, 0.0f, 0.3f, 0.35f, 28.0f, 43.0f, 56.0f, 86.0f, 0.0f, 170.0f, 255, this.textureSymbols);
+                            Renderer.RenderImage(-76.0f, 0.0f, 0.0f, 0.3f, 0.35f, 34.0f, 43.0f, 68.0f, 86.0f, 58.0f, 170.0f, 255, this.textureSymbols);
+                            Renderer.RenderImage(-84.0f, 0.0f, 0.0f, 0.3f, 0.35f, 28.0f, 43.0f, 56.0f, 86.0f, 0.0f, 170.0f, 255, this.textureSymbols);
                             break;
                     }
 
@@ -150,15 +150,15 @@ public class SubMenuButton : NativeEntity
                         if ((this.flags & (1 << i)) != 0)
                         {
                             if (Engine.gameType == GAME.SONIC1)
-                                SetRenderVertexColor((byte)((emeraldColorsS1[i] >> 16) & 0xFF), (byte)((emeraldColorsS1[i] >> 8) & 0xFF), (byte)(emeraldColorsS1[i] & 0xFF));
+                                Renderer.SetRenderVertexColor((byte)((emeraldColorsS1[i] >> 16) & 0xFF), (byte)((emeraldColorsS1[i] >> 8) & 0xFF), (byte)(emeraldColorsS1[i] & 0xFF));
                             else
-                                SetRenderVertexColor((byte)((emeraldColorsS2[i] >> 16) & 0xFF), (byte)((emeraldColorsS2[i] >> 8) & 0xFF), (byte)(emeraldColorsS2[i] & 0xFF));
-                            RenderImage(x, -6.0f, 0.0f, 0.125f, 0.125f, 28.0f, 35.0f, 56.0f, 70.0f, 188.0f, 0.0f, 255, this.textureSymbols);
+                                Renderer.SetRenderVertexColor((byte)((emeraldColorsS2[i] >> 16) & 0xFF), (byte)((emeraldColorsS2[i] >> 8) & 0xFF), (byte)(emeraldColorsS2[i] & 0xFF));
+                            Renderer.RenderImage(x, -6.0f, 0.0f, 0.125f, 0.125f, 28.0f, 35.0f, 56.0f, 70.0f, 188.0f, 0.0f, 255, this.textureSymbols);
                         }
                         else
                         {
-                            SetRenderVertexColor(0xFF, 0xFF, 0xFF);
-                            RenderImage(x, -6.0f, 0.0f, 0.125f, 0.125f, 28.0f, 35.0f, 56.0f, 70.0f, 133.0f, 0.0f, 255, this.textureSymbols);
+                            Renderer.SetRenderVertexColor(0xFF, 0xFF, 0xFF);
+                            Renderer.RenderImage(x, -6.0f, 0.0f, 0.125f, 0.125f, 28.0f, 35.0f, 56.0f, 70.0f, 133.0f, 0.0f, 255, this.textureSymbols);
                         }
 
                         x += 16.0f;
@@ -168,11 +168,11 @@ public class SubMenuButton : NativeEntity
             default: break;
         }
 
-        SetRenderVertexColor(255, 255, 255);
+        Renderer.SetRenderVertexColor(255, 255, 255);
         if (this.useMatrix)
         {
-            NewRenderState();
-            SetRenderMatrix(null);
+            Renderer.NewRenderState();
+            Renderer.SetRenderMatrix(null);
         }
     }
 }

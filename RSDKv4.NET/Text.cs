@@ -7,15 +7,24 @@ public class Text
     public const int TEXTENTRY_COUNT = 0x200;
     public const int TEXTMENU_COUNT = 0x2;
 
-    public static TextMenu[] gameMenu = new TextMenu[TEXTMENU_COUNT];
+    public TextMenu[] gameMenu = new TextMenu[TEXTMENU_COUNT];
 
-    static Text()
+    private Engine Engine;
+    private FileIO FileIO;
+
+    public Text()
     {
         for (int i = 0; i < TEXTMENU_COUNT; i++)
             gameMenu[i] = new TextMenu();
     }
 
-    public static void LoadTextFile(TextMenu menu, string filePath, byte mapCode)
+    public void Initialize(Engine engine)
+    {
+        Engine = engine;
+        FileIO = engine.FileIO;
+    }
+
+    public void LoadTextFile(TextMenu menu, string filePath, byte mapCode)
     {
         if (FileIO.LoadFile(filePath, out var fileInfo))
         {
@@ -48,13 +57,13 @@ public class Text
         }
     }
 
-    public static void SetupTextMenu(TextMenu menu, int rowCount)
+    public void SetupTextMenu(TextMenu menu, int rowCount)
     {
         menu.textDataPos = 0;
         menu.rowCount = (ushort)rowCount;
     }
 
-    public static void AddTextMenuEntry(TextMenu menu, string text)
+    public void AddTextMenuEntry(TextMenu menu, string text)
     {
         menu.entryStart[menu.rowCount] = menu.textDataPos;
         menu.entrySize[menu.rowCount] = 0;
@@ -75,7 +84,7 @@ public class Text
         menu.rowCount++;
     }
 
-    public static void SetTextMenuEntry(TextMenu menu, string text, int rowID)
+    public void SetTextMenuEntry(TextMenu menu, string text, int rowID)
     {
         menu.entryStart[rowID] = menu.textDataPos;
         menu.entrySize[rowID] = 0;
@@ -95,7 +104,7 @@ public class Text
         }
     }
 
-    public static void EditTextMenuEntry(TextMenu menu, string text, int rowID)
+    public void EditTextMenuEntry(TextMenu menu, string text, int rowID)
     {
         int entryPos = menu.entryStart[rowID];
         menu.entrySize[rowID] = 0;
@@ -115,7 +124,7 @@ public class Text
         }
     }
 
-    public static void LoadConfigListText(TextMenu menu, int listNo)
+    public void LoadConfigListText(TextMenu menu, int listNo)
     {
         if (true)
         {

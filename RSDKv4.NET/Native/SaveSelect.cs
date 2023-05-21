@@ -90,7 +90,7 @@ public class SaveSelect : NativeEntity
             int stagePos = saveGame.files[i - 1].stageId;
             if (stagePos >= 0x80)
             {
-                this.saveButtons[i].text = GetCharactersForString(Strings.strSaveStageList[saveGame.files[i - 1].specialStageId + 19], FONT.LABEL);
+                this.saveButtons[i].text = Font.GetCharactersForString(Strings.strSaveStageList[saveGame.files[i - 1].specialStageId + 19], FONT.LABEL);
                 this.saveButtons[i].state = SubMenuButton.STATE.SAVEBUTTON_SELECTED;
                 this.saveButtons[i].textY = 2.0f;
                 this.saveButtons[i].scale = 0.08f;
@@ -99,9 +99,9 @@ public class SaveSelect : NativeEntity
             else if (stagePos > 0)
             {
                 if (stagePos - 1 > 18 && Engine.gameType == GAME.SONIC1)
-                    this.saveButtons[i].text = GetCharactersForString(Strings.strSaveStageList[25], FONT.LABEL);
+                    this.saveButtons[i].text = Font.GetCharactersForString(Strings.strSaveStageList[25], FONT.LABEL);
                 else
-                    this.saveButtons[i].text = GetCharactersForString(Strings.strSaveStageList[stagePos - 1], FONT.LABEL);
+                    this.saveButtons[i].text = Font.GetCharactersForString(Strings.strSaveStageList[stagePos - 1], FONT.LABEL);
                 this.saveButtons[i].state = SubMenuButton.STATE.SAVEBUTTON_SELECTED;
                 this.saveButtons[i].textY = 2.0f;
                 this.saveButtons[i].scale = 0.08f;
@@ -109,7 +109,7 @@ public class SaveSelect : NativeEntity
             }
             else
             {
-                this.saveButtons[i].text = GetCharactersForString(Strings.strNewGame, FONT.LABEL);
+                this.saveButtons[i].text = Font.GetCharactersForString(Strings.strNewGame, FONT.LABEL);
                 this.saveButtons[i].textY = -4.0f;
                 this.saveButtons[i].scale = 0.1f;
             }
@@ -622,7 +622,7 @@ public class SaveSelect : NativeEntity
                     if (this.saveButtons[this.selectedButton].state == SubMenuButton.STATE.SAVEBUTTON_SELECTED)
                     {
                         this.dialog = Objects.CreateNativeObject(() => new DialogPanel());
-                        this.dialog.text = GetCharactersForString(Strings.strDeleteMessage, FONT.TEXT);
+                        this.dialog.text = Font.GetCharactersForString(Strings.strDeleteMessage, FONT.TEXT);
                         this.state = STATE.DIALOGWAIT;
                     }
                     break;
@@ -639,7 +639,7 @@ public class SaveSelect : NativeEntity
                         }
                         this.state = STATE.MAIN;
                         this.menuControl.state = MenuControl.STATE.SUBMENU;
-                        this.saveButtons[this.selectedButton].text = GetCharactersForString(Strings.strNewGame, FONT.LABEL);
+                        this.saveButtons[this.selectedButton].text = Font.GetCharactersForString(Strings.strNewGame, FONT.LABEL);
 
                         this.saveButtons[this.selectedButton].state = SubMenuButton.STATE.IDLE;
                         this.saveButtons[this.selectedButton].textY = -4.0f;

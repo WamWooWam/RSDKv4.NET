@@ -1,50 +1,66 @@
 ﻿using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
-using static RSDKv4.Drawing;
 
 namespace RSDKv4;
 
 public class Palette
 {
-    public static PaletteEntry[] activePalettes
-        = new PaletteEntry[8];
-    public static int activePaletteCount = 0;
+    public PaletteEntry[] activePalettes = new PaletteEntry[8];
+    public int activePaletteCount = 0;
 
-    public static int fadeMode;
-    public static byte fadeA = 0;
-    public static byte fadeR = 0;
-    public static byte fadeG = 0;
-    public static byte fadeB = 0;
+    public int fadeMode;
+    public byte fadeA = 0;
+    public byte fadeR = 0;
+    public byte fadeG = 0;
+    public byte fadeB = 0;
 
-    public static bool paletteDirty = true;
+    public bool paletteDirty = true;
 
-    public static void SetPaletteEntry(byte paletteIndex, byte index, byte r, byte g, byte b)
+    private Drawing Drawing;
+    private FileIO FileIO;
+
+    public void Initialize(Engine engine)
+    {
+        FileIO = engine.FileIO;
+        Drawing = engine.Drawing;
+    }
+
+    public void SetFade(byte R, byte G, byte B, ushort A)
+    {
+        fadeMode = 1;
+        fadeR = R;
+        fadeG = G;
+        fadeB = B;
+        fadeA = (byte)(A > 0xff ? 0xff : A);
+    }
+
+    public void SetPaletteEntry(byte paletteIndex, byte index, byte r, byte g, byte b)
     {
         // Debug.WriteLine($"{paletteIndex},{index} (#{r:X2}{g:X2}{b:X2}, {(RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0))})");
 
         if (paletteIndex != 0xFF)
         {
-            fullPalette[paletteIndex][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
-            fullPalette32[paletteIndex][index] = new Color(r, g, b);
+            Drawing.fullPalette[paletteIndex][index] = Drawing.RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
+            Drawing.fullPalette32[paletteIndex][index] = new Color(r, g, b);
         }
         else
         {
-            fullPalette[texPaletteNum][index] = RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
-            fullPalette32[texPaletteNum][index] = new Color(r, g, b);
+            Drawing.fullPalette[Drawing.texPaletteNum][index] = Drawing.RGB_16BIT5551(r, g, b, index != 0 ? (byte)1 : (byte)0);
+            Drawing.fullPalette32[Drawing.texPaletteNum][index] = new Color(r, g, b);
         }
 
         paletteDirty = true;
     }
 
-    public static void LoadPalette(string filePath, int paletteID, int startPaletteIndex, int startIndex, int endIndex)
+    public void LoadPalette(string filePath, int paletteID, int startPaletteIndex, int startIndex, int endIndex)
     {
         string fullPath = "Data/Palettes/" + filePath;
 
         if (FileIO.LoadFile(fullPath, out var info))
         {
             FileIO.SetFilePosition(3 * startIndex);
-            if (paletteID >= PALETTE_COUNT || paletteID < 0)
+            if (paletteID >= Drawing.PALETTE_COUNT || paletteID < 0)
                 paletteID = 0;
 
             byte[] colour = new byte[3];
@@ -70,43 +86,43 @@ public class Palette
     }
 
 
-    public static void RotatePalette(int palID, byte startIndex, byte endIndex, bool right)
+    public void RotatePalette(int palID, byte startIndex, byte endIndex, bool right)
     {
         if (right)
         {
-            var startClr = fullPalette[palID][endIndex];
-            var startClr32 = fullPalette32[palID][endIndex];
+            var startClr = Drawing.fullPalette[palID][endIndex];
+            var startClr32 = Drawing.fullPalette32[palID][endIndex];
             for (int i = endIndex; i > startIndex; --i)
             {
-                fullPalette[palID][i] = fullPalette[palID][i - 1];
-                fullPalette32[palID][i] = fullPalette32[palID][i - 1];
+                Drawing.fullPalette[palID][i] = Drawing.fullPalette[palID][i - 1];
+                Drawing.fullPalette32[palID][i] = Drawing.fullPalette32[palID][i - 1];
             }
-            fullPalette[palID][startIndex] = startClr;
-            fullPalette32[palID][startIndex] = startClr32;
+            Drawing.fullPalette[palID][startIndex] = startClr;
+            Drawing.fullPalette32[palID][startIndex] = startClr32;
         }
         else
         {
-            var startClr = fullPalette[palID][startIndex];
-            var startClr32 = fullPalette32[palID][startIndex];
+            var startClr = Drawing.fullPalette[palID][startIndex];
+            var startClr32 = Drawing.fullPalette32[palID][startIndex];
             for (int i = startIndex; i < endIndex; ++i)
             {
-                fullPalette[palID][i] = fullPalette[palID][i + 1];
-                fullPalette32[palID][i] = fullPalette32[palID][i + 1];
+                Drawing.fullPalette[palID][i] = Drawing.fullPalette[palID][i + 1];
+                Drawing.fullPalette32[palID][i] = Drawing.fullPalette32[palID][i + 1];
             }
-            fullPalette[palID][endIndex] = startClr;
-            fullPalette32[palID][endIndex] = startClr32;
+            Drawing.fullPalette[palID][endIndex] = startClr;
+            Drawing.fullPalette32[palID][endIndex] = startClr32;
         }
 
         paletteDirty = true;
     }
 
-    public static void SetActivePalette(byte newActivePal, int startLine, int endLine)
+    public void SetActivePalette(byte newActivePal, int startLine, int endLine)
     {
-        if (newActivePal >= PALETTE_COUNT)
+        if (newActivePal >= Drawing.PALETTE_COUNT)
             return;
 
-        startLine = Math.Max(0, Math.Min(startLine, SCREEN_YSIZE));
-        endLine = Math.Max(0, Math.Min(endLine, SCREEN_YSIZE));
+        startLine = Math.Max(0, Math.Min(startLine, Drawing.SCREEN_YSIZE));
+        endLine = Math.Max(0, Math.Min(endLine, Drawing.SCREEN_YSIZE));
 
         //Console.WriteLine($"{newActivePal}: {startLine}-{endLine}");
 
@@ -117,12 +133,12 @@ public class Palette
         }
 
         if (startLine == 0)
-            texPaletteNum = newActivePal;
+            Drawing.texPaletteNum = newActivePal;
     }
 
-    public static void SetPaletteFade(byte destPaletteID, byte srcPaletteA, byte srcPaletteB, ushort blendAmount, int startIndex, int endIndex)
+    public void SetPaletteFade(byte destPaletteID, byte srcPaletteA, byte srcPaletteB, ushort blendAmount, int startIndex, int endIndex)
     {
-        if (destPaletteID >= PALETTE_COUNT || srcPaletteA >= PALETTE_COUNT || srcPaletteB >= PALETTE_COUNT)
+        if (destPaletteID >= Drawing.PALETTE_COUNT || srcPaletteA >= Drawing.PALETTE_COUNT || srcPaletteB >= Drawing.PALETTE_COUNT)
             return;
 
         if (blendAmount >= 0x100)
@@ -135,33 +151,33 @@ public class Palette
         var idx = startIndex;
         for (int l = startIndex; l < endIndex; ++l)
         {
-            var srcB = fullPalette32[srcPaletteB][l];
-            var srcA = fullPalette32[srcPaletteA][l];
+            var srcB = Drawing.fullPalette32[srcPaletteB][l];
+            var srcA = Drawing.fullPalette32[srcPaletteA][l];
 
-            fullPalette[destPaletteID][idx] = RGB_16BIT5551(
+            Drawing.fullPalette[destPaletteID][idx] = Drawing.RGB_16BIT5551(
                 (byte)((ushort)(srcB.R * blendAmount + blendA * srcA.R) >> 8),
                 (byte)((ushort)(srcB.G * blendAmount + blendA * srcA.G) >> 8),
                 (byte)((ushort)(srcB.B * blendAmount + blendA * srcA.B) >> 8),
                 idx != 0 ? (byte)1 : (byte)0);
-            fullPalette32[destPaletteID][idx].R = (byte)((ushort)(srcB.R * blendAmount + blendA * srcA.R) >> 8);
-            fullPalette32[destPaletteID][idx].G = (byte)((ushort)(srcB.G * blendAmount + blendA * srcA.G) >> 8);
-            fullPalette32[destPaletteID][idx].B = (byte)((ushort)(srcB.B * blendAmount + blendA * srcA.B) >> 8);
+            Drawing.fullPalette32[destPaletteID][idx].R = (byte)((ushort)(srcB.R * blendAmount + blendA * srcA.R) >> 8);
+            Drawing.fullPalette32[destPaletteID][idx].G = (byte)((ushort)(srcB.G * blendAmount + blendA * srcA.G) >> 8);
+            Drawing.fullPalette32[destPaletteID][idx].B = (byte)((ushort)(srcB.B * blendAmount + blendA * srcA.B) >> 8);
 
             idx++;
         }
 
-        if (destPaletteID < PALETTE_COUNT)
-            texPaletteNum = destPaletteID;
+        if (destPaletteID < Drawing.PALETTE_COUNT)
+            Drawing.texPaletteNum = destPaletteID;
 
         paletteDirty = true;
     }
 
-    public static void SetPaletteEntryPacked(byte paletteIndex, byte index, uint colour)
+    public void SetPaletteEntryPacked(byte paletteIndex, byte index, uint colour)
     {
         var fullPalette = Drawing.fullPalette;
         var fullPalette32 = Drawing.fullPalette32;
 
-        var col = RGB_16BIT5551((byte)(colour >> 16), (byte)(colour >> 8), (byte)(colour >> 0), index != 0 ? (byte)1 : (byte)0);
+        var col = Drawing.RGB_16BIT5551((byte)(colour >> 16), (byte)(colour >> 8), (byte)(colour >> 0), index != 0 ? (byte)1 : (byte)0);
         if (fullPalette[paletteIndex][index] != col)
         {
             fullPalette[paletteIndex][index] = col;
@@ -173,18 +189,18 @@ public class Palette
         }
     }
 
-    public static int GetPaletteEntryPacked(byte paletteIndex, byte index)
+    public int GetPaletteEntryPacked(byte paletteIndex, byte index)
     {
-        var clr = fullPalette32[paletteIndex][index];
+        var clr = Drawing.fullPalette32[paletteIndex][index];
         return (clr.R << 16) | (clr.G << 8) | (clr.B);
     }
 
-    public static void CopyPalette(byte sourcePalette, byte srcPaletteStart, byte destinationPalette, byte destPaletteStart, ushort count)
+    public void CopyPalette(byte sourcePalette, byte srcPaletteStart, byte destinationPalette, byte destPaletteStart, ushort count)
     {
         var fullPalette = Drawing.fullPalette;
         var fullPalette32 = Drawing.fullPalette32;
 
-        if (sourcePalette < PALETTE_COUNT && destinationPalette < PALETTE_COUNT)
+        if (sourcePalette < Drawing.PALETTE_COUNT && destinationPalette < Drawing.PALETTE_COUNT)
         {
             for (int i = 0; i < count; ++i)
             {
@@ -196,7 +212,7 @@ public class Palette
         paletteDirty = true;
     }
 
-    internal static void SetLimitedFade(byte v1, byte v2, byte v3, ushort v4, int v5, int v6, int v7)
+    internal void SetLimitedFade(byte v1, byte v2, byte v3, ushort v4, int v5, int v6, int v7)
     {
         throw new NotImplementedException();
     }

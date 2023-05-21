@@ -34,13 +34,13 @@ public class FadeScreen : NativeEntity
 
     public override void Main()
     {
-        SetRenderBlendMode(RENDER_BLEND.ALPHA);
+        Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
         this.timer += this.fadeSpeed * Engine.deltaTime;
         switch (this.state)
         {
             case STATE.MENUFADEIN:
                 this.fadeA = (int)((this.delay - this.timer) * 256.0f);
-                RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB, this.fadeA);
+                Renderer.RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB, this.fadeA);
                 if (this.timer > this.delay)
                 {
                     Objects.RemoveNativeObject(this);
@@ -52,7 +52,7 @@ public class FadeScreen : NativeEntity
 
             case STATE.FADEOUT:
                 this.fadeA = (int)(this.timer * 256.0);
-                RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
+                Renderer.RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
                            this.fadeA);
                 if (this.timer > this.delay)
                     Objects.RemoveNativeObject(this);
@@ -60,7 +60,7 @@ public class FadeScreen : NativeEntity
 
             case STATE.GAMEFADEOUT:
                 this.fadeA = (int)(this.timer * 256.0);
-                RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
+                Renderer.RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
                            this.fadeA);
                 Audio.SetMusicVolume(Audio.masterVolume - 2);
 
@@ -75,7 +75,7 @@ public class FadeScreen : NativeEntity
 
             case STATE.FADEIN:
                 this.fadeA = (int)((this.delay - this.timer) * 256.0f);
-                RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
+                Renderer.RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
                            this.fadeA);
                 if (this.timer > this.delay)
                 {

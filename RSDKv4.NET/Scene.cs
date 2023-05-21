@@ -31,86 +31,113 @@ public class Scene
 
     public const int DRAWLAYER_COUNT = 8;
 
-    public static int stageMode = STAGEMODE.LOAD;
+    public int stageMode = STAGEMODE.LOAD;
 
-    public static int cameraTarget = -1;
-    public static int cameraStyle = CAMERASTYLE.FOLLOW;
-    public static bool cameraEnabled = false;
-    public static int cameraAdjustY = 0;
-    public static int xScrollOffset = 0;
-    public static int yScrollOffset = 0;
-    public static int cameraXPos = 0;
-    public static int cameraYPos = 0;
-    public static int cameraShift = 0;
-    public static int cameraLockedY = 0;
-    public static int cameraShakeX = 0;
-    public static int cameraShakeY = 0;
-    public static int cameraLag = 0;
-    public static int cameraLagStyle = 0;
+    public int cameraTarget = -1;
+    public int cameraStyle = CAMERASTYLE.FOLLOW;
+    public bool cameraEnabled = false;
+    public int cameraAdjustY = 0;
+    public int xScrollOffset = 0;
+    public int yScrollOffset = 0;
+    public int cameraXPos = 0;
+    public int cameraYPos = 0;
+    public int cameraShift = 0;
+    public int cameraLockedY = 0;
+    public int cameraShakeX = 0;
+    public int cameraShakeY = 0;
+    public int cameraLag = 0;
+    public int cameraLagStyle = 0;
 
-    public static int curXBoundary1;
-    public static int newXBoundary1;
-    public static int curYBoundary1;
-    public static int newYBoundary1;
-    public static int curXBoundary2;
-    public static int curYBoundary2;
-    public static int waterLevel;
-    public static int waterDrawPos;
-    public static int newXBoundary2;
-    public static int newYBoundary2;
+    public int curXBoundary1;
+    public int newXBoundary1;
+    public int curYBoundary1;
+    public int newYBoundary1;
+    public int curXBoundary2;
+    public int curYBoundary2;
+    public int waterLevel;
+    public int waterDrawPos;
+    public int newXBoundary2;
+    public int newYBoundary2;
 
-    public static int SCREEN_SCROLL_LEFT;
-    public static int SCREEN_SCROLL_RIGHT;
-    public static int SCREEN_SCROLL_UP => (Drawing.SCREEN_YSIZE / 2) - 16;
-    public static int SCREEN_SCROLL_DOWN => (Drawing.SCREEN_YSIZE / 2) + 16;
+    public int SCREEN_SCROLL_LEFT;
+    public int SCREEN_SCROLL_RIGHT;
+    public int SCREEN_SCROLL_UP => (Drawing.SCREEN_YSIZE / 2) - 16;
+    public int SCREEN_SCROLL_DOWN => (Drawing.SCREEN_YSIZE / 2) + 16;
 
-    public static int lastXSize;
-    public static int lastYSize;
+    public int lastXSize;
+    public int lastYSize;
 
-    public static bool pauseEnabled;
-    public static bool timeEnabled;
-    public static bool debugMode;
-    public static int frameCounter;
-    public static int stageMilliseconds;
-    public static int stageSeconds;
-    public static int stageMinutes;
+    public bool pauseEnabled;
+    public bool timeEnabled;
+    public bool debugMode;
+    public int frameCounter;
+    public int stageMilliseconds;
+    public int stageSeconds;
+    public int stageMinutes;
 
     // Category and Scene IDs
-    public static int activeStageList;
-    public static int stageListPosition;
-    public static string currentStageFolder;
-    public static int actId;
+    public int activeStageList;
+    public int stageListPosition;
+    public string currentStageFolder;
+    public int actId;
 
-    public static string titleCardText;
-    public static byte titleCardWord2;
+    public string titleCardText;
+    public byte titleCardWord2;
 
-    public static byte[] activeTileLayers = new byte[4];
-    public static byte tLayerMidPoint;
-    public static TileLayer[] stageLayouts = new TileLayer[LAYER_COUNT];
+    public byte[] activeTileLayers = new byte[4];
+    public byte tLayerMidPoint;
+    public TileLayer[] stageLayouts = new TileLayer[LAYER_COUNT];
 
-    public static int[] bgDeformationData0 = new int[DEFORM_COUNT];
-    public static int[] bgDeformationData1 = new int[DEFORM_COUNT];
-    public static int[] bgDeformationData2 = new int[DEFORM_COUNT];
-    public static int[] bgDeformationData3 = new int[DEFORM_COUNT];
+    public int[] bgDeformationData0 = new int[DEFORM_COUNT];
+    public int[] bgDeformationData1 = new int[DEFORM_COUNT];
+    public int[] bgDeformationData2 = new int[DEFORM_COUNT];
+    public int[] bgDeformationData3 = new int[DEFORM_COUNT];
 
-    public static LineScroll hParallax = new LineScroll();
-    public static LineScroll vParallax = new LineScroll();
+    public LineScroll hParallax = new LineScroll();
+    public LineScroll vParallax = new LineScroll();
 
-    public static Tiles128x128 tiles128x128 = new Tiles128x128();
-    public static CollisionMasks[] collisionMasks = new CollisionMasks[2];
-    public static DrawListEntry[] drawListEntries = new DrawListEntry[DRAWLAYER_COUNT];
+    public Tiles128x128 tiles128x128 = new Tiles128x128();
+    public CollisionMasks[] collisionMasks = new CollisionMasks[2];
+    public DrawListEntry[] drawListEntries = new DrawListEntry[DRAWLAYER_COUNT];
 
-    //public static ushort tile3DFloorBuffer[0x100 * 0x100];
-    //public static bool drawStageGFXHQ;
+    //public ushort tile3DFloorBuffer[0x100 * 0x100];
+    //public bool drawStageGFXHQ;
 
-    static Scene()
+    private Audio Audio;
+    private Palette Palette;
+    private Drawing Drawing;
+    private Animation Animation;
+    private Engine Engine;
+    private Objects Objects;
+    private Input Input;
+    private FileIO FileIO;
+    private Scene3D Scene3D;
+    private Text Text;
+    private Script Script;
+
+    public Scene()
     {
         Helpers.Memset(stageLayouts, () => new TileLayer());
         Helpers.Memset(collisionMasks, () => new CollisionMasks());
         Helpers.Memset(drawListEntries, () => new DrawListEntry());
     }
 
-    public static void InitFirstStage()
+    public void Initialize(Engine engine)
+    {
+        Audio = engine.Audio;
+        Animation = engine.Animation;
+        Drawing = engine.Drawing;
+        Engine = engine;
+        FileIO = engine.FileIO;
+        Input = engine.Input;
+        Palette = engine.Palette;
+        Scene3D = engine.Scene3D;
+        Text = engine.Text;
+        Script = engine.Script;
+        Objects = engine.Objects;
+    }
+
+    public void InitFirstStage()
     {
         xScrollOffset = 0;
         yScrollOffset = 0;
@@ -128,7 +155,7 @@ public class Scene
         stageListPosition = 0;
     }
 
-    public static void InitStartingStage(int list, int stage, int player)
+    public void InitStartingStage(int list, int stage, int player)
     {
         xScrollOffset = 0;
         yScrollOffset = 0;
@@ -148,7 +175,7 @@ public class Scene
         Engine.engineState = ENGINE_STATE.MAINGAME;
     }
 
-    public static void ProcessStage()
+    public void ProcessStage()
     {
         Scene3D.vertexCount = 0;
         Scene3D.faceCount = 0;
@@ -335,13 +362,13 @@ public class Scene
     }
 
 
-    public static void ProcessParallaxAutoScroll()
+    public void ProcessParallaxAutoScroll()
     {
         for (int i = 0; i < hParallax.entryCount; ++i) hParallax.scrollPos[i] += hParallax.scrollSpeed[i];
         for (int i = 0; i < vParallax.entryCount; ++i) vParallax.scrollPos[i] += vParallax.scrollSpeed[i];
     }
 
-    public static void LoadStageFiles()
+    public void LoadStageFiles()
     {
         Audio.StopAllSfx(); // ?
 
@@ -447,7 +474,7 @@ public class Scene
         Objects.ProcessStartupObjects();
     }
 
-    public static void LoadStageBackground()
+    public void LoadStageBackground()
     {
         for (int i = 0; i < LAYER_COUNT; ++i)
         {
@@ -546,7 +573,7 @@ public class Scene
         }
     }
 
-    public static void LoadStageCollisions()
+    public void LoadStageCollisions()
     {
         if (LoadStageFile("CollisionMasks.bin", stageListPosition, out var info))
         {
@@ -742,7 +769,7 @@ public class Scene
         }
     }
 
-    public static void LoadStageChunks()
+    public void LoadStageChunks()
     {
         FileInfo info;
         byte[] entry = new byte[3];
@@ -773,7 +800,7 @@ public class Scene
         }
     }
 
-    public static void LoadActLayout()
+    public void LoadActLayout()
     {
         FileInfo info;
 
@@ -913,13 +940,13 @@ public class Scene
         FileIO.CloseFile();
     }
 
-    public static bool LoadStageFile(string path, int stageId, out FileInfo fileInfo)
+    public bool LoadStageFile(string path, int stageId, out FileInfo fileInfo)
     {
         var fileName = $"Data/Stages/{Engine.stageList[activeStageList][stageId].folder}/{path}";
         return FileIO.LoadFile(fileName, out fileInfo);
     }
 
-    public static bool LoadActFile(string ext, int stageId, out FileInfo fileInfo)
+    public bool LoadActFile(string ext, int stageId, out FileInfo fileInfo)
     {
         var fileName = $"Data/Stages/{Engine.stageList[activeStageList][stageId].folder}/Act{Engine.stageList[activeStageList][stageId].id}{ext}";
 
@@ -928,7 +955,7 @@ public class Scene
         return FileIO.LoadFile(fileName, out fileInfo);
     }
 
-    public static bool CheckCurrentStageFolder(int stage)
+    public bool CheckCurrentStageFolder(int stage)
     {
         if (currentStageFolder == Engine.stageList[activeStageList][stage].folder)
         {
@@ -941,7 +968,7 @@ public class Scene
         }
     }
 
-    public static void ResetBackgroundSettings()
+    public void ResetBackgroundSettings()
     {
         for (int i = 0; i < LAYER_COUNT; ++i)
         {
@@ -965,7 +992,7 @@ public class Scene
         }
     }
 
-    public static void SetPlayerScreenPosition(Entity target)
+    public void SetPlayerScreenPosition(Entity target)
     {
         int targetX = target.xpos >> 16;
         int targetY = cameraAdjustY + (target.ypos >> 16);
@@ -1235,7 +1262,7 @@ public class Scene
         }
     }
 
-    public static void SetPlayerLockedScreenPosition(Entity target)
+    public void SetPlayerLockedScreenPosition(Entity target)
     {
         if (newYBoundary1 > curYBoundary1)
         {
@@ -1339,7 +1366,7 @@ public class Scene
         }
     }
 
-    public static void SetLayerDeformation(
+    public void SetLayerDeformation(
           int selectedDef,
           int waveLength,
           int waveWidth,

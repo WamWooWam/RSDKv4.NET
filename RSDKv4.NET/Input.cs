@@ -3,28 +3,29 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 using RSDKv4.Native;
+using RSDKv4.Render;
 
 namespace RSDKv4;
 
 public partial class Input
 {
-    public static InputData keyDown = new InputData();
-    public static InputData keyPress = new InputData();
+    public InputData keyDown = new InputData();
+    public InputData keyPress = new InputData();
 
-    public static int touchWidth;
-    public static int touchHeight;
+    public int touchWidth;
+    public int touchHeight;
 
-    public static int touches = 0;
-    public static int[] touchDown = new int[8];
-    public static int[] touchX = new int[8];
-    public static int[] touchY = new int[8];
-    public static float[] touchXF = new float[8];
-    public static float[] touchYF = new float[8];
-    public static int[] touchId = new int[8];
+    public int touches = 0;
+    public int[] touchDown = new int[8];
+    public int[] touchX = new int[8];
+    public int[] touchY = new int[8];
+    public float[] touchXF = new float[8];
+    public float[] touchYF = new float[8];
+    public int[] touchId = new int[8];
 
-    private static bool wasPressed;
+    private bool wasPressed;
 
-    public static InputButton[] buttons = new InputButton[15]
+    public InputButton[] buttons = new InputButton[15]
     {
         new InputButton(Keys.Up),
         new InputButton(Keys.Down),
@@ -43,7 +44,13 @@ public partial class Input
         new InputButton(0),
     };
 
-    public static void ProcessInput()
+    private NativeRenderer Renderer;
+    public void Initialize(Engine engine)
+    {
+        Renderer = engine.Renderer;
+    }
+
+    public void ProcessInput()
     {
         var keyboardState = Keyboard.GetState();
         var pressed = false;
@@ -99,7 +106,7 @@ public partial class Input
         }
     }
 
-    public static void AddTouch(float touchPosX, float touchPosY, int pointerID)
+    public void AddTouch(float touchPosX, float touchPosY, int pointerID)
     {
         for (int index = 0; index < 8; ++index)
         {
@@ -110,7 +117,7 @@ public partial class Input
                 touchDown[index] = 1;
                 touchX[index] = (int)(normalizedX * Drawing.SCREEN_XSIZE);
                 touchY[index] = (int)(normalizedY * Drawing.SCREEN_YSIZE);
-                touchXF[index] = (normalizedX * NativeRenderer.SCREEN_XSIZE_F) - NativeRenderer.SCREEN_CENTERX_F;
+                touchXF[index] = (normalizedX * Renderer.SCREEN_XSIZE_F) - Renderer.SCREEN_CENTERX_F;
                 touchYF[index] = -((normalizedY * NativeRenderer.SCREEN_YSIZE_F) - NativeRenderer.SCREEN_CENTERY_F);
                 touchId[index] = pointerID;
 
@@ -121,7 +128,7 @@ public partial class Input
         touches++;
     }
 
-    public static int CheckTouchRect(float x, float y, float w, float h)
+    public int CheckTouchRect(float x, float y, float w, float h)
     {
         //NativeRenderer.RenderRect(x, y, 500, w, h, 255, 0, 0, 32);
 
@@ -135,7 +142,7 @@ public partial class Input
         return -1;
     }
 
-    public static void ClearTouchData()
+    public void ClearTouchData()
     {
         touches = 0;
         touchDown[0] = 0;
@@ -149,7 +156,7 @@ public partial class Input
     }
 
 
-    public static void CheckKeyPress(ref InputData input)
+    public void CheckKeyPress(ref InputData input)
     {
 #if !RETRO_USE_ORIGINAL_CODE
         input.up = buttons[0].press;
@@ -169,7 +176,7 @@ public partial class Input
 #endif
     }
 
-    public static void CheckKeyDown(ref InputData input)
+    public void CheckKeyDown(ref InputData input)
     {
 #if !RETRO_USE_ORIGINAL_CODE
         input.up = buttons[0].hold;

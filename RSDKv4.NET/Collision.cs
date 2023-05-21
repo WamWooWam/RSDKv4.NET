@@ -1,33 +1,44 @@
 ﻿using System;
 using RSDKv4.Utility;
 using static RSDKv4.Scene;
-using static RSDKv4.Script;
-
 namespace RSDKv4;
 
 public class Collision
 {
-    public static CollisionSensor[] sensors = new CollisionSensor[7];
+    public CollisionSensor[] sensors = new CollisionSensor[7];
 
-    public static int collisionLeft = 0;
-    public static int collisionTop = 0;
-    public static int collisionRight = 0;
-    public static int collisionBottom = 0;
-    public static int collisionTolerance = 0;
+    public int collisionLeft = 0;
+    public int collisionTop = 0;
+    public int collisionRight = 0;
+    public int collisionBottom = 0;
+    public int collisionTolerance = 0;
 
-    static Collision()
+    private Animation Animation;
+    private Scene Scene;
+    private Script Script;
+    private Objects Objects;
+
+    public Collision()
     {
         Helpers.Memset(sensors, () => new CollisionSensor());
     }
 
-    public static Hitbox GetHitbox(Entity entity)
+    public void Initialize(Engine engine)
     {
-        AnimationFile thisAnim = objectScriptList[entity.type].animFile;
+        Animation = engine.Animation;
+        Scene = engine.Scene;
+        Script = engine.Script;
+        Objects = engine.Objects;
+    }
+
+    public Hitbox GetHitbox(Entity entity)
+    {
+        AnimationFile thisAnim = Script.objectScriptList[entity.type].animFile;
         return Animation.hitboxList[thisAnim.hitboxListOffset
                            + Animation.animFrames[Animation.animationList[thisAnim.animListOffset + entity.animation].frameListOffset + entity.frame].hitboxId];
     }
 
-    public static void FindFloorPosition(Entity player, CollisionSensor sensor, int startY)
+    public void FindFloorPosition(Entity player, CollisionSensor sensor, int startY)
     {
         int c = 0;
         int angle = sensor.angle;
@@ -44,56 +55,56 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile += tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.LRB
-                        && tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.LRB
+                        && Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF);
+                                    sensor.angle = (int)(Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF);
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x100 - (collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
+                                    sensor.angle = (int)(0x100 - (Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = (XPos & 15) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
+                                    sensor.angle = (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = 0x100 - (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
+                                    sensor.angle = 0x100 - (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
                                     break;
                                 }
                         }
@@ -125,7 +136,8 @@ public class Collision
             }
         }
     }
-    public static void FindLWallPosition(Entity player, CollisionSensor sensor, int startX)
+
+    public void FindLWallPosition(Entity player, CollisionSensor sensor, int startX)
     {
         int c = 0;
         int angle = sensor.angle;
@@ -142,55 +154,55 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile = tile + tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8);
+                                    sensor.angle = (int)((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8);
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x100 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16));
+                                    sensor.angle = (int)(0x100 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16));
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
+                                    sensor.angle = (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = 0x100 - (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16));
+                                    sensor.angle = 0x100 - (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16));
                                     break;
                                 }
                         }
@@ -220,7 +232,8 @@ public class Collision
             }
         }
     }
-    public static void FindRoofPosition(Entity player, CollisionSensor sensor, int startY)
+
+    public void FindRoofPosition(Entity player, CollisionSensor sensor, int startY)
     {
         int c = 0;
         int angle = sensor.angle;
@@ -237,55 +250,55 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile = tile + tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
+                                    sensor.angle = (int)((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].roofMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x100 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
+                                    sensor.angle = (int)(0x100 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (byte)(0x180 - (collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
+                                    sensor.angle = (byte)(0x180 - (Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].floorMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = 0x100 - (byte)(0x180 - (collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
+                                    sensor.angle = 0x100 - (byte)(0x180 - (Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
                                     break;
                                 }
                         }
@@ -319,7 +332,7 @@ public class Collision
             }
         }
     }
-    public static void FindRWallPosition(Entity player, CollisionSensor sensor, int startX)
+    public void FindRWallPosition(Entity player, CollisionSensor sensor, int startX)
     {
         int c;
         int angle = sensor.angle;
@@ -336,55 +349,55 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile = tile + tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (byte)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16);
+                                    sensor.angle = (byte)((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16);
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x100 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
+                                    sensor.angle = (int)(0x100 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].rWallMasks[c] <= -0x40)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16));
+                                    sensor.angle = (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF0000) >> 16));
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if (collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
+                                    if (Scene.collisionMasks[player.collisionPlane].lWallMasks[c] >= 0x40)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = 0x100 - (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
+                                    sensor.angle = 0x100 - (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
                                     break;
                                 }
                         }
@@ -415,7 +428,7 @@ public class Collision
         }
     }
 
-    public static void FloorCollision(Entity player, CollisionSensor sensor)
+    public void FloorCollision(Entity player, CollisionSensor sensor)
     {
         int c;
         int startY = sensor.ypos >> 16;
@@ -432,59 +445,59 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile += tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.LRB
-                        && tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.LRB
+                        && Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) <= collisionMasks[player.collisionPlane].floorMasks[c] - TILE_SIZE + i
-                                        || collisionMasks[player.collisionPlane].floorMasks[c] >= tsm1)
+                                    if ((YPos & tsm1) <= Scene.collisionMasks[player.collisionPlane].floorMasks[c] - TILE_SIZE + i
+                                        || Scene.collisionMasks[player.collisionPlane].floorMasks[c] >= tsm1)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF);
+                                    sensor.angle = (int)(Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF);
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) <= collisionMasks[player.collisionPlane].floorMasks[c] - TILE_SIZE + i
-                                        || collisionMasks[player.collisionPlane].floorMasks[c] >= tsm1)
+                                    if ((YPos & tsm1) <= Scene.collisionMasks[player.collisionPlane].floorMasks[c] - TILE_SIZE + i
+                                        || Scene.collisionMasks[player.collisionPlane].floorMasks[c] >= tsm1)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x100 - (collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
+                                    sensor.angle = (int)(0x100 - (Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) <= tsm1 - collisionMasks[player.collisionPlane].roofMasks[c] - TILE_SIZE + i)
+                                    if ((YPos & tsm1) <= tsm1 - Scene.collisionMasks[player.collisionPlane].roofMasks[c] - TILE_SIZE + i)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    byte cAngle = (byte)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
+                                    byte cAngle = (byte)((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
                                     sensor.angle = (byte)(0x180 - cAngle);
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) <= tsm1 - collisionMasks[player.collisionPlane].roofMasks[c] - TILE_SIZE + i)
+                                    if ((YPos & tsm1) <= tsm1 - Scene.collisionMasks[player.collisionPlane].roofMasks[c] - TILE_SIZE + i)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = 0x100 - (byte)(0x180 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
+                                    sensor.angle = 0x100 - (byte)(0x180 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
                                     break;
                                 }
                         }
@@ -513,7 +526,7 @@ public class Collision
             }
         }
     }
-    public static void LWallCollision(Entity player, CollisionSensor sensor)
+    public void LWallCollision(Entity player, CollisionSensor sensor)
     {
         int c;
         int startX = sensor.xpos >> 16;
@@ -530,51 +543,51 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile += tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.TOP
-                        && tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.TOP
+                        && Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) <= collisionMasks[player.collisionPlane].lWallMasks[c] - TILE_SIZE + i)
+                                    if ((XPos & tsm1) <= Scene.collisionMasks[player.collisionPlane].lWallMasks[c] - TILE_SIZE + i)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) <= tsm1 - collisionMasks[player.collisionPlane].rWallMasks[c] - TILE_SIZE + i)
+                                    if ((XPos & tsm1) <= tsm1 - Scene.collisionMasks[player.collisionPlane].rWallMasks[c] - TILE_SIZE + i)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) <= collisionMasks[player.collisionPlane].lWallMasks[c] - TILE_SIZE + i)
+                                    if ((XPos & tsm1) <= Scene.collisionMasks[player.collisionPlane].lWallMasks[c] - TILE_SIZE + i)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) <= tsm1 - collisionMasks[player.collisionPlane].rWallMasks[c] - TILE_SIZE + i)
+                                    if ((XPos & tsm1) <= tsm1 - Scene.collisionMasks[player.collisionPlane].rWallMasks[c] - TILE_SIZE + i)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
@@ -598,7 +611,7 @@ public class Collision
             }
         }
     }
-    public static void RoofCollision(Entity player, CollisionSensor sensor)
+    public void RoofCollision(Entity player, CollisionSensor sensor)
     {
         int c;
         int startY = sensor.ypos >> 16;
@@ -615,56 +628,56 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile += tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.TOP
-                        && tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.TOP
+                        && Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) >= collisionMasks[player.collisionPlane].roofMasks[c] + TILE_SIZE - i)
+                                    if ((YPos & tsm1) >= Scene.collisionMasks[player.collisionPlane].roofMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
+                                    sensor.angle = (int)((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) >= collisionMasks[player.collisionPlane].roofMasks[c] + TILE_SIZE - i)
+                                    if ((YPos & tsm1) >= Scene.collisionMasks[player.collisionPlane].roofMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.ypos = collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = Scene.collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x100 - ((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
+                                    sensor.angle = (int)(0x100 - ((Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) >= tsm1 - collisionMasks[player.collisionPlane].floorMasks[c] + TILE_SIZE - i)
+                                    if ((YPos & tsm1) >= tsm1 - Scene.collisionMasks[player.collisionPlane].floorMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = (int)(0x180 - (collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
+                                    sensor.angle = (int)(0x180 - (Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (XPos & tsm1) + (tileIndex << 4);
-                                    if ((YPos & tsm1) >= tsm1 - collisionMasks[player.collisionPlane].floorMasks[c] + TILE_SIZE - i)
+                                    if ((YPos & tsm1) >= tsm1 - Scene.collisionMasks[player.collisionPlane].floorMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.ypos = tsm1 - collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    sensor.ypos = tsm1 - Scene.collisionMasks[player.collisionPlane].floorMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = 0x100 - (byte)(0x180 - (collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
+                                    sensor.angle = 0x100 - (byte)(0x180 - (Scene.collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF));
                                     break;
                                 }
                         }
@@ -693,7 +706,7 @@ public class Collision
             }
         }
     }
-    public static void RWallCollision(Entity player, CollisionSensor sensor)
+    public void RWallCollision(Entity player, CollisionSensor sensor)
     {
         int c;
         int startX = sensor.xpos >> 16;
@@ -710,51 +723,51 @@ public class Collision
                 int tileY = (YPos & 0x7F) >> 4;
                 if (XPos > -1 && YPos > -1)
                 {
-                    int tile = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+                    int tile = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
                     tile += tileX + (tileY << 3);
-                    int tileIndex = tiles128x128.tileIndex[tile];
-                    if (tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.TOP
-                        && tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
+                    int tileIndex = Scene.tiles128x128.tileIndex[tile];
+                    if (Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] != SOLID.TOP
+                        && Scene.tiles128x128.collisionFlags[player.collisionPlane][tile] < SOLID.NONE)
                     {
-                        switch (tiles128x128.direction[tile])
+                        switch (Scene.tiles128x128.direction[tile])
                         {
                             case FLIP.NONE:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) >= collisionMasks[player.collisionPlane].rWallMasks[c] + TILE_SIZE - i)
+                                    if ((XPos & tsm1) >= Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
                             case FLIP.X:
                                 {
                                     c = (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) >= tsm1 - collisionMasks[player.collisionPlane].lWallMasks[c] + TILE_SIZE - i)
+                                    if ((XPos & tsm1) >= tsm1 - Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
                             case FLIP.Y:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) >= collisionMasks[player.collisionPlane].rWallMasks[c] + TILE_SIZE - i)
+                                    if ((XPos & tsm1) >= Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.xpos = collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = Scene.collisionMasks[player.collisionPlane].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
                             case FLIP.XY:
                                 {
                                     c = tsm1 - (YPos & tsm1) + (tileIndex << 4);
-                                    if ((XPos & tsm1) >= tsm1 - collisionMasks[player.collisionPlane].lWallMasks[c] + TILE_SIZE - i)
+                                    if ((XPos & tsm1) >= tsm1 - Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + TILE_SIZE - i)
                                         break;
 
-                                    sensor.xpos = tsm1 - collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                    sensor.xpos = tsm1 - Scene.collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
                                     break;
                                 }
@@ -779,7 +792,7 @@ public class Collision
         }
     }
 
-    public static void ProcessAirCollision(Entity entity)
+    public void ProcessAirCollision(Entity entity)
     {
         Hitbox playerHitbox = GetHitbox(entity);
         collisionLeft = playerHitbox.left[0];
@@ -1073,7 +1086,7 @@ public class Collision
                 speed = 0x180000;
             entity.speed = speed;
             entity.yvel = 0;
-            scriptEng.checkResult = 1;
+            Script.state.checkResult = 1;
         }
 
         if (movingUp == 2)
@@ -1133,11 +1146,11 @@ public class Collision
             }
             if (entity.yvel < 0)
                 entity.yvel = 0;
-            scriptEng.checkResult = 2;
+            Script.state.checkResult = 2;
         }
     }
 
-    public static void ProcessPathGrip(Entity entity)
+    public void ProcessPathGrip(Entity entity)
     {
         int cosValue256;
         int sinValue256;
@@ -1716,7 +1729,7 @@ public class Collision
         }
     }
 
-    public static void SetPathGripSensors(Entity player)
+    public void SetPathGripSensors(Entity player)
     {
         Hitbox playerHitbox = GetHitbox(player);
 
@@ -1827,7 +1840,7 @@ public class Collision
         }
     }
 
-    public static void ProcessTileCollisions(Entity player)
+    public void ProcessTileCollisions(Entity player)
     {
         player.floorSensors[0] = 0;
         player.floorSensors[1] = 0;
@@ -1835,7 +1848,7 @@ public class Collision
         player.floorSensors[3] = 0;
         player.floorSensors[4] = 0;
 
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
 
         collisionTolerance = 15;
         if (player.speed < 0x60000)
@@ -1847,288 +1860,288 @@ public class Collision
             ProcessPathGrip(player);
     }
 
-    public static void ObjectFloorCollision(int xOffset, int yOffset, int cPath)
+    public void ObjectFloorCollision(int xOffset, int yOffset, int cPath)
     {
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int c = 0;
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
-        if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7)
+        if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7)
         {
             int chunkX = XPos >> 7;
             int tileX = (XPos & 0x7F) >> 4;
             int chunkY = YPos >> 7;
             int tileY = (YPos & 0x7F) >> 4;
-            int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
-            int tileIndex = tiles128x128.tileIndex[chunk];
-            if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.LRB && tiles128x128.collisionFlags[cPath][chunk] != SOLID.NONE)
+            int chunk = (Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
+            int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+            if (Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.LRB && Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.NONE)
             {
-                switch (tiles128x128.direction[chunk])
+                switch (Scene.tiles128x128.direction[chunk])
                 {
                     case 0:
                         {
                             c = (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) <= collisionMasks[cPath].floorMasks[c])
+                            if ((YPos & 15) <= Scene.collisionMasks[cPath].floorMasks[c])
                             {
                                 break;
                             }
-                            YPos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 1:
                         {
                             c = 15 - (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) <= collisionMasks[cPath].floorMasks[c])
+                            if ((YPos & 15) <= Scene.collisionMasks[cPath].floorMasks[c])
                             {
                                 break;
                             }
-                            YPos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 2:
                         {
                             c = (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) <= 15 - collisionMasks[cPath].roofMasks[c])
+                            if ((YPos & 15) <= 15 - Scene.collisionMasks[cPath].roofMasks[c])
                             {
                                 break;
                             }
-                            YPos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = 15 - Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 3:
                         {
                             c = 15 - (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) <= 15 - collisionMasks[cPath].roofMasks[c])
+                            if ((YPos & 15) <= 15 - Scene.collisionMasks[cPath].roofMasks[c])
                             {
                                 break;
                             }
-                            YPos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = 15 - Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (scriptEng.checkResult != 0)
+            if (Script.state.checkResult != 0)
             {
                 entity.ypos = (YPos - yOffset) << 16;
             }
         }
     }
-    public static void ObjectLWallCollision(int xOffset, int yOffset, int cPath)
+    public void ObjectLWallCollision(int xOffset, int yOffset, int cPath)
     {
         int c;
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
-        if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7)
+        if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7)
         {
             int chunkX = XPos >> 7;
             int tileX = (XPos & 0x7F) >> 4;
             int chunkY = YPos >> 7;
             int tileY = (YPos & 0x7F) >> 4;
-            int chunk = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+            int chunk = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
             chunk = chunk + tileX + (tileY << 3);
-            int tileIndex = tiles128x128.tileIndex[chunk];
-            if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.TOP && tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
+            int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+            if (Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.TOP && Scene.tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
             {
-                switch (tiles128x128.direction[chunk])
+                switch (Scene.tiles128x128.direction[chunk])
                 {
                     case 0:
                         {
                             c = (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) <= collisionMasks[cPath].lWallMasks[c])
+                            if ((XPos & 15) <= Scene.collisionMasks[cPath].lWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 1:
                         {
                             c = (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) <= 15 - collisionMasks[cPath].rWallMasks[c])
+                            if ((XPos & 15) <= 15 - Scene.collisionMasks[cPath].rWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = 15 - Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 2:
                         {
                             c = 15 - (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) <= collisionMasks[cPath].lWallMasks[c])
+                            if ((XPos & 15) <= Scene.collisionMasks[cPath].lWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 3:
                         {
                             c = 15 - (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) <= 15 - collisionMasks[cPath].rWallMasks[c])
+                            if ((XPos & 15) <= 15 - Scene.collisionMasks[cPath].rWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = 15 - Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (scriptEng.checkResult != 0)
+            if (Script.state.checkResult != 0)
             {
                 entity.xpos = (XPos - xOffset) << 16;
             }
         }
     }
-    public static void ObjectRoofCollision(int xOffset, int yOffset, int cPath)
+    public void ObjectRoofCollision(int xOffset, int yOffset, int cPath)
     {
         int c;
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
-        if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7)
+        if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7)
         {
             int chunkX = XPos >> 7;
             int tileX = (XPos & 0x7F) >> 4;
             int chunkY = YPos >> 7;
             int tileY = (YPos & 0x7F) >> 4;
-            int chunk = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+            int chunk = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
             chunk = chunk + tileX + (tileY << 3);
-            int tileIndex = tiles128x128.tileIndex[chunk];
-            if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.TOP && tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
+            int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+            if (Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.TOP && Scene.tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
             {
-                switch (tiles128x128.direction[chunk])
+                switch (Scene.tiles128x128.direction[chunk])
                 {
                     case 0:
                         {
                             c = (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) >= collisionMasks[cPath].roofMasks[c])
+                            if ((YPos & 15) >= Scene.collisionMasks[cPath].roofMasks[c])
                             {
                                 break;
                             }
-                            YPos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 1:
                         {
                             c = 15 - (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) >= collisionMasks[cPath].roofMasks[c])
+                            if ((YPos & 15) >= Scene.collisionMasks[cPath].roofMasks[c])
                             {
                                 break;
                             }
-                            YPos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 2:
                         {
                             c = (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) >= 15 - collisionMasks[cPath].floorMasks[c])
+                            if ((YPos & 15) >= 15 - Scene.collisionMasks[cPath].floorMasks[c])
                             {
                                 break;
                             }
-                            YPos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = 15 - Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 3:
                         {
                             c = 15 - (XPos & 15) + (tileIndex << 4);
-                            if ((YPos & 15) >= 15 - collisionMasks[cPath].floorMasks[c])
+                            if ((YPos & 15) >= 15 - Scene.collisionMasks[cPath].floorMasks[c])
                             {
                                 break;
                             }
-                            YPos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                            scriptEng.checkResult = 1;
+                            YPos = 15 - Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (scriptEng.checkResult != 0)
+            if (Script.state.checkResult != 0)
             {
                 entity.ypos = (YPos - yOffset) << 16;
             }
         }
     }
-    public static void ObjectRWallCollision(int xOffset, int yOffset, int cPath)
+    public void ObjectRWallCollision(int xOffset, int yOffset, int cPath)
     {
         int c;
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
-        if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7)
+        if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7)
         {
             int chunkX = XPos >> 7;
             int tileX = (XPos & 0x7F) >> 4;
             int chunkY = YPos >> 7;
             int tileY = (YPos & 0x7F) >> 4;
-            int chunk = stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
+            int chunk = Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6;
             chunk = chunk + tileX + (tileY << 3);
-            int tileIndex = tiles128x128.tileIndex[chunk];
-            if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.TOP && tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
+            int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+            if (Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.TOP && Scene.tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
             {
-                switch (tiles128x128.direction[chunk])
+                switch (Scene.tiles128x128.direction[chunk])
                 {
                     case 0:
                         {
                             c = (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) >= collisionMasks[cPath].rWallMasks[c])
+                            if ((XPos & 15) >= Scene.collisionMasks[cPath].rWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 1:
                         {
                             c = (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) >= 15 - collisionMasks[cPath].lWallMasks[c])
+                            if ((XPos & 15) >= 15 - Scene.collisionMasks[cPath].lWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = 15 - Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 2:
                         {
                             c = 15 - (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) >= collisionMasks[cPath].rWallMasks[c])
+                            if ((XPos & 15) >= Scene.collisionMasks[cPath].rWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                     case 3:
                         {
                             c = 15 - (YPos & 15) + (tileIndex << 4);
-                            if ((XPos & 15) >= 15 - collisionMasks[cPath].lWallMasks[c])
+                            if ((XPos & 15) >= 15 - Scene.collisionMasks[cPath].lWallMasks[c])
                             {
                                 break;
                             }
-                            XPos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                            scriptEng.checkResult = 1;
+                            XPos = 15 - Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                            Script.state.checkResult = 1;
                             break;
                         }
                 }
             }
-            if (scriptEng.checkResult != 0)
+            if (Script.state.checkResult != 0)
             {
                 entity.xpos = (XPos - xOffset) << 16;
             }
@@ -2137,9 +2150,9 @@ public class Collision
 
 
 
-    public static void ObjectFloorGrip(int xOffset, int yOffset, int cPath)
+    public void ObjectFloorGrip(int xOffset, int yOffset, int cPath)
     {
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2147,26 +2160,26 @@ public class Collision
         YPos = YPos - 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7 && Script.state.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
                 int chunkY = YPos >> 7;
                 int tileY = (YPos & 0x7F) >> 4;
-                //int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + (tileX + (tileY << 3));
-                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3); 
-                int tileIndex = tiles128x128.tileIndex[chunk];
-                if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.LRB && tiles128x128.collisionFlags[cPath][chunk] != SOLID.NONE)
+                //int chunk = (Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + (tileX + (tileY << 3));
+                int chunk = (Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3); 
+                int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+                if (Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.LRB && Scene.tiles128x128.collisionFlags[cPath][chunk] != SOLID.NONE)
                 {
-                    switch (tiles128x128.direction[chunk])
+                    switch (Scene.tiles128x128.direction[chunk])
                     {
                         case 0:
                             {
                                 int c = (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].floorMasks[c] < 64)
+                                if (Scene.collisionMasks[cPath].floorMasks[c] < 64)
                                 {
-                                    entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    scriptEng.checkResult = 1;
+                                    entity.ypos = Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.state.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2174,10 +2187,10 @@ public class Collision
                         case 1:
                             {
                                 int c = 15 - (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].floorMasks[c] < 64)
+                                if (Scene.collisionMasks[cPath].floorMasks[c] < 64)
                                 {
-                                    entity.ypos = collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    scriptEng.checkResult = 1;
+                                    entity.ypos = Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.state.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2185,10 +2198,10 @@ public class Collision
                         case 2:
                             {
                                 int c = (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].roofMasks[c] > -64)
+                                if (Scene.collisionMasks[cPath].roofMasks[c] > -64)
                                 {
-                                    entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    scriptEng.checkResult = 1;
+                                    entity.ypos = 15 - Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.state.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2196,10 +2209,10 @@ public class Collision
                         case 3:
                             {
                                 int c = 15 - (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].roofMasks[c] > -64)
+                                if (Scene.collisionMasks[cPath].roofMasks[c] > -64)
                                 {
-                                    entity.ypos = 15 - collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                    scriptEng.checkResult = 1;
+                                    entity.ypos = 15 - Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                    Script.state.checkResult = 1;
                                     break;
                                 }
                                 break;
@@ -2210,7 +2223,7 @@ public class Collision
             YPos += 16;
         }
 
-        if (scriptEng.checkResult == 0)
+        if (Script.state.checkResult == 0)
             return;
 
         if (Math.Abs(entity.ypos - chunkX1) < 16)
@@ -2220,14 +2233,14 @@ public class Collision
         else
         {
             entity.ypos = chunkX1 - yOffset << 16;
-            scriptEng.checkResult = 0;
+            Script.state.checkResult = 0;
         }
     }
 
-    public static void ObjectLWallGrip(int xOffset, int yOffset, int cPath)
+    public void ObjectLWallGrip(int xOffset, int yOffset, int cPath)
     {
         int c;
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2235,60 +2248,60 @@ public class Collision
         XPos = XPos - 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7 && Script.state.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
                 int chunkY = YPos >> 7;
                 int tileY = (YPos & 0x7F) >> 4;
-                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
-                int tileIndex = tiles128x128.tileIndex[chunk];
-                if (tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
+                int chunk = (Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
+                int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+                if (Scene.tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
                 {
-                    switch (tiles128x128.direction[chunk])
+                    switch (Scene.tiles128x128.direction[chunk])
                     {
                         case 0:
                             {
                                 c = (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].lWallMasks[c] >= 64)
+                                if (Scene.collisionMasks[cPath].lWallMasks[c] >= 64)
                                 {
                                     break;
                                 }
-                                entity.xpos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 1:
                             {
                                 c = (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].rWallMasks[c] <= -64)
+                                if (Scene.collisionMasks[cPath].rWallMasks[c] <= -64)
                                 {
                                     break;
                                 }
-                                entity.xpos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = 15 - Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 2:
                             {
                                 c = 15 - (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].lWallMasks[c] >= 64)
+                                if (Scene.collisionMasks[cPath].lWallMasks[c] >= 64)
                                 {
                                     break;
                                 }
-                                entity.xpos = collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 3:
                             {
                                 c = 15 - (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].rWallMasks[c] <= -64)
+                                if (Scene.collisionMasks[cPath].rWallMasks[c] <= -64)
                                 {
                                     break;
                                 }
-                                entity.xpos = 15 - collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = 15 - Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                     }
@@ -2296,7 +2309,7 @@ public class Collision
             }
             XPos += 16;
         }
-        if (scriptEng.checkResult != 0)
+        if (Script.state.checkResult != 0)
         {
             if (Math.Abs(entity.xpos - startX) < 16)
             {
@@ -2304,13 +2317,13 @@ public class Collision
                 return;
             }
             entity.xpos = (startX - xOffset) << 16;
-            scriptEng.checkResult = 0;
+            Script.state.checkResult = 0;
         }
     }
-    public static void ObjectRoofGrip(int xOffset, int yOffset, int cPath)
+    public void ObjectRoofGrip(int xOffset, int yOffset, int cPath)
     {
         int c;
-        scriptEng.checkResult = 1;
+        Script.state.checkResult = 1;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2318,60 +2331,60 @@ public class Collision
         YPos = YPos + 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7 && Script.state.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
                 int chunkY = YPos >> 7;
                 int tileY = (YPos & 0x7F) >> 4;
-                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
-                int tileIndex = tiles128x128.tileIndex[chunk];
-                if (tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
+                int chunk = (Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
+                int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+                if (Scene.tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
                 {
-                    switch (tiles128x128.direction[chunk])
+                    switch (Scene.tiles128x128.direction[chunk])
                     {
                         case 0:
                             {
                                 c = (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].roofMasks[c] <= -64)
+                                if (Scene.collisionMasks[cPath].roofMasks[c] <= -64)
                                 {
                                     break;
                                 }
-                                entity.ypos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                scriptEng.checkResult = 1;
+                                entity.ypos = Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 1:
                             {
                                 c = 15 - (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].roofMasks[c] <= -64)
+                                if (Scene.collisionMasks[cPath].roofMasks[c] <= -64)
                                 {
                                     break;
                                 }
-                                entity.ypos = collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
-                                scriptEng.checkResult = 1;
+                                entity.ypos = Scene.collisionMasks[cPath].roofMasks[c] + (chunkY << 7) + (tileY << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 2:
                             {
                                 c = (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].floorMasks[c] >= 64)
+                                if (Scene.collisionMasks[cPath].floorMasks[c] >= 64)
                                 {
                                     break;
                                 }
-                                entity.ypos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                scriptEng.checkResult = 1;
+                                entity.ypos = 15 - Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 3:
                             {
                                 c = 15 - (XPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].floorMasks[c] >= 64)
+                                if (Scene.collisionMasks[cPath].floorMasks[c] >= 64)
                                 {
                                     break;
                                 }
-                                entity.ypos = 15 - collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
-                                scriptEng.checkResult = 1;
+                                entity.ypos = 15 - Scene.collisionMasks[cPath].floorMasks[c] + (chunkY << 7) + (tileY << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                     }
@@ -2379,7 +2392,7 @@ public class Collision
             }
             YPos -= 16;
         }
-        if (scriptEng.checkResult != 0)
+        if (Script.state.checkResult != 0)
         {
             if (Math.Abs(entity.ypos - startY) < 16)
             {
@@ -2387,13 +2400,13 @@ public class Collision
                 return;
             }
             entity.ypos = (startY - yOffset) << 16;
-            scriptEng.checkResult = 0;
+            Script.state.checkResult = 0;
         }
     }
-    public static void ObjectRWallGrip(int xOffset, int yOffset, int cPath)
+    public void ObjectRWallGrip(int xOffset, int yOffset, int cPath)
     {
         int c;
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
         Entity entity = Objects.objectEntityList[Objects.objectEntityPos];
         int XPos = (entity.xpos >> 16) + xOffset;
         int YPos = (entity.ypos >> 16) + yOffset;
@@ -2401,60 +2414,60 @@ public class Collision
         XPos = XPos + 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < Scene.stageLayouts[0].xsize << 7 && YPos > 0 && YPos < Scene.stageLayouts[0].ysize << 7 && Script.state.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
                 int chunkY = YPos >> 7;
                 int tileY = (YPos & 0x7F) >> 4;
-                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
-                int tileIndex = tiles128x128.tileIndex[chunk];
-                if (tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
+                int chunk = (Scene.stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3);
+                int tileIndex = Scene.tiles128x128.tileIndex[chunk];
+                if (Scene.tiles128x128.collisionFlags[cPath][chunk] < SOLID.NONE)
                 {
-                    switch (tiles128x128.direction[chunk])
+                    switch (Scene.tiles128x128.direction[chunk])
                     {
                         case 0:
                             {
                                 c = (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].rWallMasks[c] <= -64)
+                                if (Scene.collisionMasks[cPath].rWallMasks[c] <= -64)
                                 {
                                     break;
                                 }
-                                entity.xpos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 1:
                             {
                                 c = (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].lWallMasks[c] >= 64)
+                                if (Scene.collisionMasks[cPath].lWallMasks[c] >= 64)
                                 {
                                     break;
                                 }
-                                entity.xpos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = 15 - Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 2:
                             {
                                 c = 15 - (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].rWallMasks[c] <= -64)
+                                if (Scene.collisionMasks[cPath].rWallMasks[c] <= -64)
                                 {
                                     break;
                                 }
-                                entity.xpos = collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = Scene.collisionMasks[cPath].rWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                         case 3:
                             {
                                 c = 15 - (YPos & 15) + (tileIndex << 4);
-                                if (collisionMasks[cPath].lWallMasks[c] >= 64)
+                                if (Scene.collisionMasks[cPath].lWallMasks[c] >= 64)
                                 {
                                     break;
                                 }
-                                entity.xpos = 15 - collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
-                                scriptEng.checkResult = 1;
+                                entity.xpos = 15 - Scene.collisionMasks[cPath].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
+                                Script.state.checkResult = 1;
                                 break;
                             }
                     }
@@ -2462,7 +2475,7 @@ public class Collision
             }
             XPos -= 16;
         }
-        if (scriptEng.checkResult != 0)
+        if (Script.state.checkResult != 0)
         {
             if (Math.Abs(entity.xpos - startX) < 16)
             {
@@ -2470,12 +2483,12 @@ public class Collision
                 return;
             }
             entity.xpos = (startX - xOffset) << 16;
-            scriptEng.checkResult = 0;
+            Script.state.checkResult = 0;
         }
     }
 
 
-    public static void TouchCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
+    public void TouchCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                         int otherRight, int otherBottom)
     {
         Hitbox thisHitbox = GetHitbox(thisEntity);
@@ -2525,7 +2538,7 @@ public class Collision
         otherRight += otherEntity.xpos >> 16;
         otherBottom += otherEntity.ypos >> 16;
 
-        scriptEng.checkResult = (otherRight > thisLeft && otherLeft < thisRight && otherBottom > thisTop && otherTop < thisBottom) ? 1 : 0;
+        Script.state.checkResult = (otherRight > thisLeft && otherLeft < thisRight && otherBottom > thisTop && otherTop < thisBottom) ? 1 : 0;
 
 #if !RETRO_USE_ORIGINAL_CODE
         //if (showHitboxes)
@@ -2540,7 +2553,7 @@ public class Collision
 
     private const int C_BOX = 0x10000;
 
-    public static void BoxCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
+    public void BoxCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                       int otherRight, int otherBottom)
     {
         Hitbox thisHitbox = GetHitbox(thisEntity);
@@ -2595,7 +2608,7 @@ public class Collision
         otherRight <<= 16;
         otherBottom <<= 16;
 
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
 
         int rx = (otherEntity.xpos >> 16) << 16;
         int ry = (otherEntity.ypos >> 16) << 16;
@@ -2648,7 +2661,7 @@ public class Collision
                 otherEntity.angle = 0;
                 otherEntity.rotation = 0;
                 otherEntity.controlLock = 0;
-                scriptEng.checkResult = 1;
+                Script.state.checkResult = 1;
             }
             else
             {
@@ -2675,7 +2688,7 @@ public class Collision
 
                     if (otherEntity.yvel <= 0)
                         otherEntity.yvel = 0;
-                    scriptEng.checkResult = 4;
+                    Script.state.checkResult = 4;
                 }
                 else
                 {
@@ -2708,7 +2721,7 @@ public class Collision
                             else
                                 otherEntity.speed = -0x8000;
                         }
-                        scriptEng.checkResult = 2;
+                        Script.state.checkResult = 2;
                     }
                     else
                     {
@@ -2744,7 +2757,7 @@ public class Collision
                                 else
                                     otherEntity.speed = 0x8000;
                             }
-                            scriptEng.checkResult = 3;
+                            Script.state.checkResult = 3;
                         }
                     }
                 }
@@ -2780,7 +2793,7 @@ public class Collision
                     else
                         otherEntity.speed = -0x8000;
                 }
-                scriptEng.checkResult = 2;
+                Script.state.checkResult = 2;
             }
             else
             {
@@ -2816,7 +2829,7 @@ public class Collision
                         else
                             otherEntity.speed = 0x8000;
                     }
-                    scriptEng.checkResult = 3;
+                    Script.state.checkResult = 3;
                 }
                 else
                 {
@@ -2857,7 +2870,7 @@ public class Collision
                         otherEntity.angle = 0;
                         otherEntity.rotation = 0;
                         otherEntity.controlLock = 0;
-                        scriptEng.checkResult = 1;
+                        Script.state.checkResult = 1;
                     }
                     else
                     {
@@ -2883,7 +2896,7 @@ public class Collision
 
                             if (otherEntity.yvel <= 0)
                                 otherEntity.yvel = 0;
-                            scriptEng.checkResult = 4;
+                            Script.state.checkResult = 4;
                         }
                     }
                 }
@@ -2901,7 +2914,7 @@ public class Collision
 #endif
     }
 
-    public static void BoxCollision2(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
+    public void BoxCollision2(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                        int otherRight, int otherBottom)
     {
         Hitbox thisHitbox = GetHitbox(thisEntity);
@@ -2956,7 +2969,7 @@ public class Collision
         otherRight <<= 16;
         otherBottom <<= 16;
 
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
 
         int rx = otherEntity.xpos >> 16 << 16;
         int ry = otherEntity.ypos >> 16 << 16;
@@ -3005,7 +3018,7 @@ public class Collision
                 otherEntity.angle = 0;
                 otherEntity.rotation = 0;
                 otherEntity.controlLock = 0;
-                scriptEng.checkResult = 1;
+                Script.state.checkResult = 1;
             }
             else
             {
@@ -3035,7 +3048,7 @@ public class Collision
                     otherEntity.ypos = thisBottom - otherTop;
                     if (otherEntity.yvel < 0)
                         otherEntity.yvel = 0;
-                    scriptEng.checkResult = 4;
+                    Script.state.checkResult = 4;
                 }
                 else
                 {
@@ -3065,7 +3078,7 @@ public class Collision
                             otherEntity.xvel = 0;
                             otherEntity.speed = 0;
                         }
-                        scriptEng.checkResult = 2;
+                        Script.state.checkResult = 2;
                     }
                     else
                     {
@@ -3098,7 +3111,7 @@ public class Collision
                                 otherEntity.xvel = 0;
                                 otherEntity.speed = 0;
                             }
-                            scriptEng.checkResult = 3;
+                            Script.state.checkResult = 3;
                         }
                     }
                 }
@@ -3130,7 +3143,7 @@ public class Collision
                     otherEntity.xvel = 0;
                     otherEntity.speed = 0;
                 }
-                scriptEng.checkResult = 2;
+                Script.state.checkResult = 2;
             }
             else
             {
@@ -3162,7 +3175,7 @@ public class Collision
                         otherEntity.xvel = 0;
                         otherEntity.speed = 0;
                     }
-                    scriptEng.checkResult = 3;
+                    Script.state.checkResult = 3;
                 }
                 else
                 {
@@ -3200,7 +3213,7 @@ public class Collision
                         otherEntity.angle = 0;
                         otherEntity.rotation = 0;
                         otherEntity.controlLock = 0;
-                        scriptEng.checkResult = 1;
+                        Script.state.checkResult = 1;
                     }
                     else
                     {
@@ -3232,7 +3245,7 @@ public class Collision
 
                             if (otherEntity.yvel < 0)
                                 otherEntity.yvel = 0;
-                            scriptEng.checkResult = 4;
+                            Script.state.checkResult = 4;
                         }
                     }
                 }
@@ -3250,10 +3263,10 @@ public class Collision
 #endif
     }
 
-    public static void PlatformCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
+    public void PlatformCollision(Entity thisEntity, int thisLeft, int thisTop, int thisRight, int thisBottom, Entity otherEntity, int otherLeft, int otherTop,
                            int otherRight, int otherBottom)
     {
-        scriptEng.checkResult = 0;
+        Script.state.checkResult = 0;
 
         Hitbox thisHitbox = GetHitbox(thisEntity);
         Hitbox otherHitbox = GetHitbox(otherEntity);
@@ -3340,7 +3353,7 @@ public class Collision
             otherEntity.angle = 0;
             otherEntity.rotation = 0;
             otherEntity.controlLock = 0;
-            scriptEng.checkResult = 1;
+            Script.state.checkResult = 1;
         }
 
 #if !RETRO_USE_ORIGINAL_CODE

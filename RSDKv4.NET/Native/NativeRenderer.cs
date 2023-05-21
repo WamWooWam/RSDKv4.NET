@@ -12,11 +12,11 @@ namespace RSDKv4.Native;
 
 public class NativeRenderer
 {
-    public static float SCREEN_XSIZE_F = 400;
-    public static float SCREEN_CENTERX_F = 400 / 2;
+    public float SCREEN_XSIZE_F = 400;
+    public float SCREEN_CENTERX_F = 400 / 2;
 
-    public static float SCREEN_YSIZE_F = SCREEN_YSIZE;
-    public static float SCREEN_CENTERY_F = SCREEN_YSIZE / 2;
+    public const float SCREEN_YSIZE_F = SCREEN_YSIZE;
+    public const float SCREEN_CENTERY_F = SCREEN_YSIZE / 2;
 
     public const int DRAWFACE_LIMIT = 0x1000;
     public const int DRAWVERTEX_LIMIT = DRAWFACE_LIMIT * 4;
@@ -25,49 +25,60 @@ public class NativeRenderer
     public const int MESH_LIMIT = 0x40;
     public const int RENDERSTATE_LIMIT = 0x100;
 
-    private static Game _game;
-    private static GraphicsDevice _device;
-    private static BasicEffect _effect;
+    private Game _game;
+    private GraphicsDevice _device;
+    private BasicEffect _effect;
 
     // general textures
-    private static TextureInfo[] textures = new TextureInfo[TEXTURE_LIMIT];
-    private static int textureCount = 0;
+    private TextureInfo[] textures = new TextureInfo[TEXTURE_LIMIT];
+    private int textureCount = 0;
 
-    private static MeshInfo[] meshes = new MeshInfo[MESH_LIMIT];
-    private static int meshCount = 0;
+    private MeshInfo[] meshes = new MeshInfo[MESH_LIMIT];
+    private int meshCount = 0;
 
-    //private static int renderStateCount = 0;
-    //private static RenderState[] renderStateList = new RenderState[RENDERSTATE_LIMIT];
-    //private static RenderState currentRenderState;
+    //private int renderStateCount = 0;
+    //private RenderState[] renderStateList = new RenderState[RENDERSTATE_LIMIT];
+    //private RenderState currentRenderState;
 
-    //private static RenderVertex[] drawVertexList = new RenderVertex[DRAWVERTEX_LIMIT];
-    //private static int vertexCount = 0;
-    //private static int indexCount = 0;
+    //private RenderVertex[] drawVertexList = new RenderVertex[DRAWVERTEX_LIMIT];
+    //private int vertexCount = 0;
+    //private int indexCount = 0;
 
-    private static float[] retroVertexList = new float[40];
-    private static float[] screenBufferVertexList = new float[40];
+    private float[] retroVertexList = new float[40];
+    private float[] screenBufferVertexList = new float[40];
 
-    private static short[] drawIndexList = new short[DRAWINDEX_LIMIT];
+    private short[] drawIndexList = new short[DRAWINDEX_LIMIT];
 
-    private static byte vertexR;
-    private static byte vertexG;
-    private static byte vertexB;
+    private byte vertexR;
+    private byte vertexG;
+    private byte vertexB;
 
-    private static ShaderDef[] _retroShaders = new ShaderDef[5];
-    private static Rectangle _screenRect;
+    private ShaderDef[] _retroShaders = new ShaderDef[5];
+    private Rectangle _screenRect;
 
-    public static int shaderNum = 0;
+    public int shaderNum = 0;
 
     // todo: this is bad
-    private static SpriteBatch _spriteBatch;
+    private SpriteBatch _spriteBatch;
 
-    static NativeRenderer()
+    private Drawing Drawing;
+    private FileIO FileIO;
+    private Font Font;
+
+    public NativeRenderer()
     {
         Helpers.Memset(meshes, () => new MeshInfo());
         //Helpers.Memset(renderStateList, () => new RenderState());
     }
 
-    public static void InitRenderDevice(Game game, GraphicsDevice device)
+    public void Initialize(Engine engine)
+    {
+        Drawing = engine.Drawing;
+        FileIO = engine.FileIO;
+        Font = engine.Font;
+    }
+
+    public void InitRenderDevice(Game game, GraphicsDevice device)
     {
         _game = game;
         _device = device;
@@ -93,7 +104,7 @@ public class NativeRenderer
         SetupDrawIndexList();
     }
 
-    public static void SetScreenDimensions(int width, int height)
+    public void SetScreenDimensions(int width, int height)
     {
         double aspect = (width / (double)height);
         SCREEN_XSIZE_F = (float)(SCREEN_YSIZE * aspect);
@@ -115,26 +126,26 @@ public class NativeRenderer
         _screenRect = new Rectangle((int)x, (int)y, (int)realWidth, (int)realHeight);
     }
 
-    public static void ResetRenderStates()
+    public void ResetRenderStates()
     {
         vertexR = 0xFF;
         vertexG = 0xFF;
         vertexB = 0xFF;
     }
 
-    public static void SetRenderBlendMode(byte mode)
+    public void SetRenderBlendMode(byte mode)
     {
         _device.BlendState = mode == 0 ? BlendState.Opaque : BlendState.NonPremultiplied;
     }
 
-    public static void SetRenderVertexColor(byte r, byte g, byte b)
+    public void SetRenderVertexColor(byte r, byte g, byte b)
     {
         vertexR = r;
         vertexG = g;
         vertexB = b;
     }
 
-    public static Matrix CreatePerspectiveMatrix(float w, float h, float near, float far)
+    public Matrix CreatePerspectiveMatrix(float w, float h, float near, float far)
     {
         var result = new Matrix();
         var val = Math.Tan((0.017453292 * w) * 0.5);
@@ -146,7 +157,7 @@ public class NativeRenderer
         return result;
     }
 
-    public static void SetupDrawIndexList()
+    public void SetupDrawIndexList()
     {
         int index = 0;
         for (int i = 0; i < DRAWINDEX_LIMIT; i += 6)
@@ -161,7 +172,7 @@ public class NativeRenderer
         }
 
         int width2 = 0;
-        int wBuf = GFX_LINESIZE - 1;
+        int wBuf = Drawing.GFX_LINESIZE - 1;
         while (wBuf > 0)
         {
             width2++;
@@ -182,7 +193,7 @@ public class NativeRenderer
         textures[0].heightN = 1.0f / texHeight;
 
         float w = (SCREEN_XSIZE * textures[0].widthN);
-        float w2 = (GFX_LINESIZE * textures[0].widthN);
+        float w2 = (Drawing.GFX_LINESIZE * textures[0].widthN);
         float h = (SCREEN_YSIZE * textures[0].heightN);
 
         retroVertexList[0] = -SCREEN_CENTERX;
@@ -242,7 +253,7 @@ public class NativeRenderer
         //textures[0].id = Drawing.CopyRetroBuffer();
     }
 
-    public static void SetRenderMatrix(Matrix? matrix)
+    public void SetRenderMatrix(Matrix? matrix)
     {
 #if FNA && DEBUG
         //matrix?.CheckForNaNs();
@@ -250,11 +261,11 @@ public class NativeRenderer
         _effect.World = matrix.HasValue ? matrix.Value : Matrix.Identity;
     }
 
-    public static void NewRenderState()
+    public void NewRenderState()
     {
     }
 
-    public static void BeginDraw()
+    public void BeginDraw()
     {
         _effect.TextureEnabled = false;
         _effect.VertexColorEnabled = false;
@@ -268,12 +279,12 @@ public class NativeRenderer
         _device.Clear(Color.Black);
     }
 
-    public static void EndDraw()
+    public void EndDraw()
     {
 
     }
 
-    public static void RenderRect(float x, float y, float z, float w, float h, byte r, byte g, byte b, int alpha)
+    public void RenderRect(float x, float y, float z, float w, float h, byte r, byte g, byte b, int alpha)
     {
         if (alpha < 0)
             alpha = 0;
@@ -296,7 +307,7 @@ public class NativeRenderer
         DrawVertices(drawVertexList, 4, drawIndexList, 2);
     }
 
-    public static void RenderImage(float x, float y, float z, float scaleX, float scaleY, float pivotX, float pivotY, float sprW, float sprH, float sprX, float sprY,
+    public void RenderImage(float x, float y, float z, float scaleX, float scaleY, float pivotX, float pivotY, float sprW, float sprH, float sprX, float sprY,
                  int alpha, int texture)
     {
         if (alpha < 0)
@@ -342,7 +353,7 @@ public class NativeRenderer
         DrawVertices(drawVertexList, 4, drawIndexList, 2);
     }
 
-    public static void RenderText(ushort[] text, int fontID, float x, float y, int z, float scale, int alpha)
+    public void RenderText(ushort[] text, int fontID, float x, float y, int z, float scale, int alpha)
     {
         BitmapFont font = Font.fontList[fontID];
         float posX = x;
@@ -446,7 +457,7 @@ public class NativeRenderer
         DrawVertices(drawVertexList, drawListIdx, drawIndexList, primitiveCount);
     }
 
-    public static void RenderMesh(MeshInfo mesh, byte type, bool depthTest)
+    public void RenderMesh(MeshInfo mesh, byte type, bool depthTest)
     {
         if (mesh == null)
             return;
@@ -482,7 +493,7 @@ public class NativeRenderer
         DrawVertices(mesh.vertices, mesh.vertices.Length, mesh.indices, mesh.indices.Length / 3);
     }
 
-    public static void RenderRetroBuffer(int alpha, float z, bool ensurePixelPerfect = false)
+    public void RenderRetroBuffer(int alpha, float z, bool ensurePixelPerfect = false)
     {
         if (alpha < 0)
             alpha = 0;
@@ -501,7 +512,7 @@ public class NativeRenderer
         if (shader.effect != null)
         {
             var matrixTransform = _effect.World * _effect.Projection;
-            shader.effect.Parameters["Texture"].SetValue(CopyRetroBuffer());
+            shader.effect.Parameters["Texture"].SetValue(Drawing.CopyRetroBuffer());
             shader.effect.Parameters["MatrixTransform"].SetValue(matrixTransform);
             shader.effect.Parameters["pixelSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
             shader.effect.Parameters["textureSize"].SetValue(new Vector2(SCREEN_XSIZE, SCREEN_YSIZE));
@@ -509,7 +520,7 @@ public class NativeRenderer
         }
         else
         {
-            _effect.Texture = CopyRetroBuffer();
+            _effect.Texture = Drawing.CopyRetroBuffer();
             _effect.TextureEnabled = true;
             _effect.VertexColorEnabled = false;
             _effect.LightingEnabled = false;
@@ -573,7 +584,7 @@ public class NativeRenderer
     }
 
     // PRIMITIVES NOT INDICES YOU TWIT
-    private static void DrawVertices(RenderVertex[] drawVertexList, int vertexCount, short[] drawIndexList, int primitiveCount)
+    private void DrawVertices(RenderVertex[] drawVertexList, int vertexCount, short[] drawIndexList, int primitiveCount)
     {
         foreach (var pass in _effect.CurrentTechnique.Passes)
         {
@@ -582,7 +593,7 @@ public class NativeRenderer
         }
     }
 
-    public static int LoadTexture(string filePath, int format)
+    public int LoadTexture(string filePath, int format)
     {
         int texID = 0;
         for (int i = 0; i < TEXTURE_LIMIT; ++i)
@@ -621,7 +632,7 @@ public class NativeRenderer
         return texID;
     }
 
-    public static MeshInfo LoadMesh(string filePath, int textureId)
+    public MeshInfo LoadMesh(string filePath, int textureId)
     {
         int meshID = 0;
         for (int i = 0; i < MESH_LIMIT; i++)
@@ -714,7 +725,7 @@ public class NativeRenderer
         return null;
     }
 
-    public static void SetMeshAnimation(MeshInfo mesh, MeshAnimator animator, ushort frameID, ushort frameCount, float speed)
+    public void SetMeshAnimation(MeshInfo mesh, MeshAnimator animator, ushort frameID, ushort frameCount, float speed)
     {
         animator.frameCount = frameCount;
         if (frameCount >= mesh.frames.Length)
@@ -732,7 +743,7 @@ public class NativeRenderer
         animator.animationSpeed = speed;
     }
 
-    public static void SetMeshVertexColors(MeshInfo mesh, byte r, byte g, byte b, byte a)
+    public void SetMeshVertexColors(MeshInfo mesh, byte r, byte g, byte b, byte a)
     {
         for (int v = 0; v < mesh.vertices.Length; ++v)
         {
@@ -740,7 +751,7 @@ public class NativeRenderer
         }
     }
 
-    public static void AnimateMesh(MeshInfo mesh, MeshAnimator animator)
+    public void AnimateMesh(MeshInfo mesh, MeshAnimator animator)
     {
         if (mesh.frames.Length > 1)
         {
