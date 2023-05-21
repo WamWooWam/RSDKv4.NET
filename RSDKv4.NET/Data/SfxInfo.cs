@@ -1,8 +1,10 @@
 ﻿using Microsoft.Xna.Framework.Audio;
+using System.Diagnostics;
 
 namespace RSDKv4;
 
-public class SfxInfo
+[DebuggerDisplay("{name} {soundEffect.Duration}")]
+public struct SfxInfo
 {
     public string name;
     public SoundEffect soundEffect;

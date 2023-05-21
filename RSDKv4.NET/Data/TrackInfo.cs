@@ -2,7 +2,7 @@
 
 namespace RSDKv4;
 
-public class TrackInfo
+public struct TrackInfo
 {
     public string name;
     public bool loop;

@@ -141,7 +141,7 @@ public class TitleScreen : NativeEntity
                     }
                     RenderImage(SCREEN_CENTERX_F - 32.0f, 104.0f, 160.0f, 0.25f, 0.25f, 32.0f, 32.0f, 64.0f, 64.0f, 704.0f, 544.0f, skipButtonAlpha,
                                 (byte)introTextureId);
-                    introRectAlpha -= (300.0f * Engine.deltaTime);
+                    introRectAlpha -= 300.0f * Engine.deltaTime;
                     if (introRectAlpha < -320.0)
                         state = STATE.INTRO;
                     RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, 0, 0, 0, (int)introRectAlpha);
@@ -149,7 +149,7 @@ public class TitleScreen : NativeEntity
                     Input.CheckKeyDown(ref Input.keyDown);
                     Input.CheckKeyPress(ref Input.keyPress);
 
-                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.keyPress.start || Input.keyPress.A))
+                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || Input.keyPress.start || Input.keyPress.A)
                     {
                         state = STATE.TITLE;
                         x = -96.0f;
@@ -178,7 +178,7 @@ public class TitleScreen : NativeEntity
                     if (meshAnimator.frameId > 26)
                         state = STATE.ENTERBOX;
 
-                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || (Input.keyPress.start || Input.keyPress.A))
+                    if (Input.CheckTouchRect(SCREEN_CENTERX_F - 32.0f, 104.0f, 20.0f, 20.0f) >= 0 || Input.keyPress.start || Input.keyPress.A)
                     {
                         state = STATE.TITLE;
                         x = -96.0f;
@@ -200,7 +200,7 @@ public class TitleScreen : NativeEntity
                     float y = 0;
                     if (rectY > -48.0f)
                     {
-                        rectY -= (300.0f * Engine.deltaTime);
+                        rectY -= 300.0f * Engine.deltaTime;
                         if (rectY >= -48.0f)
                         {
                             y = rectY + 240.0f;
@@ -223,7 +223,7 @@ public class TitleScreen : NativeEntity
 
                     if (meshScale < 1.0f)
                     {
-                        meshScale += (0.75f * Engine.deltaTime);
+                        meshScale += 0.75f * Engine.deltaTime;
                         if (meshScale > 1.0f)
                             meshScale = 1.0f;
                     }
@@ -290,7 +290,7 @@ public class TitleScreen : NativeEntity
                     }
                     else
                     {
-                        x += ((-97.0f - x) / ((Engine.deltaTime * 60.0f) * 16.0f));
+                        x += (-97.0f - x) / (Engine.deltaTime * 60.0f * 16.0f);
                     }
                     NewRenderState();
                     renderMatrix = Matrix.CreateScale(meshScale);
@@ -326,7 +326,7 @@ public class TitleScreen : NativeEntity
                     RenderRect(-SCREEN_CENTERX_F, rectY + 240.0f, 160.0f, SCREEN_XSIZE_F, 256.0f, 160, 192, 255, 255);
                     RenderRect(-SCREEN_CENTERX_F, rectY, 160.0f, SCREEN_XSIZE_F, 16.0f, 0, 0, 0, 255);
 
-                    float div = (60.0f * Engine.deltaTime) * 1.125f;
+                    float div = 60.0f * Engine.deltaTime * 1.125f;
                     x /= div;
                     rotationY /= div;
                     NewRenderState();
@@ -368,18 +368,18 @@ public class TitleScreen : NativeEntity
                     float val = 60.0f * Engine.deltaTime;
                     float val2 = 0.125f * val;
 
-                    field_3C = (field_3C - val2) - val2;
-                    rectY += (val * (field_3C - val2));
+                    field_3C = field_3C - val2 - val2;
+                    rectY += val * (field_3C - val2);
                     if (meshAnimator.frameId <= 7)
                     {
                         if (rotationY < 1.0)
                             rotationY += Engine.deltaTime;
-                        field_50 = (field_50 - val2) - val2;
-                        field_4C += (val * (field_50 - val2));
-                        matrixY += ((16.0f - matrixY) / (val * 16.0f));
+                        field_50 = field_50 - val2 - val2;
+                        field_4C += val * (field_50 - val2);
+                        matrixY += (16.0f - matrixY) / (val * 16.0f);
 
-                        matrixZ += ((152.0f - matrixZ) / (val * 16.0f));
-                        rotationZ += ((0.0f - rotationZ) / (val * 22.0f));
+                        matrixZ += (152.0f - matrixZ) / (val * 16.0f);
+                        rotationZ += (0.0f - rotationZ) / (val * 22.0f);
                     }
                     NewRenderState();
                     renderMatrix = Matrix.CreateRotationX(rotationY);

@@ -30,8 +30,8 @@ public class FastMath
             sinValM7[i] = (int)(MathF.Sin((i / 256.0f) * MathF.PI) * 4096.0f);
             cosValM7[i] = (int)(MathF.Cos((i / 256.0f) * MathF.PI) * 4096.0f);
 #else
-            sinValM7[i] = (int)(Math.Sin((i / 256.0) * Math.PI) * 4096.0);
-            cosValM7[i] = (int)(Math.Cos((i / 256.0) * Math.PI) * 4096.0);
+            sinValM7[i] = (int)(Math.Sin(i / 256.0 * Math.PI) * 4096.0);
+            cosValM7[i] = (int)(Math.Cos(i / 256.0 * Math.PI) * 4096.0);
 #endif
         }
 
@@ -50,8 +50,8 @@ public class FastMath
             sinVal512[i] = (int)(MathF.Sin((i / 256.0f) * MathF.PI) * 512.0f);
             cosVal512[i] = (int)(MathF.Cos((i / 256.0f) * MathF.PI) * 512.0f);
 #else
-            sinVal512[i] = (int)(Math.Sin((i / 256.0) * Math.PI) * 512.0);
-            cosVal512[i] = (int)(Math.Cos((i / 256.0) * Math.PI) * 512.0);
+            sinVal512[i] = (int)(Math.Sin(i / 256.0 * Math.PI) * 512.0);
+            cosVal512[i] = (int)(Math.Cos(i / 256.0 * Math.PI) * 512.0);
 #endif
         }
 
@@ -66,8 +66,8 @@ public class FastMath
 
         for (int i = 0; i < 0x100; i++)
         {
-            sinVal256[i] = (sinVal512[i * 2] >> 1);
-            cosVal256[i] = (cosVal512[i * 2] >> 1);
+            sinVal256[i] = sinVal512[i * 2] >> 1;
+            cosVal256[i] = cosVal512[i * 2] >> 1;
         }
 
         for (int Y = 0; Y < 0x100; ++Y)
@@ -111,9 +111,9 @@ public class FastMath
                 return (byte)(-0x80 - atanVal256[(x << 8) + y]);
         }
         else if (Y <= 0)
-            return (byte)(-atanVal256[(x << 8) + y]);
+            return (byte)-atanVal256[(x << 8) + y];
         else
-            return (byte)(atanVal256[(x << 8) + y]);
+            return (byte)atanVal256[(x << 8) + y];
     }
 
     public static int Sin512(int angle)

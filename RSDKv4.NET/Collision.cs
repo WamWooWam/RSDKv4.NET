@@ -31,7 +31,7 @@ public class Collision
     {
         int c = 0;
         int angle = sensor.angle;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -129,7 +129,7 @@ public class Collision
     {
         int c = 0;
         int angle = sensor.angle;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -157,7 +157,7 @@ public class Collision
 
                                     sensor.xpos = collisionMasks[player.collisionPlane].lWallMasks[c] + (chunkX << 7) + (tileX << 4);
                                     sensor.collided = true;
-                                    sensor.angle = ((int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8));
+                                    sensor.angle = (int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF00) >> 8);
                                     break;
                                 }
                             case FLIP.X:
@@ -224,7 +224,7 @@ public class Collision
     {
         int c = 0;
         int angle = sensor.angle;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -323,7 +323,7 @@ public class Collision
     {
         int c;
         int angle = sensor.angle;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -419,7 +419,7 @@ public class Collision
     {
         int c;
         int startY = sensor.ypos >> 16;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -517,7 +517,7 @@ public class Collision
     {
         int c;
         int startX = sensor.xpos >> 16;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -602,7 +602,7 @@ public class Collision
     {
         int c;
         int startY = sensor.ypos >> 16;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -631,7 +631,7 @@ public class Collision
 
                                     sensor.ypos = collisionMasks[player.collisionPlane].roofMasks[c] + (chunkY << 7) + (tileY << 4);
                                     sensor.collided = true;
-                                    sensor.angle = ((int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24));
+                                    sensor.angle = (int)((collisionMasks[player.collisionPlane].angles[tileIndex] & 0xFF000000) >> 24);
                                     break;
                                 }
                             case FLIP.X:
@@ -697,7 +697,7 @@ public class Collision
     {
         int c;
         int startX = sensor.xpos >> 16;
-        int tsm1 = (TILE_SIZE - 1);
+        int tsm1 = TILE_SIZE - 1;
         for (int i = 0; i < TILE_SIZE * 3; i += TILE_SIZE)
         {
             if (!sensor.collided)
@@ -840,7 +840,7 @@ public class Collision
             sensors[5].ypos = entity.ypos + ((collisionTop - 1) << 16);
         }
 
-        int cnt = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? (Math.Abs(entity.yvel) >> 19) + 1 : (Math.Abs(entity.xvel) >> 19) + 1);
+        int cnt = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? (Math.Abs(entity.yvel) >> 19) + 1 : (Math.Abs(entity.xvel) >> 19) + 1;
         int XVel = entity.xvel / cnt;
         int YVel = entity.yvel / cnt;
         int XVel2 = entity.xvel - XVel * (cnt - 1);
@@ -1019,11 +1019,11 @@ public class Collision
                     }
                     else if (entity.angle >= 32)
                     {
-                        speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? entity.yvel + entity.yvel / 12 : entity.xvel);
+                        speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? entity.yvel + entity.yvel / 12 : entity.xvel;
                     }
                     else
                     {
-                        speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? (entity.yvel + entity.yvel / 12) >> 1 : entity.xvel);
+                        speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? (entity.yvel + entity.yvel / 12) >> 1 : entity.xvel;
                     }
                 }
                 else if (entity.angle > 240)
@@ -1032,11 +1032,11 @@ public class Collision
                 }
                 else if (entity.angle <= 224)
                 {
-                    speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? -(entity.yvel + entity.yvel / 12) : entity.xvel);
+                    speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? -(entity.yvel + entity.yvel / 12) : entity.xvel;
                 }
                 else
                 {
-                    speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? -((entity.yvel + entity.yvel / 12) >> 1) : entity.xvel);
+                    speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? -((entity.yvel + entity.yvel / 12) >> 1) : entity.xvel;
                 }
             }
             else if (entity.angle < 0x80)
@@ -1047,11 +1047,11 @@ public class Collision
                 }
                 else if (entity.angle >= 0x20)
                 {
-                    speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? entity.yvel : entity.xvel);
+                    speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? entity.yvel : entity.xvel;
                 }
                 else
                 {
-                    speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? entity.yvel >> 1 : entity.xvel);
+                    speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? entity.yvel >> 1 : entity.xvel;
                 }
             }
             else if (entity.angle > 0xF0)
@@ -1060,11 +1060,11 @@ public class Collision
             }
             else if (entity.angle <= 0xE0)
             {
-                speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? -entity.yvel : entity.xvel);
+                speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel) ? -entity.yvel : entity.xvel;
             }
             else
             {
-                speed = (Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? -(entity.yvel >> 1) : entity.xvel);
+                speed = Math.Abs(entity.xvel) <= Math.Abs(entity.yvel >> 1) ? -(entity.yvel >> 1) : entity.xvel;
             }
 
             if (speed < -0x180000)
@@ -2147,14 +2147,14 @@ public class Collision
         YPos = YPos - 16;
         for (int i = 3; i > 0; i--)
         {
-            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && (YPos > 0 && YPos < stageLayouts[0].ysize << 7) && scriptEng.checkResult == 0)
+            if (XPos > 0 && XPos < stageLayouts[0].xsize << 7 && YPos > 0 && YPos < stageLayouts[0].ysize << 7 && scriptEng.checkResult == 0)
             {
                 int chunkX = XPos >> 7;
                 int tileX = (XPos & 0x7F) >> 4;
                 int chunkY = YPos >> 7;
                 int tileY = (YPos & 0x7F) >> 4;
                 //int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + (tileX + (tileY << 3));
-                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + (tileX + (tileY << 3)); 
+                int chunk = (stageLayouts[0].tiles[chunkX + (chunkY << 8)] << 6) + tileX + (tileY << 3); 
                 int tileIndex = tiles128x128.tileIndex[chunk];
                 if (tiles128x128.collisionFlags[cPath][chunk] != SOLID.LRB && tiles128x128.collisionFlags[cPath][chunk] != SOLID.NONE)
                 {

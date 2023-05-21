@@ -2,8 +2,8 @@
 
 namespace RSDKv4;
 
-public class SfxChannel
+public struct SfxChannel
 {
-    public int sfx = -1;
-    public SoundEffectInstance instance = null;
+    public int sfx;
+    public SoundEffectInstance instance;
 }

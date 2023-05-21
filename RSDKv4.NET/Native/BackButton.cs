@@ -44,7 +44,7 @@ public class BackButton : NativeEntity
         {
             if (this.scale < 0.2f)
             {
-                this.scale += ((0.25f - this.scale) / ((60.0f * Engine.deltaTime) * 16.0f));
+                this.scale += (0.25f - this.scale) / (60.0f * Engine.deltaTime * 16.0f);
                 if (this.scale > 0.2f)
                     this.scale = 0.2f;
             }
@@ -54,8 +54,8 @@ public class BackButton : NativeEntity
             SetRenderVertexColor(0xFF, 0xFF, 0xFF);
             SetRenderBlendMode(RENDER_BLEND.NONE);
 
-            this.angle -= (Engine.deltaTime + Engine.deltaTime);
-            if (this.angle < -(MathHelper.TwoPi))
+            this.angle -= Engine.deltaTime + Engine.deltaTime;
+            if (this.angle < -MathHelper.TwoPi)
                 this.angle += MathHelper.TwoPi;
 
             NewRenderState();

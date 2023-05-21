@@ -15,7 +15,7 @@ public class Objects
     public const int ENTITY_COUNT = 0x4A0;
     public const int OBJECT_COUNT = 0x100;
     public const int TYPEGROUP_COUNT = 0x103;
-    public const int TEMPENTITY_START = (ENTITY_COUNT - 0x80);
+    public const int TEMPENTITY_START = ENTITY_COUNT - 0x80;
 
     public static int nativeEntityPos = 0;
     public static int playerListPos = 0;
@@ -285,8 +285,8 @@ public class Objects
                 player.left = false;
                 player.right = false;
             }
-            player.jumpHold = (Input.keyDown.C || Input.keyDown.B || Input.keyDown.A);
-            player.jumpPress = (Input.keyPress.C || Input.keyPress.B || Input.keyPress.A);
+            player.jumpHold = Input.keyDown.C || Input.keyDown.B || Input.keyDown.A;
+            player.jumpPress = Input.keyPress.C || Input.keyPress.B || Input.keyPress.A;
         }
     }
 
@@ -298,36 +298,32 @@ public class Objects
 
     public static T CreateNativeObject<T>(Func<T> factory) where T : NativeEntity
     {
+        NativeEntity entity;
         if (nativeEntityCount == 0)
         {
             Helpers.Memset(nativeEntityBank, (NativeEntity)null);
-            NativeEntity entity = nativeEntityBank[0] = factory();
+            entity = nativeEntityBank[0] = factory();
             activeEntityList[0] = 0;
             nativeEntityCount++;
             entity.Create();
             return (T)entity;
         }
-        else if (nativeEntityCount >= NATIVEENTITY_COUNT)
+
+        Debug.Assert(nativeEntityCount < NATIVEENTITY_COUNT);
+
+        int slot = 0;
+        for (; slot < NATIVEENTITY_COUNT; ++slot)
         {
-            Debug.Assert(false);
-            // TODO, probably never
-            return null;
+            if (nativeEntityBank[slot] == null)
+                break;
         }
-        else
-        {
-            int slot = 0;
-            for (; slot < NATIVEENTITY_COUNT; ++slot)
-            {
-                if (nativeEntityBank[slot] == null)
-                    break;
-            }
-            NativeEntity entity = nativeEntityBank[slot] = factory();
-            entity.slotId = slot;
-            entity.objectId = nativeEntityCount;
-            activeEntityList[nativeEntityCount++] = slot;
-            entity.Create();
-            return (T)entity;
-        }
+
+        nativeEntityBank[slot] = entity = factory();
+        entity.slotId = slot;
+        entity.objectId = nativeEntityCount;
+        activeEntityList[nativeEntityCount++] = slot;
+        entity.Create();
+        return (T)entity;
     }
 
     public static NativeEntity ResetNativeObject<T>(NativeEntity obj, Func<T> factory) where T : NativeEntity
@@ -368,6 +364,16 @@ public class Objects
             entity.Main();
         }
         NativeRenderer.EndDraw();
+    }
+
+    public static void RemoveNativeObjects<T>() where T : NativeEntity
+    {
+        for (int i = nativeEntityCount - 1; i >= 0; --i)
+        {
+            var entity = nativeEntityBank[activeEntityList[i]];
+            if (entity is T)
+                RemoveNativeObject(entity);
+        }
     }
 
     public static void RemoveNativeObject(NativeEntity obj)

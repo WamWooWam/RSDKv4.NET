@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net40;net7.0;sl4</TargetFrameworks>
+    <TargetFrameworks>net7.0;</TargetFrameworks>
     <RootNamespace>RSDKv4</RootNamespace>
     <LangVersion>10</LangVersion>
   </PropertyGroup>
@@ -24,12 +24,12 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'sl4' ">
     <OutputType>Library</OutputType>
     <TargetFrameworkProfile>WindowsPhone71</TargetFrameworkProfile>
-    <DefineConstants>$(DefineConstants);</DefineConstants>
+    <DefineConstants>$(DefineConstants);XNA;</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants);FAST_PALETTE</DefineConstants>
+    <DefineConstants>$(DefineConstants);XNA;FAST_PALETTE</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
@@ -41,6 +41,7 @@
     <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE;NO_THREADS</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
     
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
@@ -55,6 +56,25 @@
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <NativeLibrary Include="..\Dependencies\FNA\lib\SDL2.lib" />
+    <NativeLibrary Include="..\Dependencies\FNA\lib\FNA3D.lib" />
+    <NativeLibrary Include="..\Dependencies\FNA\lib\FAudio.lib" />
+    <NativeLibrary Include="..\Dependencies\FNA\lib\libtheorafile.lib" />
+    <NativeLibrary Include="Shell32.lib" />
+    <NativeLibrary Include="Winmm.lib" />
+    <NativeLibrary Include="Setupapi.lib" />
+    <NativeLibrary Include="Gdi32.lib" />
+    <NativeLibrary Include="Imm32.lib" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DirectPInvoke Include="FNA3D" />
+    <DirectPInvoke Include="FAudio" />
+    <DirectPInvoke Include="libtheorafile" />
+    <DirectPInvokeList Include="SDLApis.txt" />
+  </ItemGroup>
+    
   <ItemGroup Condition=" '$(TargetFramework)' == 'sl4' ">
     <Reference Include="mscorlib" />
     <Reference Include="mscorlib.Extensions" />
@@ -65,6 +85,7 @@
     <Reference Include="Microsoft.Xna.Framework.Game" />
     <Reference Include="Microsoft.Xna.Framework.Graphics" />
     <Reference Include="Microsoft.Xna.Framework.Input.Touch" />
+    <Reference Include="Microsoft.Xna.Framework.GamerServices" />
     <Reference Include="NVorbis">
       <HintPath>..\Dependencies\sl4\NVorbis.dll</HintPath>
     </Reference>
@@ -83,6 +104,9 @@
     <Reference Include="Microsoft.Xna.Framework.Input.Touch">
       <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Xna.Framework.GamerServices">
+      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
+    </Reference>
     <Reference Include="NVorbis">
       <HintPath>..\Dependencies\net40\NVorbis.dll</HintPath>
     </Reference>
@@ -91,8 +115,4 @@
   <ItemGroup>
     <Compile Remove="DllMap.cs" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(TargetFramework)' == 'net7.0' ">
-    <Exec Command="mkdir  $(OutDir)Content\Shaders &gt; NUL&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\Sharp.fxb Shaders\Sharp.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\Smooth.fxb Shaders\Smooth.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\CRT-Yee64.fxb Shaders\CRT-Yee64.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\CRT-Yeetron.fxb Shaders\CRT-Yeetron.fx&#xD;&#xA;fxc /nologo /T fx_2_0 /Fo $(OutDir)Content\Shaders\Palette.fxb Shaders\Palette.fx" />
-  </Target>
 </Project>

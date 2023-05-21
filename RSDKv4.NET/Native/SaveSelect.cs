@@ -17,7 +17,6 @@ public class SaveSelect : NativeEntity
     public enum STATE { SETUP, ENTER, MAIN, EXIT, LOADSAVE, ENTERSUBMENU, SUBMENU, EXITSUBMENU, MAIN_DELETING, DELSETUP, DIALOGWAIT };
     public static class BUTTON { public const int NOSAVE = 0, SAVE1 = 1, SAVE2 = 2, SAVE3 = 3, SAVE4 = 4, COUNT = 5; };
 
-
     public STATE state;
     public float timer;
     public int unused1;
@@ -149,12 +148,12 @@ public class SaveSelect : NativeEntity
                     if (this.deleteEnabled)
                         this.delButton.x = ((92.0f - this.delButton.x) / (8.0f * (60.0f * Engine.deltaTime))) + this.delButton.x;
 
-                    float div = (60.0f * Engine.deltaTime) * 16.0f;
+                    float div = 60.0f * Engine.deltaTime * 16.0f;
                     for (int i = 0; i < BUTTON.COUNT; ++i)
-                        this.saveButtons[i].matXOff += ((-176.0f - this.saveButtons[i].matXOff) / div);
+                        this.saveButtons[i].matXOff += (-176.0f - this.saveButtons[i].matXOff) / div;
 
-                    this.timer += (Engine.deltaTime + Engine.deltaTime);
-                    this.labelPtr.alpha = ((int)(256.0f * this.timer));
+                    this.timer += Engine.deltaTime + Engine.deltaTime;
+                    this.labelPtr.alpha = (int)(256.0f * this.timer);
                     if (this.timer > 1.0)
                     {
                         this.timer = 0.0f;
@@ -170,9 +169,9 @@ public class SaveSelect : NativeEntity
                     if (this.state != STATE.MAIN_DELETING)
                     {
                         if (!this.deleteEnabled)
-                            this.delButton.x += ((512.0f - this.delButton.x) / ((60.0f * Engine.deltaTime) * 16.0f));
+                            this.delButton.x += (512.0f - this.delButton.x) / (60.0f * Engine.deltaTime * 16.0f);
                         else
-                            this.delButton.x += ((92.0f - this.delButton.x) / ((60.0f * Engine.deltaTime) * 16.0f));
+                            this.delButton.x += (92.0f - this.delButton.x) / (60.0f * Engine.deltaTime * 16.0f);
                     }
 
                     if (usePhysicalControls)
@@ -422,8 +421,8 @@ public class SaveSelect : NativeEntity
                 {
                     this.labelPtr.alignOffset += 10.0f * (60.0f * Engine.deltaTime);
                     this.delButton.x += 10.0f * (60.0f * Engine.deltaTime);
-                    for (int i = 0; i < BUTTON.COUNT; ++i) this.saveButtons[i].matXOff += (11.0f * (60.0f * Engine.deltaTime));
-                    this.timer += (Engine.deltaTime + Engine.deltaTime);
+                    for (int i = 0; i < BUTTON.COUNT; ++i) this.saveButtons[i].matXOff += 11.0f * (60.0f * Engine.deltaTime);
+                    this.timer += Engine.deltaTime + Engine.deltaTime;
                     if (this.timer > 1.0f)
                     {
                         this.timer = 0.0f;
@@ -520,7 +519,7 @@ public class SaveSelect : NativeEntity
                     if (this.deleteRotateY > this.targetDeleteRotateY)
                     {
                         this.deleteRotateYVelocity -= 0.0025f * (Engine.deltaTime * 60.0f);
-                        this.deleteRotateY += (Engine.deltaTime * 60.0f) * this.deleteRotateYVelocity;
+                        this.deleteRotateY += Engine.deltaTime * 60.0f * this.deleteRotateYVelocity;
                         this.deleteRotateYVelocity -= 0.0025f * (Engine.deltaTime * 60.0f);
                         this.labelPtr.renderMatrix = Helpers.CreateRotationY(this.deleteRotateY)
                             * Matrix.CreateTranslation(-128.0f, 80.0f, 160.0f);
@@ -533,7 +532,7 @@ public class SaveSelect : NativeEntity
                         {
                             this.rotateYVelocity[i] -= 0.0025f * (60.0f * Engine.deltaTime);
                             if (this.rotateYVelocity[i] < 0.0f)
-                                this.rotateY[i] += ((60.0f * Engine.deltaTime) * this.rotateYVelocity[i]);
+                                this.rotateY[i] += 60.0f * Engine.deltaTime * this.rotateYVelocity[i];
                             this.rotateYVelocity[i] -= 0.0025f * (60.0f * Engine.deltaTime);
                             this.saveButtons[i].matrix = Helpers.CreateRotationY(this.rotateY[i])
                                 * Matrix.CreateTranslation(-128.0f, y, 160.0f);
@@ -560,12 +559,12 @@ public class SaveSelect : NativeEntity
                         //((NativeEntity_PlayerSelectScreen*)this.playerSelect).saveSel = this;
                     }
 
-                    float div = (60.0f * Engine.deltaTime) * 16.0f;
-                    AchievementsButton button = (AchievementsButton)this.menuControl.buttons[this.menuControl.buttonID];
+                    float div = 60.0f * Engine.deltaTime * 16.0f;
+                    MenuButton button = this.menuControl.buttons[this.menuControl.buttonID];
                     BackButton backButton = this.menuControl.backButton;
-                    button.x += ((512.0f - button.x) / div);
-                    backButton.x += ((1024.0f - backButton.x) / div);
-                    this.delButton.x += ((512.0f - this.delButton.x) / div);
+                    button.x += (512.0f - button.x) / div;
+                    backButton.x += (1024.0f - backButton.x) / div;
+                    this.delButton.x += (512.0f - this.delButton.x) / div;
                     break;
                 }
             case STATE.SUBMENU: // player select idle
@@ -575,7 +574,7 @@ public class SaveSelect : NativeEntity
                     if (this.targetDeleteRotateY > this.deleteRotateY)
                     {
                         this.deleteRotateYVelocity += 0.0025f * (Engine.deltaTime * 60.0f);
-                        this.deleteRotateY += (Engine.deltaTime * 60.0f) * this.deleteRotateYVelocity;
+                        this.deleteRotateY += Engine.deltaTime * 60.0f * this.deleteRotateYVelocity;
                         this.deleteRotateYVelocity += 0.0025f * (Engine.deltaTime * 60.0f);
                         if (this.deleteRotateY > this.targetDeleteRotateY)
                             this.deleteRotateY = this.targetDeleteRotateY;
@@ -590,7 +589,7 @@ public class SaveSelect : NativeEntity
                         {
                             this.rotateYVelocity[i] += 0.0025f * (60.0f * Engine.deltaTime);
                             if (this.rotateYVelocity[i] > 0.0)
-                                this.rotateY[i] += ((60.0f * Engine.deltaTime) * this.rotateYVelocity[i]);
+                                this.rotateY[i] += 60.0f * Engine.deltaTime * this.rotateYVelocity[i];
 
                             this.rotateYVelocity[i] += 0.0025f * (60.0f * Engine.deltaTime);
                             if (this.rotateY[i] > this.targetRotateY[i])
@@ -601,13 +600,13 @@ public class SaveSelect : NativeEntity
                         y -= 30.0f;
                     }
 
-                    float div = (60.0f * Engine.deltaTime) * 16.0f;
-                    AchievementsButton button = (AchievementsButton)this.menuControl.buttons[this.menuControl.buttonID];
+                    float div = 60.0f * Engine.deltaTime * 16.0f;
+                    MenuButton button = this.menuControl.buttons[this.menuControl.buttonID];
                     BackButton backButton = this.menuControl.backButton;
-                    button.x += ((112.0f - button.x) / div);
-                    backButton.x += ((230.0f - backButton.x) / div);
+                    button.x += (112.0f - button.x) / div;
+                    backButton.x += (230.0f - backButton.x) / div;
                     if (this.deleteEnabled)
-                        this.delButton.x += ((92.0f - this.delButton.x) / div);
+                        this.delButton.x += (92.0f - this.delButton.x) / div;
 
                     if (backButton.x < Drawing.SCREEN_YSIZE)
                     {

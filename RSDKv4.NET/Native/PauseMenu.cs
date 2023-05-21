@@ -266,10 +266,10 @@ public class PauseMenu : NativeEntity
                     this.label.alignOffset = this.label.alignOffset / (1.125f * (60.0f * Engine.deltaTime));
                     this.label.alpha = (int)(256.0f * this.timer);
                     for (int i = 0; i < pauseMenuButtonCount; ++i)
-                        this.buttons[i].matXOff += ((-176.0f - this.buttons[i].matXOff) / (16.0f * (60.0f * Engine.deltaTime)));
-                    this.matrixX += ((this.width - this.matrixX) / ((60.0f * Engine.deltaTime) * 12.0f));
-                    this.matrixZ += ((512.0f - this.matrixZ) / ((60.0f * Engine.deltaTime) * 12.0f));
-                    this.rotationY += ((this.rotYOff - this.rotationY) / (16.0f * (60.0f * Engine.deltaTime)));
+                        this.buttons[i].matXOff += (-176.0f - this.buttons[i].matXOff) / (16.0f * (60.0f * Engine.deltaTime));
+                    this.matrixX += (this.width - this.matrixX) / (60.0f * Engine.deltaTime * 12.0f);
+                    this.matrixZ += (512.0f - this.matrixZ) / (60.0f * Engine.deltaTime * 12.0f);
+                    this.rotationY += (this.rotYOff - this.rotationY) / (16.0f * (60.0f * Engine.deltaTime));
                     if (this.timer > 1.0f)
                     {
                         this.timer = 0.0f;
@@ -367,10 +367,10 @@ public class PauseMenu : NativeEntity
                     this.label.alignOffset += 10.0f * (60.0f * Engine.deltaTime);
                     this.timer += Engine.deltaTime * 2;
                     for (int i = 0; i < pauseMenuButtonCount; ++i)
-                        this.buttons[i].matXOff += ((12.0f + i) * (60.0f * Engine.deltaTime));
-                    this.matrixX += ((-this.matrixX) / (5.0f * (60.0f * Engine.deltaTime)));
-                    this.matrixZ += ((160.0f - this.matrixZ) / (5.0f * (60.0f * Engine.deltaTime)));
-                    this.rotationY += ((this.rotYOff - this.rotationY) / ((60.0f * Engine.deltaTime) * 6.0f));
+                        this.buttons[i].matXOff += (12.0f + i) * (60.0f * Engine.deltaTime);
+                    this.matrixX += (-this.matrixX) / (5.0f * (60.0f * Engine.deltaTime));
+                    this.matrixZ += (160.0f - this.matrixZ) / (5.0f * (60.0f * Engine.deltaTime));
+                    this.rotationY += (this.rotYOff - this.rotationY) / (60.0f * Engine.deltaTime * 6.0f);
 
                     if (this.timer > 0.9)
                     {
@@ -445,7 +445,7 @@ public class PauseMenu : NativeEntity
                     if (this.renderRot > this.renderRotMax)
                     {
                         this.rotInc -= 0.0025f * (Engine.deltaTime * 60.0f);
-                        this.renderRot += (Engine.deltaTime * 60.0f) * this.rotInc;
+                        this.renderRot += Engine.deltaTime * 60.0f * this.rotInc;
                         this.rotInc -= 0.0025f * (Engine.deltaTime * 60.0f);
                         this.label.renderMatrix = Helpers.CreateRotationY(this.renderRot)
                             * Matrix.CreateTranslation(this.buttonX, 80.0f, 160.0f);
@@ -457,7 +457,7 @@ public class PauseMenu : NativeEntity
                             this.buttonRotY[i] -= 0.0025f * (60.0f * Engine.deltaTime);
                             if (this.buttonRotY[i] < 0.0)
                             {
-                                this.buttonRot[i] += ((60.0f * Engine.deltaTime) * this.buttonRotY[i]);
+                                this.buttonRot[i] += 60.0f * Engine.deltaTime * this.buttonRotY[i];
                             }
                             this.buttonRotY[i] -= 0.0025f * (60.0f * Engine.deltaTime); // do it again ????
                             this.label.renderMatrix = Helpers.CreateRotationY(this.buttonRot[i])
@@ -482,7 +482,7 @@ public class PauseMenu : NativeEntity
                             //this.settingsScreen.isPauseMenu = 1;
                         }
                     }
-                    this.matrixX += ((1024.0f - this.matrixX) / ((60.0f * Engine.deltaTime) * 16.0f));
+                    this.matrixX += (1024.0f - this.matrixX) / (60.0f * Engine.deltaTime * 16.0f);
                     break;
                 }
             case STATE.SUBMENU: break;
@@ -491,7 +491,7 @@ public class PauseMenu : NativeEntity
                     if (this.renderRotMax > this.renderRot)
                     {
                         this.rotInc += 0.0025f * (Engine.deltaTime * 60.0f);
-                        this.renderRot += (Engine.deltaTime * 60.0f) * this.rotInc;
+                        this.renderRot += Engine.deltaTime * 60.0f * this.rotInc;
                         this.rotInc += 0.0025f * (Engine.deltaTime * 60.0f);
                         this.label.renderMatrix = Helpers.CreateRotationY(this.renderRot)
                             * Matrix.CreateTranslation(this.buttonX, 80.0f, 160.0f);
@@ -503,7 +503,7 @@ public class PauseMenu : NativeEntity
                         {
                             this.buttonRotY[i] += 0.0025f * (60.0f * Engine.deltaTime);
                             if (this.buttonRotY[i] > 0.0f)
-                                this.buttonRot[i] += ((60.0f * Engine.deltaTime) * this.buttonRotY[i]);
+                                this.buttonRot[i] += 60.0f * Engine.deltaTime * this.buttonRotY[i];
                             this.buttonRotY[i] += 0.0025f * (60.0f * Engine.deltaTime);
                             if (this.buttonRot[i] > this.rotMax[i])
                                 this.buttonRot[i] = this.rotMax[i];
@@ -513,8 +513,8 @@ public class PauseMenu : NativeEntity
                         }
                     }
 
-                    float div = (60.0f * Engine.deltaTime) * 16.0f;
-                    this.matrixX += (((this.width - 32.0f) - this.matrixX) / div);
+                    float div = 60.0f * Engine.deltaTime * 16.0f;
+                    this.matrixX += (this.width - 32.0f - this.matrixX) / div;
                     if (this.width - 16.0 > this.matrixX)
                     {
                         this.matrixX = this.width - 16.0f;

@@ -38,7 +38,7 @@ public class TimeAttackButton : MenuButton
         {
             if (this.scale < 0.2f)
             {
-                this.scale += ((0.25f - this.scale) / ((60.0f * Engine.deltaTime) * 16.0f));
+                this.scale += (0.25f - this.scale) / (60.0f * Engine.deltaTime * 16.0f);
                 if (this.scale > 0.2f)
                     this.scale = 0.2f;
             }

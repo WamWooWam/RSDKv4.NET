@@ -86,8 +86,11 @@ internal class OggCache
                     writer.Write(data[i]);
 #endif
 
+                writer.Flush();
+
                 stream.Seek(4, SeekOrigin.Begin);
                 writer.Write((int)stream.Length - 8);
+                writer.Flush();
             }
         }
         catch { };

@@ -11,8 +11,6 @@ public class RetroGameLoop : NativeEntity
     {
         switch (Engine.engineState)
         {
-            case ENGINE_STATE.DEVMENU:
-                break;
 
             case ENGINE_STATE.MAINGAME:
                 //Scene.ProcessStage();
@@ -25,6 +23,17 @@ public class RetroGameLoop : NativeEntity
                 Objects.ClearNativeObjects();
                 Objects.CreateNativeObject(() => new MenuBG());
                 Objects.CreateNativeObject(() => new PauseMenu());
+                break;
+
+            case ENGINE_STATE.INITDEVMENU:
+                Engine.LoadGameConfig("Data/Game/GameConfig.bin");
+                DevMenu.InitDevMenu();
+                //ResetCurrentStageFolder();
+                break;
+            case ENGINE_STATE.DEVMENU:
+                DevMenu.ProcessStageSelect();
+                Drawing.Draw();
+                NativeRenderer.RenderRetroBuffer(64, 160, true);
                 break;
         }
     }

@@ -4,11 +4,11 @@ namespace RSDKv4;
 
 public class Animation
 {
-    public const int ANIFILE_COUNT = (0x100);
-    public const int ANIMATION_COUNT = (0x400);
-    public const int SPRITEFRAME_COUNT = (0x1000);
-    public const int HITBOX_COUNT = (0x20);
-    public const int HITBOX_DIR_COUNT = (0x8);
+    public const int ANIFILE_COUNT = 0x100;
+    public const int ANIMATION_COUNT = 0x400;
+    public const int SPRITEFRAME_COUNT = 0x1000;
+    public const int HITBOX_COUNT = 0x20;
+    public const int HITBOX_DIR_COUNT = 0x8;
 
     public static AnimationFile[] animationFileList = new AnimationFile[ANIFILE_COUNT];
     public static int animationFileCount;
@@ -142,7 +142,7 @@ public class Animation
         hitboxCount = 0;
 
         // Used for pause menu
-        // Drawing.LoadGIFFile("Data/Game/SystemText.gif", Drawing.SURFACE_MAX - 1);
+        Drawing.LoadGIFFile("Data/Game/SystemText.gif", Drawing.TEXTMENU_SURFACE);
     }
 
     public static void ProcessObjectAnimation(ObjectScript objectScript, Entity entity)

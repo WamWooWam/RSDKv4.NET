@@ -90,7 +90,7 @@ public class MenuControl : NativeEntity
 
         this.float28 = 0.15707964f;  // this but less precise --. M_PI / 2
         this.float2C = 0.078539819f; // this but less precise --. M_PI / 4
-        this.float30 = (this.buttonCount * this.float28) * 0.5f;
+        this.float30 = this.buttonCount * this.float28 * 0.5f;
 
         float offset = 0.0f;
         for (int b = 0; b < this.buttonCount; ++b)
@@ -206,7 +206,7 @@ public class MenuControl : NativeEntity
                                 }
                             case STATEINPUT.HANDLEMOVEMENT:
                                 {
-                                    this.field_70 /= (1.125f * (60.0f * Engine.deltaTime));
+                                    this.field_70 /= 1.125f * (60.0f * Engine.deltaTime);
                                     this.float18 += this.field_70;
                                     float max = -(this.float30 - this.float2C);
 
@@ -244,7 +244,7 @@ public class MenuControl : NativeEntity
                                         }
 
                                         this.stateInput = STATEINPUT.MOVE;
-                                        this.float18 += (this.float1C - this.float18) / ((60.0f * Engine.deltaTime) * 8.0f);
+                                        this.float18 += (this.float1C - this.float18) / (60.0f * Engine.deltaTime * 8.0f);
                                     }
                                     break;
                                 }
@@ -258,7 +258,7 @@ public class MenuControl : NativeEntity
                                     }
                                     else
                                     {
-                                        this.float18 += (this.float1C - this.float18) / ((60.0f * Engine.deltaTime) * 6.0f);
+                                        this.float18 += (this.float1C - this.float18) / (60.0f * Engine.deltaTime * 6.0f);
                                         if (Math.Abs(this.float1C - this.float18) < 0.00025f)
                                         {
                                             this.float18 = this.float1C;
@@ -309,7 +309,7 @@ public class MenuControl : NativeEntity
                     {
                         if (this.stateInput == STATEINPUT.HANDLEDRAG)
                         {
-                            this.float18 += (((this.float24 + this.float1C) - this.float18) / ((60.0f * Engine.deltaTime) * 8.0f));
+                            this.float18 += (this.float24 + this.float1C - this.float18) / (60.0f * Engine.deltaTime * 8.0f);
 
                             if (Math.Abs(this.float1C - this.float18) < 0.001f)
                             {
@@ -507,7 +507,7 @@ public class MenuControl : NativeEntity
                         if (this.buttonID != i)
                         {
                             if (this.buttonID != i)
-                                this.buttons[i].z += ((60.0f * Engine.deltaTime) * this.field_70);
+                                this.buttons[i].z += 60.0f * Engine.deltaTime * this.field_70;
                         }
                     }
 
@@ -517,12 +517,12 @@ public class MenuControl : NativeEntity
                     if (this.timer > 0.5)
                     {
                         var button = this.buttons[this.buttonID];
-                        float div = (60.0f * Engine.deltaTime) * 16.0f;
+                        float div = 60.0f * Engine.deltaTime * 16.0f;
 
-                        button.x += ((112.0f - button.x) / div);
-                        button.y += ((64.0f - button.y) / div);
-                        button.z += ((200.0f - button.z) / div);
-                        this.backButton.z += ((320.0f - this.backButton.z) / div);
+                        button.x += (112.0f - button.x) / div;
+                        button.y += (64.0f - button.y) / div;
+                        button.z += (200.0f - button.z) / div;
+                        this.backButton.z += (320.0f - this.backButton.z) / div;
                     }
 
                     if (this.timer > 1.5f)
@@ -577,14 +577,14 @@ public class MenuControl : NativeEntity
                     if (this.timer > 0.25f)
                     {
                         float offset = this.float18;
-                        float div = (60.0f * Engine.deltaTime) * 8.0f;
+                        float div = 60.0f * Engine.deltaTime * 8.0f;
 
                         for (int i = 0; i < this.buttonCount; ++i)
                         {
                             if (this.buttonID != i)
                             {
                                 MenuButton button = this.buttons[i];
-                                button.z = (((((float)Math.Cos(offset + this.float18) * -512.0f) + 672.0f) - button.z) / div) + button.z;
+                                button.z = ((((float)Math.Cos(offset + this.float18) * -512.0f) + 672.0f - button.z) / div) + button.z;
                                 button.visible = true;
                             }
                             offset += this.float28;
@@ -592,9 +592,9 @@ public class MenuControl : NativeEntity
 
                         MenuButton curButton = this.buttons[this.buttonID];
                         curButton.label.state = TextLabel.STATE.IDLE;
-                        curButton.x += ((0.0f - curButton.x) / div);
-                        curButton.y += ((16.0f - curButton.y) / div);
-                        curButton.z += ((160.0f - curButton.z) / div);
+                        curButton.x += (0.0f - curButton.x) / div;
+                        curButton.y += (16.0f - curButton.y) / div;
+                        curButton.z += (160.0f - curButton.z) / div;
                     }
 
                     if (this.timer > 1.0)

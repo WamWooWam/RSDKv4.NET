@@ -87,7 +87,7 @@ public class DialogPanel : NativeEntity
                 }
             case STATE.ENTER:
                 {
-                    this.buttonScale += ((0.77f - this.buttonScale) / ((Engine.deltaTime * 60.0f) * 8.0f));
+                    this.buttonScale += (0.77f - this.buttonScale) / (Engine.deltaTime * 60.0f * 8.0f);
                     if (this.buttonScale > 0.75f)
                         this.buttonScale = 0.75f;
 
@@ -222,7 +222,7 @@ public class DialogPanel : NativeEntity
                 break;
             case STATE.EXIT:
                 this.buttonScale =
-                    this.buttonScale + ((((this.stateTimer < 0.2f) ? 1 : -1) - this.buttonScale) / ((Engine.deltaTime * 60.0f) * 8.0f));
+                    this.buttonScale + ((((this.stateTimer < 0.2f) ? 1 : -1) - this.buttonScale) / (Engine.deltaTime * 60.0f * 8.0f));
                 if (this.buttonScale < 0.0)
                     this.buttonScale = 0.0f;
                 NewRenderState();

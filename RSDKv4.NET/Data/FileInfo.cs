@@ -21,7 +21,7 @@ public class FileInfo
     public byte[] encryptionKeyA = new byte[0x10];
     public byte[] encryptionKeyB = new byte[0x10];
 
-    public void Clone()
+    public FileInfo Clone()
     {
         var clone = (FileInfo)this.MemberwiseClone();
         clone.encryptionKeyA = new byte[0x10];
@@ -29,5 +29,7 @@ public class FileInfo
 
         Buffer.BlockCopy(encryptionKeyA, 0, clone.encryptionKeyA, 0, 0x10);
         Buffer.BlockCopy(encryptionKeyB, 0, clone.encryptionKeyB, 0, 0x10);
+
+        return clone;
     }
 }

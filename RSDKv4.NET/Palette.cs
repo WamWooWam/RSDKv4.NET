@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using static RSDKv4.Drawing;
 
@@ -104,6 +105,9 @@ public class Palette
         if (newActivePal >= PALETTE_COUNT)
             return;
 
+        startLine = Math.Max(0, Math.Min(startLine, SCREEN_YSIZE));
+        endLine = Math.Max(0, Math.Min(endLine, SCREEN_YSIZE));
+
         //Console.WriteLine($"{newActivePal}: {startLine}-{endLine}");
 
         if (activePaletteCount < 8)
@@ -190,5 +194,10 @@ public class Palette
         }
 
         paletteDirty = true;
+    }
+
+    internal static void SetLimitedFade(byte v1, byte v2, byte v3, ushort v4, int v5, int v6, int v7)
+    {
+        throw new NotImplementedException();
     }
 }

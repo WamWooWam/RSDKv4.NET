@@ -74,7 +74,7 @@ public class FadeScreen : NativeEntity
                 break;
 
             case STATE.FADEIN:
-                this.fadeA = ((int)((this.delay - this.timer) * 256.0f));
+                this.fadeA = (int)((this.delay - this.timer) * 256.0f);
                 RenderRect(-SCREEN_CENTERX_F, SCREEN_CENTERY_F, 160.0f, SCREEN_XSIZE_F, SCREEN_YSIZE_F, this.fadeR, this.fadeG, this.fadeB,
                            this.fadeA);
                 if (this.timer > this.delay)

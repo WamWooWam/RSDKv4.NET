@@ -58,10 +58,8 @@ namespace RSDKv4.Native
 
         public override void Main()
         {
-            //if (!TouchPanel.GetCapabilities().IsConnected)
-            //    return;
-
-            return;
+            if (Engine.deviceType != DEVICE.MOBILE)
+                return;
 
 
             var saveGame = SaveData.saveGame;

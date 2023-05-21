@@ -9,7 +9,10 @@ public class Font
     public const int FONTLIST_CHAR_COUNT = 0x1000;
     public const int FONTLIST_COUNT = 0x4;
 
-    public static BitmapFont[] fontList = new BitmapFont[FONTLIST_COUNT];
+    public const int FONTCHAR_COUNT = 0x400;
+
+    public static BitmapFont[] fontList = new BitmapFont[FONTLIST_COUNT]; 
+    public static FontCharacter[] fontCharacterList = new FontCharacter[FONTCHAR_COUNT];
 
     static Font()
     {
@@ -150,5 +153,68 @@ public class Font
             num = 0;
 
         return num;
+    }
+
+    public static void LoadFontFile(string filePath)
+    {
+        byte fileBuffer = 0;
+        int cnt = 0;
+        if (FileIO.LoadFile(filePath, out var info))
+        {
+            while (!FileIO.ReachedEndOfFile())
+            {
+                fontCharacterList[cnt].id = FileIO.ReadInt32();
+                fontCharacterList[cnt].srcX = FileIO.ReadInt16();
+                fontCharacterList[cnt].srcY = FileIO.ReadInt16();
+                fontCharacterList[cnt].width = FileIO.ReadInt16();
+                fontCharacterList[cnt].height = FileIO.ReadInt16();
+
+                fileBuffer = FileIO.ReadByte();
+                fontCharacterList[cnt].pivotX = fileBuffer;
+                fileBuffer = FileIO.ReadByte();
+                if (fileBuffer > 0x80)
+                {
+                    fontCharacterList[cnt].pivotX += (short)((fileBuffer - 0x80) << 8);
+                    fontCharacterList[cnt].pivotX += -0x8000;
+                }
+                else
+                {
+                    fontCharacterList[cnt].pivotX += (short)(fileBuffer << 8);
+                }
+
+                fileBuffer = FileIO.ReadByte();
+                fontCharacterList[cnt].pivotY = fileBuffer;
+                fileBuffer = FileIO.ReadByte();
+                if (fileBuffer > 0x80)
+                {
+                    fontCharacterList[cnt].pivotY += (short)((fileBuffer - 0x80) << 8);
+                    fontCharacterList[cnt].pivotY += -0x8000;
+                }
+                else
+                {
+                    fontCharacterList[cnt].pivotY += (short)(fileBuffer << 8);
+                }
+
+                fileBuffer = FileIO.ReadByte();
+                fontCharacterList[cnt].xAdvance = fileBuffer;
+                fileBuffer = FileIO.ReadByte();
+                if (fileBuffer > 0x80)
+                {
+                    fontCharacterList[cnt].xAdvance += (short)((fileBuffer - 0x80) << 8);
+                    fontCharacterList[cnt].xAdvance += -0x8000;
+                }
+                else
+                {
+                    fontCharacterList[cnt].xAdvance += (short)(fileBuffer << 8);
+                }
+
+                // Unused
+                _ = FileIO.ReadByte();
+                _ = FileIO.ReadByte();
+                cnt++;
+            }
+
+            FileIO.CloseFile();
+        }
     }
 }

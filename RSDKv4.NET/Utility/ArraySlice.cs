@@ -1,14 +1,11 @@
 ﻿using System;
-#if SILVERLIGHT
-using System.IO.IsolatedStorage;
-#endif
-
 namespace RSDKv4.Utility;
-public class ArraySlice<T>
+
+public class ArraySlice<T> 
 {
-    private T[] array;
-    private int offset;
-    private int count;
+    private readonly T[] array;
+    private readonly int offset;
+    private readonly int count;
 
     public ArraySlice(T[] array, int offset, int count)
     {
@@ -21,7 +18,7 @@ public class ArraySlice<T>
     {
         get
         {
-            if (index >= count)
+            if (index < 0 || index >= count)
             {
                 throw new IndexOutOfRangeException();
             }
@@ -30,7 +27,7 @@ public class ArraySlice<T>
         }
         set
         {
-            if (index >= count)
+            if (index < 0 || index >= count)
             {
                 throw new IndexOutOfRangeException();
             }

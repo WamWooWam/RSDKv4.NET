@@ -1,15 +1,22 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace RSDKv4.Native;
 
 public class RenderState
 {
-    public RenderVertex[] vertices;
-    public short[] indices;
-    public Matrix? renderMatrix;
+    public Effect effect;
+    public TextureInfo texture;
+
+    public RenderVertex[] renderVertices;
     public int vertexOffset;
+    public int vertexCount;
+
+    public short[] renderIndicies;
     public int indexOffset;
     public int indexCount;
+    public int primitiveCount;
+
     public int id;
     public byte blendMode;
     public bool useTexture;
@@ -17,4 +24,6 @@ public class RenderState
     public bool depthTest;
     public bool useNormals;
     public bool useFilter;
+
+    public Matrix? renderMatrix;
 }

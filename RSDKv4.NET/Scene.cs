@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using RSDKv4.Utility;
 
@@ -7,26 +8,26 @@ namespace RSDKv4;
 
 public class Scene
 {
-    public const int LAYER_COUNT = (9);
-    public const int DEFORM_STORE = (0x100);
-    public const int DEFORM_SIZE = (320);
-    public const int DEFORM_COUNT = (DEFORM_STORE + DEFORM_SIZE);
-    public const int PARALLAX_COUNT = (0x100);
+    public const int LAYER_COUNT = 9;
+    public const int DEFORM_STORE = 0x100;
+    public const int DEFORM_SIZE = 320;
+    public const int DEFORM_COUNT = DEFORM_STORE + DEFORM_SIZE;
+    public const int PARALLAX_COUNT = 0x100;
 
-    public const int TILE_COUNT = (0x400);
-    public const int TILE_SIZE = (0x10);
-    public const int CHUNK_SIZE = (0x80);
-    public const int TILE_DATASIZE = (TILE_SIZE * TILE_SIZE);
-    public const int TILESET_SIZE = (TILE_COUNT * TILE_DATASIZE);
+    public const int TILE_COUNT = 0x400;
+    public const int TILE_SIZE = 0x10;
+    public const int CHUNK_SIZE = 0x80;
+    public const int TILE_DATASIZE = TILE_SIZE * TILE_SIZE;
+    public const int TILESET_SIZE = TILE_COUNT * TILE_DATASIZE;
 
-    public const int TILELAYER_CHUNK_W = (0x100);
-    public const int TILELAYER_CHUNK_H = (0x100);
-    public const int TILELAYER_CHUNK_MAX = (TILELAYER_CHUNK_W * TILELAYER_CHUNK_H);
-    public const int TILELAYER_SCROLL_MAX = (TILELAYER_CHUNK_H * CHUNK_SIZE);
+    public const int TILELAYER_CHUNK_W = 0x100;
+    public const int TILELAYER_CHUNK_H = 0x100;
+    public const int TILELAYER_CHUNK_MAX = TILELAYER_CHUNK_W * TILELAYER_CHUNK_H;
+    public const int TILELAYER_SCROLL_MAX = TILELAYER_CHUNK_H * CHUNK_SIZE;
 
-    public const int CHUNKTILE_COUNT = (0x200 * (8 * 8));
+    public const int CHUNKTILE_COUNT = 0x200 * 8 * 8;
 
-    public const int CPATH_COUNT = (2);
+    public const int CPATH_COUNT = 2;
 
     public const int DRAWLAYER_COUNT = 8;
 
@@ -60,8 +61,8 @@ public class Scene
 
     public static int SCREEN_SCROLL_LEFT;
     public static int SCREEN_SCROLL_RIGHT;
-    public static int SCREEN_SCROLL_UP => ((Drawing.SCREEN_YSIZE / 2) - 16);
-    public static int SCREEN_SCROLL_DOWN => ((Drawing.SCREEN_YSIZE / 2) + 16);
+    public static int SCREEN_SCROLL_UP => (Drawing.SCREEN_YSIZE / 2) - 16;
+    public static int SCREEN_SCROLL_DOWN => (Drawing.SCREEN_YSIZE / 2) + 16;
 
     public static int lastXSize;
     public static int lastYSize;
@@ -139,14 +140,12 @@ public class Scene
         Animation.ClearAnimationData();
         currentStageFolder = "";
         activeStageList = list;
+        stageMode = STAGEMODE.LOAD;
+        stageListPosition = stage;
 
         Objects.playerListPos = player;
-
         Palette.SetActivePalette(0, 0, 0);
-        stageMode = STAGEMODE.LOAD;
         Engine.engineState = ENGINE_STATE.MAINGAME;
-
-        stageListPosition = stage;
     }
 
     public static void ProcessStage()
@@ -210,11 +209,11 @@ public class Scene
                     lastYSize = -1;
                     Input.CheckKeyDown(ref Input.keyDown);
                     Input.CheckKeyPress(ref Input.keyPress);
-                    //if (pauseEnabled && inputPress.start)
-                    //{
-                    //    stageMode = STAGEMODE_NORMAL_STEP;
-                    //    PauseSound();
-                    //}
+                    if (pauseEnabled && Input.keyPress.start)
+                    {
+                        stageMode = STAGEMODE.NORMAL_STEP;
+                        Audio.PauseSound();
+                    }
 
                     if (timeEnabled)
                     {
@@ -400,7 +399,6 @@ public class Scene
                 }
 
                 Audio.stageSfxCount = FileIO.ReadByte();
-
                 for (int i = 0; i < Audio.stageSfxCount; i++)
                 {
                     Audio.SetSfxName(FileIO.ReadLengthPrefixedString(), i + Engine.globalSfxCount);
@@ -925,7 +923,7 @@ public class Scene
     {
         var fileName = $"Data/Stages/{Engine.stageList[activeStageList][stageId].folder}/Act{Engine.stageList[activeStageList][stageId].id}{ext}";
 
-        actId = int.Parse(Engine.stageList[activeStageList][stageId].id);
+        actId = int.Parse(Engine.stageList[activeStageList][stageId].id, NumberStyles.HexNumber);
 
         return FileIO.LoadFile(fileName, out fileInfo);
     }
@@ -1109,7 +1107,7 @@ public class Scene
         {
             if (targetY <= cameraYPos)
             {
-                yPosDif = (targetY - cameraYPos) + 32;
+                yPosDif = targetY - cameraYPos + 32;
                 if (yPosDif <= 0)
                 {
                     if (yPosDif <= -17)
@@ -1120,7 +1118,7 @@ public class Scene
             }
             else
             {
-                yPosDif = (targetY - cameraYPos) - 32;
+                yPosDif = targetY - cameraYPos - 32;
                 if (yPosDif >= 0)
                 {
                     if (yPosDif >= 17)

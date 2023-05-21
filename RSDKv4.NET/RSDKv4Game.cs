@@ -13,6 +13,10 @@ using RSDKv4.Utility;
 using System.Threading.Tasks;
 #endif
 
+#if XNA
+using Microsoft.Xna.Framework.GamerServices;
+#endif
+
 namespace RSDKv4;
 
 /// <summary>
@@ -44,6 +48,7 @@ public class RSDKv4Game : Game
         graphics.PreparingDeviceSettings += OnPreparingDeviceSettings;
         graphics.PreferredBackBufferWidth = WIDTH;
         graphics.PreferredBackBufferHeight = HEIGHT;
+        //graphics.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
         //graphics.PreferredBackBufferFormat = SurfaceFormat.Bgr565;
 #if SILVERLIGHT || WINDOWS_UWP
         graphics.IsFullScreen = true;
@@ -80,7 +85,7 @@ public class RSDKv4Game : Game
         e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PlatformContents;
         e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.One;
 #if FAST_PALETTE
-        e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 8;
+        e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
 #endif
     }
 
@@ -118,7 +123,7 @@ public class RSDKv4Game : Game
 
         FastMath.CalculateTrigAngles();
         if (!FileIO.CheckRSDKFile("Data.rsdk"))
-            FileIO.CheckRSDKFile("DataS2.rsdk");
+            FileIO.CheckRSDKFile("Data.rsdk");
 
         Strings.InitLocalizedStrings();
         SaveData.InitializeSaveRAM();
@@ -151,7 +156,7 @@ public class RSDKv4Game : Game
                 loadPercent = 0.10f;
                 if (Audio.InitAudioPlayback())
                 {
-                    Objects.CreateNativeObject(() => new RetroGameLoop());
+                    Objects.CreateNativeObject(() => new TitleScreen());
 
                     loadPercent = 0.85f;
 
@@ -178,29 +183,29 @@ public class RSDKv4Game : Game
                     Script.ClearScriptData();
                     loadPercent = 0.9f;
 
-                    if (newGame)
-                    {
-                        Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, saveFile.characterId);
-                    }
-                    else if (saveFile.stageId >= 0x80)
-                    {
-                        Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 0x81);
-                        Scene.InitStartingStage(STAGELIST.SPECIAL, saveFile.specialStageId, saveFile.characterId);
-                    }
-                    else
-                    {
-                        Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 1);
-                        Scene.InitStartingStage(STAGELIST.REGULAR, saveFile.stageId - 1, saveFile.characterId);
-                    }
+                    //if (newGame)
+                    //{
+                    //    Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, saveFile.characterId);
+                    //}
+                    //else if (saveFile.stageId >= 0x80)
+                    //{
+                    //    Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 0x81);
+                    //    Scene.InitStartingStage(STAGELIST.SPECIAL, saveFile.specialStageId, saveFile.characterId);
+                    //}
+                    //else
+                    //{
+                    //    Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 1);
+                    //    Scene.InitStartingStage(STAGELIST.REGULAR, saveFile.stageId - 1, saveFile.characterId);
+                    //}
 
                     // stage select
-                    // Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 4);
+                   // Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 0);
 
                     loadPercent = 0.95f;
 
-                    Scene.ProcessStage();
+                   // Scene.ProcessStage();
 
-                    Engine.engineState = ENGINE_STATE.MAINGAME;
+                    Engine.engineState = ENGINE_STATE.WAIT;
                     loadPercent = 1f;
                 }
             }
@@ -260,6 +265,20 @@ public class RSDKv4Game : Game
             hold = false;
         }
 
+        if (keyboard.IsKeyDown(Keys.Escape))
+        {
+#if RETRO_USE_MOD_LOADER
+                            // hacky patch because people can escape
+                            if (Engine.gameMode == ENGINE_DEVMENU && stageMode == DEVMENU_MODMENU)
+                                RefreshEngine();
+#endif
+            Objects.ClearNativeObjects();
+            Objects.CreateNativeObject(() => new RetroGameLoop());
+            if (Engine.deviceType == DEVICE.MOBILE)
+                Objects.CreateNativeObject(() => new VirtualDPad());
+            Engine.engineState = ENGINE_STATE.INITDEVMENU;
+        }
+
         if (needsResize)
         {
             graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
@@ -276,7 +295,7 @@ public class RSDKv4Game : Game
 
         if (IsActive)
             Input.ProcessInput();
-        if (Engine.engineState != ENGINE_STATE.WAIT)
+        if (Engine.engineState == ENGINE_STATE.MAINGAME)
             Scene.ProcessStage();
     }
 

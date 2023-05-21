@@ -64,7 +64,8 @@ public class HardwareRenderer : IRenderer
 #endif
     public byte textureBufferMode = 0;
 
-    public static float PIXEL_TO_UV = 1.0f / (float)SURFACE_SIZE;
+    public const float PIXEL_TO_UV = 1.0f / (float)SURFACE_SIZE;
+    public const float TILE_UV_OFFSET = 1f / (SURFACE_SIZE / 8);
 
 
     public HardwareRenderer(Game game, GraphicsDevice device)
@@ -82,7 +83,6 @@ public class HardwareRenderer : IRenderer
         for (int index = 0; index < SURFACE_LIMIT; ++index)
             _textures[index] = new Texture2D(device, SURFACE_SIZE, SURFACE_SIZE, false, SurfaceFormat.Bgra5551);
 #endif
-
 
         _renderTarget = new RenderTarget2D(device, SCREEN_XSIZE, SCREEN_YSIZE, false, SurfaceFormat.Bgr565, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
         _noScissorState = new RasterizerState() { CullMode = CullMode.None };
@@ -567,7 +567,7 @@ public class HardwareRenderer : IRenderer
                     }
                     bufPos++;
                     dataPos -= 15;
-                    bufPos += 1006;
+                    bufPos += SURFACE_SIZE - 18;
 
                     for (int k = 0; k < 16; k++)
                     {
@@ -611,7 +611,7 @@ public class HardwareRenderer : IRenderer
                         }
                         bufPos++;
                         dataPos++;
-                        bufPos += 1006;
+                        bufPos += SURFACE_SIZE - 18;
                     }
                     dataPos -= 16;
 #if FAST_PALETTE
@@ -653,7 +653,7 @@ public class HardwareRenderer : IRenderer
                         textureBuffer[bufPos] = 0;
                     }
                     bufPos++;
-                    bufPos += 1006;
+                    bufPos += SURFACE_SIZE - 18;
                 }
             }
         }
@@ -670,7 +670,7 @@ public class HardwareRenderer : IRenderer
 #endif
                 bufPos++;
             }
-            bufPos += 1008;
+            bufPos += SURFACE_SIZE - 16;
         }
     }
 
@@ -924,7 +924,7 @@ public class HardwareRenderer : IRenderer
             alpha = byte.MaxValue;
 
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
 
         var color = new Color(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
@@ -966,7 +966,7 @@ public class HardwareRenderer : IRenderer
             alpha = 0;
 
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
 
         var color = new Color(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
@@ -1002,7 +1002,7 @@ public class HardwareRenderer : IRenderer
         EnsureBlendMode(BlendMode.Alpha);
 
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
@@ -1060,7 +1060,7 @@ public class HardwareRenderer : IRenderer
         byte fg = (byte)((fogColour >> 8) & 0xFF);
         byte fb = (byte)((fogColour >> 0) & 0xFF);
 
-        var col = new Color(((ushort)(fr * (0xFF - alpha) + alpha * cr) >> 8), ((ushort)(fg * (0xFF - alpha) + alpha * cg) >> 8), ((ushort)(fb * (0xFF - alpha) + alpha * cb) >> 8), 0xff);
+        var col = new Color((ushort)(fr * (0xFF - alpha) + alpha * cr) >> 8, (ushort)(fg * (0xFF - alpha) + alpha * cg) >> 8, (ushort)(fb * (0xFF - alpha) + alpha * cb) >> 8, 0xff);
 
         vertexList[vertexCount].position.X = face.vertex[3].x << 4;
         vertexList[vertexCount].position.Y = face.vertex[3].y << 4;
@@ -1233,7 +1233,7 @@ public class HardwareRenderer : IRenderer
                     index7 = deformOffsetW + 8;
                 }
                 int index9 = lineIdx2 + 8;
-                int index10 = (chunkPosX <= -1 || num13 <= -1 ? 0 : tileMap[chunkPosX + (num13 << 8)] << 6) + (chunkTileX + (num14 << 3));
+                int index10 = (chunkPosX <= -1 || num13 <= -1 ? 0 : tileMap[chunkPosX + (num13 << 8)] << 6) + chunkTileX + (num14 << 3);
                 for (int i2 = num4; i2 > 0; --i2)
                 {
                     if (visualPlane[index10] == aboveMidPoint && gfxDataPos[index10] > 0)
@@ -1260,7 +1260,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.X = deformX2;
                                 vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num24] - 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num24] - TILE_UV_OFFSET;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = deformX2 + 256;
@@ -1290,7 +1290,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.X = deformX2 + 256;
                                 vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num27] - 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num27] - TILE_UV_OFFSET;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = deformX2;
@@ -1306,7 +1306,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num21];
                                 int num28 = num21 + 1;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num28] + 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num28] + TILE_UV_OFFSET;
                                 int num29 = num28 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
@@ -1336,7 +1336,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.Y = deformY + 128;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index10] + num21];
                                 int num31 = num21 + 1;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num31] + 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index10] + num31] + TILE_UV_OFFSET;
                                 int num32 = num31 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
@@ -1372,7 +1372,7 @@ public class HardwareRenderer : IRenderer
                         if (chunkPosX == layerWidth)
                             chunkPosX = 0;
                         chunkTileX = 0;
-                        index10 = (tileMap[chunkPosX + (num13 << 8)] << 6) + (chunkTileX + (num14 << 3));
+                        index10 = (tileMap[chunkPosX + (num13 << 8)] << 6) + chunkTileX + (num14 << 3);
                     }
                     else
                         ++index10;
@@ -1407,7 +1407,7 @@ public class HardwareRenderer : IRenderer
                     deformOffsetW = index7 + 8;
                 }
                 lineIdx = index9 + 8;
-                int index12 = (num37 <= -1 || num13 <= -1 ? 0 : tileMap[num37 + (num13 << 8)] << 6) + (num38 + (num14 << 3));
+                int index12 = (num37 <= -1 || num13 <= -1 ? 0 : tileMap[num37 + (num13 << 8)] << 6) + num38 + (num14 << 3);
                 for (int index11 = num4; index11 > 0; --index11)
                 {
                     if (visualPlane[index12] == aboveMidPoint && gfxDataPos[index12] > 0)
@@ -1420,7 +1420,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.Y = num34;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index12] + num21];
                                 int num22 = num21 + 1;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num22] + 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num22] + TILE_UV_OFFSET;
                                 int num23 = num22 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
@@ -1450,7 +1450,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.Y = num34;
                                 vertexList[vertexCount].texCoord.X = tileUVList[gfxDataPos[index12] + num21];
                                 int num25 = num21 + 1;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num25] + 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num25] + TILE_UV_OFFSET;
                                 int num26 = num25 + 1;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
@@ -1494,7 +1494,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.X = num39;
                                 vertexList[vertexCount].position.Y = num34;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num30] - 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num30] - TILE_UV_OFFSET;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num39 + 256;
@@ -1524,7 +1524,7 @@ public class HardwareRenderer : IRenderer
                                 vertexList[vertexCount].position.X = num39 + 256;
                                 vertexList[vertexCount].position.Y = num34;
                                 vertexList[vertexCount].texCoord.X = vertexList[vertexCount - 2].texCoord.X;
-                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num33] - 1f / 128f;
+                                vertexList[vertexCount].texCoord.Y = tileUVList[gfxDataPos[index12] + num33] - TILE_UV_OFFSET;
                                 vertexList[vertexCount].color = MAX_COLOR;
                                 ++vertexCount;
                                 vertexList[vertexCount].position.X = num39;
@@ -1546,7 +1546,7 @@ public class HardwareRenderer : IRenderer
                         if (num37 == layerWidth)
                             num37 = 0;
                         num38 = 0;
-                        index12 = (tileMap[num37 + (num13 << 8)] << 6) + (num38 + (num14 << 3));
+                        index12 = (tileMap[num37 + (num13 << 8)] << 6) + num38 + (num14 << 3);
                     }
                     else
                         ++index12;
@@ -1583,7 +1583,7 @@ public class HardwareRenderer : IRenderer
                     deformOffsetW += 16;
                 }
                 lineIdx = lineIdx2 + 16;
-                int index6 = (num17 <= -1 || num13 <= -1 ? 0 : tileMap[num17 + (num13 << 8)] << 6) + (num18 + (num14 << 3));
+                int index6 = (num17 <= -1 || num13 <= -1 ? 0 : tileMap[num17 + (num13 << 8)] << 6) + num18 + (num14 << 3);
                 for (int index7 = num4; index7 > 0; --index7)
                 {
                     if (visualPlane[index6] == aboveMidPoint && gfxDataPos[index6] > 0)
@@ -1722,7 +1722,7 @@ public class HardwareRenderer : IRenderer
                         if (num17 == layerWidth)
                             num17 = 0;
                         num18 = 0;
-                        index6 = (tileMap[num17 + (num13 << 8)] << 6) + (num18 + (num14 << 3));
+                        index6 = (tileMap[num17 + (num13 << 8)] << 6) + num18 + (num14 << 3);
                     }
                     else
                         ++index6;
@@ -1800,20 +1800,20 @@ public class HardwareRenderer : IRenderer
         vertexList[vertexCount].position.X = xPos + xSize << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
         vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
-        vertexList[vertexCount].texCoord.X = 0.01f;
+        vertexList[vertexCount].texCoord.X = 0.005f;
         vertexList[vertexCount].texCoord.Y = vertexList[vertexCount - 1].texCoord.Y;
         ++vertexCount;
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos + ySize << 4;
         vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
         vertexList[vertexCount].texCoord.X = 0.0f;
-        vertexList[vertexCount].texCoord.Y = 0.01f;
+        vertexList[vertexCount].texCoord.Y = 0.005f;
         ++vertexCount;
         vertexList[vertexCount].position.X = vertexList[vertexCount - 2].position.X;
         vertexList[vertexCount].position.Y = vertexList[vertexCount - 1].position.Y;
         vertexList[vertexCount].color = vertexList[vertexCount - 1].color;
-        vertexList[vertexCount].texCoord.X = 0.01f;
-        vertexList[vertexCount].texCoord.Y = 0.01f;
+        vertexList[vertexCount].texCoord.X = 0.005f;
+        vertexList[vertexCount].texCoord.Y = 0.005f;
         ++vertexCount;
         indexCount += 2;
     }
@@ -1830,7 +1830,7 @@ public class HardwareRenderer : IRenderer
         int num1 = FastMath.Sin512(rotAngle);
         int num2 = FastMath.Cos512(rotAngle);
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -8192 || xPos >= 13952) || (yPos <= -8192 || yPos >= 12032))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -8192 || xPos >= 13952 || yPos <= -8192 || yPos >= 12032)
             return;
         if (direction == 0)
         {
@@ -1918,7 +1918,7 @@ public class HardwareRenderer : IRenderer
         int num1 = FastMath.Sin512(rotAngle) * scale >> 9;
         int num2 = FastMath.Cos512(rotAngle) * scale >> 9;
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -8192 || xPos >= 13952) || (yPos <= -8192 || yPos >= 12032))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -8192 || xPos >= 13952 || yPos <= -8192 || yPos >= 12032)
             return;
         if (direction == 0)
         {
@@ -1996,7 +1996,7 @@ public class HardwareRenderer : IRenderer
 
     public void DrawScaledChar(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
     {
-        if (vertexCount >= VERTEX_LIMIT || xPos <= -8192 || (xPos >= 13951 || yPos <= -1024) || yPos >= 4864)
+        if (vertexCount >= VERTEX_LIMIT || xPos <= -8192 || xPos >= 13951 || yPos <= -1024 || yPos >= 4864)
             return;
         xPos -= xPivot * xScale >> 5;
         xScale = xSize * xScale >> 5;
@@ -2034,7 +2034,7 @@ public class HardwareRenderer : IRenderer
 
     public void DrawScaledSprite(byte direction, int xPos, int yPos, int xPivot, int yPivot, int xScale, int yScale, int xSize, int ySize, int xBegin, int yBegin, int surfaceNum)
     {
-        if (vertexCount >= VERTEX_LIMIT || xPos <= -512 || (xPos >= 872 || yPos <= -512) || yPos >= 752)
+        if (vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
         xScale <<= 2;
         yScale <<= 2;
@@ -2077,7 +2077,7 @@ public class HardwareRenderer : IRenderer
         EnsureBlendMode(BlendMode.Alpha);
 
         SurfaceDesc surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
         vertexList[vertexCount].position.X = xPos << 4;
         vertexList[vertexCount].position.Y = yPos << 4;
@@ -2231,7 +2231,7 @@ public class HardwareRenderer : IRenderer
             alpha = byte.MaxValue;
 
         var surfaceDesc = surfaces[surfaceNum];
-        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || (xPos <= -512 || xPos >= 872) || (yPos <= -512 || yPos >= 752))
+        if (surfaceDesc.texStartX <= -1 || vertexCount >= VERTEX_LIMIT || xPos <= -512 || xPos >= 872 || yPos <= -512 || yPos >= 752)
             return;
 
         var color = new Color(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
@@ -2330,21 +2330,25 @@ public class HardwareRenderer : IRenderer
 
     public void DrawVLineScrollLayer(int layer)
     {
+        // as yet unused
         Debug.WriteLine("DrawVLineScrollLayer({0})", layer);
     }
 
     public void Draw3DSkyLayer(int layer)
     {
+        // TODOv3: Required for Sonic CD
         Debug.WriteLine("Draw3DSkyLayer({0})", layer);
     }
 
     public void Draw3DFloorLayer(int layer)
     {
+        // TODOv3: Required for Sonic CD
         Debug.WriteLine("Draw3DFloorLayer({0})", layer);
     }
 
     public void DrawTintRectangle(int xPos, int yPos, int xSize, int ySize)
     {
+        // as yet unused (maybe required for Sonic CD)
         Debug.WriteLine("DrawTintRectangle({0},{1},{2},{3})", xPos, yPos, xSize, ySize);
     }
 
@@ -2358,6 +2362,7 @@ public class HardwareRenderer : IRenderer
       int tableNo,
       int surfaceNum)
     {
+        // as yet unused (maybe required for Sonic CD)
         Debug.WriteLine("DrawTintSpriteMask({0},{1},{2},{3},{4},{5},{6},{7})", xPos, yPos, xSize, ySize, xBegin, yBegin, tableNo, surfaceNum);
     }
 
@@ -2375,6 +2380,7 @@ public class HardwareRenderer : IRenderer
       int yBegin,
       int surfaceNum)
     {
+        // as yet unused (maybe required for Sonic CD)
         Debug.WriteLine("DrawScaledTintMask({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11})", direction, xPos, yPos, xPivot, yPivot, xScale, yScale, xSize, ySize, xBegin, yBegin, surfaceNum);
     }
 }

@@ -53,7 +53,11 @@ public static class Engine
     public static Delegate[] nativeFunctions = new Delegate[NATIVEFUNCTION_MAX];
 
     public static int engineState = ENGINE_STATE.WAIT;
+#if SILVERLIGHT
+    public static int deviceType = DEVICE.MOBILE;
+#else
     public static int deviceType = DEVICE.STANDARD;
+#endif
     public static int language = LANGUAGE.EN;
 
     public static bool trialMode = false;
@@ -72,6 +76,10 @@ public static class Engine
     public static bool useHighResAssets = true;
     public static bool skipStartMenu = false;
     public static bool nativeMenuFadeIn = false;
+
+    public static int message = 0;
+
+    public static EngineRevision engineRevision = EngineRevision.Rev2;
 
     public static bool LoadGameConfig(string filePath)
     {

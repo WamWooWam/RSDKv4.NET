@@ -47,9 +47,9 @@ public class Audio
 
     static Audio()
     {
-        Helpers.Memset(musicTracks, () => new TrackInfo());
-        Helpers.Memset(soundEffects, () => new SfxInfo());
-        Helpers.Memset(soundChannels, () => new SfxChannel());
+        for (int i = 0; i < soundChannels.Length; i++)
+            soundChannels[i].sfx = -1;
+
         Helpers.Memset(streams, () => new StreamInfo());
     }
 
@@ -59,6 +59,7 @@ public class Audio
         {
             RSDKv4Game.loadPercent = 0.1f + (0.75f * ((i + 1) / (float)Engine.globalSfxCount));
             LoadSfx(Engine.globalSfxPaths[i], (byte)i);
+            SetSfxName(Engine.globalSfxNames[i], i);
         }
 
 #if NO_THREADS
@@ -77,7 +78,7 @@ public class Audio
         Debug.WriteLine("Load SFX ({0}) from {1}", sfxId, filePath);
 
         var fullPath = "Data/SoundFX/" + filePath;
-        if (FileIO.LoadFile(fullPath, out var file))
+        if (FileIO.LoadFile(fullPath, out _))
         {
             var ext = Path.GetExtension(fullPath).ToLowerInvariant();
             if (ext == ".wav")
@@ -90,7 +91,8 @@ public class Audio
             {
                 soundEffects[sfxId].name = filePath;
 
-                if (OggCache.TryGetCachedSfx(fullPath, out var stream))
+                Stream stream;
+                if (OggCache.TryGetCachedSfx(fullPath, out stream))
                 {
                     soundEffects[sfxId].soundEffect = SoundEffect.FromStream(stream);
                     return;
@@ -262,7 +264,6 @@ public class Audio
         }
     }
 
-
     private static void MusicThreadLoop()
     {
 #if NO_THREADS
@@ -403,9 +404,9 @@ public class Audio
 
     public static bool PlaySfxByName(string sfx, bool loopCnt)
     {
-        for (int s = 0; s < TRACK_COUNT; ++s)
+        for (int s = 0; s < Engine.globalSfxCount + stageSfxCount; ++s)
         {
-            if (musicTracks[s]?.name == sfx)
+            if (string.Compare(soundEffects[s].name, sfx, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 PlaySfx(s, loopCnt);
                 return true;
@@ -420,7 +421,7 @@ public class Audio
     {
         for (int s = 0; s < TRACK_COUNT; ++s)
         {
-            if (musicTracks[s]?.name == sfx)
+            if (string.Compare(musicTracks[s].name, sfx, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 StopSfx(s);
                 return true;

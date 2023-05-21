@@ -335,16 +335,23 @@ public class Scene3D
         Quad2D face = new Quad2D();
         for (int index = 0; index < faceCount; ++index)
         {
+#if !SILVERLIGHT
+            ref var face3D = ref faceBuffer[drawList[index].index];
+            ref var a = ref vertexBufferT[face3D.a];
+            ref var b = ref vertexBufferT[face3D.b];
+            ref var c = ref vertexBufferT[face3D.c];
+            ref var d = ref vertexBufferT[face3D.d];
+#else
             var face3D = faceBuffer[drawList[index].index];
             var a = vertexBufferT[face3D.a];
             var b = vertexBufferT[face3D.b];
             var c = vertexBufferT[face3D.c];
             var d = vertexBufferT[face3D.d];
-
+#endif
             switch (face3D.flag)
             {
                 case FACE_FLAG.TEXTURED_3D:
-                    if (a.z > 256 && b.z > 256 && (c.z > 256 && d.z > 256))
+                    if (a.z > 256 && b.z > 256 && c.z > 256 && d.z > 256)
                     {
                         face.vertex[0].x = SCREEN_CENTERX + a.x * projectionX / a.z;
                         face.vertex[0].y = SCREEN_CENTERY - a.y * projectionY / a.z;

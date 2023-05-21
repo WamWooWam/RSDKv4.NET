@@ -3,19 +3,20 @@
 using System;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
+using RSDKv4.Bytecode;
 using RSDKv4.Utility;
 
 namespace RSDKv4;
 
 public static class Script
 {
-    public const int SCRIPTDATA_COUNT = (0x40000);
-    public const int JUMPTABLE_COUNT = (0x4000);
-    public const int FUNCTION_COUNT = (0x200);
+    public const int SCRIPTDATA_COUNT = 0x40000;
+    public const int JUMPTABLE_COUNT = 0x4000;
+    public const int FUNCTION_COUNT = 0x200;
 
-    public const int JUMPSTACK_COUNT = (0x400);
-    public const int FUNCSTACK_COUNT = (0x400);
-    public const int FORSTACK_COUNT = (0x400);
+    public const int JUMPSTACK_COUNT = 0x400;
+    public const int FUNCSTACK_COUNT = 0x400;
+    public const int FORSTACK_COUNT = 0x400;
 
     public static ObjectScript[] objectScriptList = new ObjectScript[Objects.OBJECT_COUNT];
     public static ScriptPtr[] functionScriptList = new ScriptPtr[FUNCTION_COUNT];
@@ -35,6 +36,8 @@ public static class Script
     private static int foreachStackPos = 0;
 
     private static char[] scriptTextBuffer = new char[SCRIPTDATA_COUNT]; // this is 32K, why
+
+    private static BytecodeTranslator translator = new BytecodeTranslator(Engine.engineRevision);
 
     //
     // TODO: Function/Variable rewriter
@@ -118,11 +121,8 @@ public static class Script
         new FunctionInfo("RotatePalette", 4),
         new FunctionInfo("SetScreenFade", 4),
         new FunctionInfo("SetActivePalette", 3),
-#if RETRO_REV00
-        new FunctionInfo("SetPaletteFade", 7),
-#else
-        new FunctionInfo("SetPaletteFade", 6),
-#endif
+        new FunctionInfo("SetPaletteFadeRev0", 7),
+        new FunctionInfo("SetPaletteFadeRev1", 6),
         new FunctionInfo("SetPaletteEntry", 3),
         new FunctionInfo("GetPaletteEntry", 3),
         new FunctionInfo("CopyPalette", 5),
@@ -177,9 +177,7 @@ public static class Script
         new FunctionInfo("MatrixRotateY", 2),
         new FunctionInfo("MatrixRotateZ", 2),
         new FunctionInfo("MatrixRotateXYZ", 4),
-#if !RETRO_REV00
         new FunctionInfo("MatrixInverse", 1),
-#endif
         new FunctionInfo("TransformVertices", 3),
 
         new FunctionInfo("CallFunction", 1),
@@ -205,18 +203,11 @@ public static class Script
         new FunctionInfo("ReadSaveRAM", 0),
         new FunctionInfo("WriteSaveRAM", 0),
 
-#if RETRO_REV00 || RETRO_REV01
         new FunctionInfo("LoadFontFile", 1),
-#endif
-#if RETRO_REV02
         new FunctionInfo("LoadTextFile", 2),
-#else
         new FunctionInfo("LoadTextFile", 3),
-#endif
         new FunctionInfo("GetTextInfo", 5),
-#if RETRO_REV00 || RETRO_REV01
         new FunctionInfo("DrawText", 7),
-#endif
         new FunctionInfo("GetVersionNumber", 2),
 
         new FunctionInfo("GetTableValue", 3),
@@ -230,11 +221,9 @@ public static class Script
         new FunctionInfo("CallNativeFunction4", 5),
 
         new FunctionInfo("SetObjectRange", 1),
-#if !RETRO_REV00 || !RETRO_REV01
         new FunctionInfo("GetObjectValue", 3),
         new FunctionInfo("SetObjectValue", 3),
         new FunctionInfo("CopyObject", 3),
-#endif
         new FunctionInfo("Print", 3),
 
         new FunctionInfo("CheckCameraProximity", 4),
@@ -331,15 +320,14 @@ public static class Script
         OBJECTFLOORSENSORL,
         OBJECTFLOORSENSORC,
         OBJECTFLOORSENSORR,
-#if !RETRO_REV00
         OBJECTFLOORSENSORLC,
         OBJECTFLOORSENSORRC,
-#endif
         OBJECTCOLLISIONLEFT,
         OBJECTCOLLISIONTOP,
         OBJECTCOLLISIONRIGHT,
         OBJECTCOLLISIONBOTTOM,
-        OBJECTOUTOFBOUNDS,
+        OBJECTOUTOFBOUNDSREV0,
+        OBJECTOUTOFBOUNDSREV1,
         OBJECTSPRITESHEET,
         OBJECTVALUE0,
         OBJECTVALUE1,
@@ -490,10 +478,8 @@ public static class Script
         SCENE3DFACECOUNT,
         SCENE3DPROJECTIONX,
         SCENE3DPROJECTIONY,
-#if !RETRO_REV00
         SCENE3DFOGCOLOR,
         SCENE3DFOGSTRENGTH,
-#endif
         VERTEXBUFFERX,
         VERTEXBUFFERY,
         VERTEXBUFFERZ,
@@ -507,16 +493,14 @@ public static class Script
         FACEBUFFERCOLOR,
         SAVERAM,
         ENGINESTATE,
-#if RETRO_REV00
         ENGINEMESSAGE,
-#endif
         ENGINELANGUAGE,
         ENGINEONLINEACTIVE,
         ENGINESFXVOLUME,
         ENGINEBGMVOLUME,
         ENGINETRIALMODE,
         ENGINEDEVICETYPE,
-
+        ENGINEPLATFORMID,
         SCREENCURRENTID,
         CAMERAENABLED,
         CAMERATARGET,
@@ -524,11 +508,7 @@ public static class Script
         CAMERAXPOS,
         CAMERAYPOS,
         CAMERAADJUSTY,
-
-        //#if RETRO_USE_HAPTICS
         HAPTICSENABLED,
-        //#endif
-
         MAX_CNT
     }
 
@@ -597,7 +577,8 @@ public static class Script
         ROTATEPALETTE,
         SETSCREENFADE,
         SETACTIVEPALETTE,
-        SETPALETTEFADE,
+        SETPALETTEFADEREV0,
+        SETPALETTEFADEREV1,
         SETPALETTEENTRY,
         GETPALETTEENTRY,
         COPYPALETTE,
@@ -638,9 +619,7 @@ public static class Script
         MATRIXROTATEY,
         MATRIXROTATEZ,
         MATRIXROTATEXYZ,
-#if !RETRO_REV00
         MATRIXINVERSE,
-#endif
         TRANSFORMVERTICES,
         CALLFUNCTION,
         RETURN,
@@ -660,14 +639,11 @@ public static class Script
         GETANIMATIONBYNAME,
         READSAVERAM,
         WRITESAVERAM,
-#if RETRO_REV00 || RETRO_REV01
-    LOADTEXTFONT,
-#endif
-        LOADTEXTFILE,
+        LOADTEXTFONT,
+        LOADTEXTFILEREV0,
+        LOADTEXTFILEREV2,
         GETTEXTINFO,
-#if RETRO_REV00 || RETRO_REV01
-    DRAWTEXT,
-#endif
+        DRAWTEXT,
         GETVERSIONNUMBER,
         GETTABLEVALUE,
         SETTABLEVALUE,
@@ -677,14 +653,10 @@ public static class Script
         CALLNATIVEFUNCTION2,
         CALLNATIVEFUNCTION4,
         SETOBJECTRANGE,
-#if !RETRO_REV00 && !RETRO_REV01
         GETOBJECTVALUE,
         SETOBJECTVALUE,
         COPYOBJECT,
-#endif
         PRINT,
-
-        // V4u starts here
         CHECKCAMERAPROXIMITY,
         SETSCREENCOUNT,
         SETSCREENVERTICES,
@@ -695,7 +667,6 @@ public static class Script
         ASSIGNINPUTSLOTTODEVICE,
         ISSLOTASSIGNED,
         RESETINPUTSLOTASSIGNMENTS,
-
         MAX_CNT
     }
 
@@ -833,8 +804,11 @@ public static class Script
 
         while (running)
         {
-            int opcode = scriptData[scriptDataPtr++];
-            int loadStoreSize = functions[opcode].opcodeSize;
+            int rawOpcode = scriptData[scriptDataPtr++];
+
+            translator.TranslateFunction(rawOpcode, out var opcode);
+
+            int loadStoreSize = functions[(int)opcode].opcodeSize;
             int scriptCodeOffset = scriptDataPtr;
 
             scriptTextBuffer[0] = '\0';
@@ -877,7 +851,8 @@ public static class Script
                     }
 
                     // Variables
-                    var variable = (VAR)scriptData[scriptDataPtr++];
+                    var rawVariable = scriptData[scriptDataPtr++];
+                    translator.TranslateVariable(rawVariable, out var variable);
                     //Debug.WriteLine("SCRIPT: Get variable {0}", variable);
                     switch (variable)
                     {
@@ -1244,18 +1219,30 @@ public static class Script
 
                                 break;
                             }
-                        case VAR.OBJECTOUTOFBOUNDS:
+                        case VAR.OBJECTOUTOFBOUNDSREV0:
                             {
-#if !RETRO_REV0
+                                int x = Objects.objectEntityList[arrayVal].xpos >> 16;
+                                int y = Objects.objectEntityList[arrayVal].ypos >> 16;
+
+                                int boundL = Scene.xScrollOffset - Objects.OBJECT_BORDER_X1;
+                                int boundR = Scene.xScrollOffset + Objects.OBJECT_BORDER_X2;
+                                int boundT = Scene.yScrollOffset - Objects.OBJECT_BORDER_Y1;
+                                int boundB = Scene.yScrollOffset + Objects.OBJECT_BORDER_Y2;
+
+                                scriptEng.operands[i] = (x <= boundL || x >= boundR || y <= boundT || y >= boundB) ? 1 : 0;
+                                break;
+                            }
+                        case VAR.OBJECTOUTOFBOUNDSREV1:
+                            {
                                 int boundX1_2P = -(0x200 << 16);
-                                int boundX2_2P = (0x200 << 16);
+                                int boundX2_2P = 0x200 << 16;
                                 int boundX3_2P = -(0x180 << 16);
-                                int boundX4_2P = (0x180 << 16);
+                                int boundX4_2P = 0x180 << 16;
 
                                 int boundY1_2P = -(0x180 << 16);
-                                int boundY2_2P = (0x180 << 16);
+                                int boundY2_2P = 0x180 << 16;
                                 int boundY3_2P = -(0x100 << 16);
-                                int boundY4_2P = (0x100 << 16);
+                                int boundY4_2P = 0x100 << 16;
 
                                 Entity entPtr = Objects.objectEntityList[arrayVal];
                                 int x = entPtr.xpos >> 16;
@@ -1328,17 +1315,6 @@ public static class Script
                                         scriptEng.operands[i] = (x <= boundL || x >= boundR || y <= boundT || y >= boundB) ? 1 : 0;
                                     }
                                 }
-#else
-                                int x = Objects.objectEntityList[arrayVal].xpos >> 16;
-                                int y = Objects.objectEntityList[arrayVal].ypos >> 16;
-
-                                int boundL = Scene.xScrollOffset - Objects.OBJECT_BORDER_X1;
-                                int boundR = Scene.xScrollOffset + Objects.OBJECT_BORDER_X2;
-                                int boundT = Scene.yScrollOffset - Objects.OBJECT_BORDER_Y1;
-                                int boundB = Scene.yScrollOffset + Objects.OBJECT_BORDER_Y2;
-
-                                scriptEng.operands[i] = (x <= boundL || x >= boundR || y <= boundT || y >= boundB) ? 1 : 0;
-#endif
                                 break;
                             }
                         case VAR.OBJECTSPRITESHEET:
@@ -1889,14 +1865,12 @@ public static class Script
                         case VAR.SCENE3DPROJECTIONY:
                             scriptEng.operands[i] = Scene3D.projectionY;
                             break;
-#if !RETRO_REV00
                         case VAR.SCENE3DFOGCOLOR:
                             scriptEng.operands[i] = Scene3D.fogColor;
                             break;
                         case VAR.SCENE3DFOGSTRENGTH:
                             scriptEng.operands[i] = Scene3D.fogStrength;
                             break;
-#endif
                         case VAR.VERTEXBUFFERX:
                             scriptEng.operands[i] = Scene3D.vertexBuffer[arrayVal].x;
                             break;
@@ -1936,9 +1910,9 @@ public static class Script
                         case VAR.ENGINESTATE:
                             scriptEng.operands[i] = Engine.engineState;
                             break;
-#if RETRO_REV00
-                        case ScrVar.ENGINEMESSAGE: scriptEng.operands[i] = Engine.message; break;
-#endif
+                        case VAR.ENGINEMESSAGE:
+                            scriptEng.operands[i] = Engine.message;
+                            break;
                         case VAR.ENGINELANGUAGE:
                             scriptEng.operands[i] = Engine.language;
                             break;
@@ -1958,7 +1932,7 @@ public static class Script
                             scriptEng.operands[i] = Engine.deviceType;
                             break;
                         case VAR.SCREENCURRENTID:
-                            scriptEng.operands[i] = 0; 
+                            scriptEng.operands[i] = 0;
                             break;
                         case VAR.CAMERAENABLED:
                             scriptEng.operands[i] = Scene.cameraEnabled ? 1 : 0;
@@ -2014,7 +1988,7 @@ public static class Script
                                 }
                             case 3:
                                 {
-                                    scriptTextBuffer[c] = (char)(byte)(scriptData[scriptDataPtr++]);
+                                    scriptTextBuffer[c] = (char)(byte)scriptData[scriptDataPtr++];
                                     break;
                                 }
                             default: break;
@@ -2034,7 +2008,7 @@ public static class Script
             // Debug.WriteLine("SCRIPT: Function {0}", (FUNC)opcode);
 
             // Functions
-            switch ((FUNC)opcode)
+            switch (opcode)
             {
                 default: break;
                 case FUNC.END:
@@ -2640,14 +2614,13 @@ public static class Script
                     loadStoreSize = 0;
                     Palette.SetActivePalette((byte)scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2]);
                     break;
-                case FUNC.SETPALETTEFADE:
-#if RETRO_REV00
-                    SetLimitedFade(scriptEng.operands[0], scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3], scriptEng.operands[4],
+                case FUNC.SETPALETTEFADEREV0:
+                    Palette.SetLimitedFade((byte)scriptEng.operands[0], (byte)scriptEng.operands[1], (byte)scriptEng.operands[2], (ushort)scriptEng.operands[3], scriptEng.operands[4],
                                    scriptEng.operands[5], scriptEng.operands[6]);
-#else
+                    break;
+                case FUNC.SETPALETTEFADEREV1:
                     Palette.SetPaletteFade((byte)scriptEng.operands[0], (byte)scriptEng.operands[1], (byte)scriptEng.operands[2], (ushort)scriptEng.operands[3], scriptEng.operands[4],
                         scriptEng.operands[5]);
-#endif
                     break;
                 case FUNC.SETPALETTEENTRY:
                     Palette.SetPaletteEntryPacked((byte)scriptEng.operands[0], (byte)scriptEng.operands[1], (uint)scriptEng.operands[2]);
@@ -2768,7 +2741,6 @@ public static class Script
 
                             break;
                     }
-
                     break;
                 case FUNC.DRAWSPRITESCREENFX:
                     loadStoreSize = 0;
@@ -3254,7 +3226,6 @@ public static class Script
                     }
 
                     break;
-#if !RETRO_REV00
                 case FUNC.MATRIXINVERSE:
                     loadStoreSize = 0;
                     switch (scriptEng.operands[0])
@@ -3271,7 +3242,6 @@ public static class Script
                     }
 
                     break;
-#endif
                 case FUNC.TRANSFORMVERTICES:
                     loadStoreSize = 0;
                     switch (scriptEng.operands[0])
@@ -3483,22 +3453,24 @@ public static class Script
                     loadStoreSize = 0;
                     scriptEng.checkResult = SaveData.WriteSaveRAMData();
                     break;
-#if RETRO_REV00 || RETRO_REV01
-            case ScrFunc.LOADTEXTFONT: {
-                opcodeSize = 0;
-                LoadFontFile(scriptText);
-                break;
-            }
-#endif
-                case FUNC.LOADTEXTFILE:
+                case FUNC.LOADTEXTFONT:
+                    {
+                        loadStoreSize = 0;
+                        Font.LoadFontFile(scriptText);
+                        break;
+                    }
+                case FUNC.LOADTEXTFILEREV0:
                     {
                         loadStoreSize = 0;
                         TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
-#if RETRO_REV00 || RETRO_REV01
-                        Text.LoadTextFile(menu, scriptText, scriptEng.operands[2] != 0);
-#else
+                        Text.LoadTextFile(menu, scriptText, scriptEng.operands[2] != 0 ? (byte)1 : (byte)0);
+                        break;
+                    }
+                case FUNC.LOADTEXTFILEREV2:
+                    {
+                        loadStoreSize = 0;
+                        TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
                         Text.LoadTextFile(menu, scriptText, 0);
-#endif
                         break;
                     }
                 case FUNC.GETTEXTINFO:
@@ -3519,16 +3491,15 @@ public static class Script
 
                         break;
                     }
-#if RETRO_REV00 || RETRO_REV01
-            case ScrFunc.DRAWTEXT: {
-                opcodeSize = 0;
-                textMenuSurfaceNo = scriptInfo.spriteSheetId;
-                TextMenu *menu = &gameMenu[scriptEng.operands[0]];
-                DrawBitmapText(menu, scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3], scriptEng.operands[4],
-                               scriptEng.operands[5], scriptEng.operands[6]);
-                break;
-            }
-#endif
+                case FUNC.DRAWTEXT:
+                    {
+                        loadStoreSize = 0;
+                        var textMenuSurfaceNo = scriptInfo.spriteSheetId;
+                        TextMenu menu = Text.gameMenu[scriptEng.operands[0]];
+                        Drawing.DrawBitmapText(menu, scriptEng.operands[1], scriptEng.operands[2], scriptEng.operands[3], scriptEng.operands[4],
+                                       scriptEng.operands[5], scriptEng.operands[6]);
+                        break;
+                    }
                 case FUNC.GETVERSIONNUMBER:
                     {
                         loadStoreSize = 0;
@@ -3629,7 +3600,6 @@ public static class Script
                         Objects.OBJECT_BORDER_X4 = scriptEng.operands[0] + 0x20 - offset;
                         break;
                     }
-#if !RETRO_REV00 && !RETRO_REV01
                 case FUNC.GETOBJECTVALUE:
                     {
                         if (scriptEng.operands[1] < 48)
@@ -3650,7 +3620,6 @@ public static class Script
                             Objects.objectEntityList[scriptEng.operands[1] + i] = new Entity(Objects.objectEntityList[scriptEng.operands[0] + i]);
                         break;
                     }
-#endif
                 case FUNC.PRINT:
                     {
                         if (scriptEng.operands[1] != 0)
@@ -3826,7 +3795,8 @@ public static class Script
                         default: break;
                     }
 
-                    var variable = (VAR)scriptData[scriptDataPtr++];
+                    var rawVariable = scriptData[scriptDataPtr++];
+                    translator.TranslateVariable(rawVariable, out var variable);
                     // Debug.WriteLine("SCRIPT: Set variable {0}", variable);
                     // Variables
                     switch (variable)
@@ -4115,7 +4085,6 @@ public static class Script
                                 Objects.objectEntityList[arrayVal].floorSensors[2] = (byte)scriptEng.operands[i];
                                 break;
                             }
-#if !RETRO_REV00
                         case VAR.OBJECTFLOORSENSORLC:
                             {
                                 Objects.objectEntityList[arrayVal].floorSensors[3] = (byte)scriptEng.operands[i];
@@ -4126,7 +4095,6 @@ public static class Script
                                 Objects.objectEntityList[arrayVal].floorSensors[4] = (byte)scriptEng.operands[i];
                                 break;
                             }
-#endif
                         case VAR.OBJECTCOLLISIONLEFT:
                             {
                                 break;
@@ -4143,7 +4111,8 @@ public static class Script
                             {
                                 break;
                             }
-                        case VAR.OBJECTOUTOFBOUNDS:
+                        case VAR.OBJECTOUTOFBOUNDSREV0:
+                        case VAR.OBJECTOUTOFBOUNDSREV1:
                             {
                                 break;
                             }
@@ -4700,14 +4669,12 @@ public static class Script
                         case VAR.SCENE3DPROJECTIONY:
                             Scene3D.projectionY = scriptEng.operands[i];
                             break;
-#if !RETRO_REV00
                         case VAR.SCENE3DFOGCOLOR:
                             Scene3D.fogColor = scriptEng.operands[i];
                             break;
                         case VAR.SCENE3DFOGSTRENGTH:
                             Scene3D.fogStrength = scriptEng.operands[i];
                             break;
-#endif
                         case VAR.VERTEXBUFFERX:
                             Scene3D.vertexBuffer[arrayVal].x = scriptEng.operands[i];
                             break;
@@ -4747,9 +4714,7 @@ public static class Script
                         case VAR.ENGINESTATE:
                             Engine.engineState = scriptEng.operands[i];
                             break;
-#if RETRO_REV00
-                    case ScrVar.ENGINEMESSAGE: break;
-#endif
+                        case VAR.ENGINEMESSAGE: break;
                         case VAR.ENGINELANGUAGE:
                             Engine.language = scriptEng.operands[i];
                             break;
@@ -4828,6 +4793,8 @@ public static class Script
 
     public static void ClearScriptData()
     {
+        translator = new BytecodeTranslator(Engine.engineRevision);
+
         Helpers.Memset(scriptData, 0);
         Helpers.Memset(jumpTableData, 0);
 

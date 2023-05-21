@@ -109,7 +109,7 @@ public static class GifLoader
                         if (code2 != gifDecoder.runningCode - 2)
                             return;
                         index = code1;
-                        gifDecoder.suffix[gifDecoder.runningCode - 2] = gifDecoder.stack[stackPtr++] = TracePrefix(ref gifDecoder.prefix, code1, clearCode);
+                        gifDecoder.suffix[gifDecoder.runningCode - 2] = gifDecoder.stack[stackPtr++] = TracePrefix(gifDecoder.prefix, code1, clearCode);
                     }
                     else
                         index = code2;
@@ -126,7 +126,14 @@ public static class GifLoader
                     if (gifDecoder.runningCode < 2 || gifDecoder.runningCode > 4097)
                         return;
                     gifDecoder.prefix[gifDecoder.runningCode - 2] = (uint)code1;
-                    gifDecoder.suffix[gifDecoder.runningCode - 2] = code2 != gifDecoder.runningCode - 2 ? TracePrefix(ref gifDecoder.prefix, code2, clearCode) : TracePrefix(ref gifDecoder.prefix, code1, clearCode);
+                    if (code2 != gifDecoder.runningCode - 2)
+                    {
+                        gifDecoder.suffix[gifDecoder.runningCode - 2] = TracePrefix(gifDecoder.prefix, code2, clearCode);
+                    }
+                    else
+                    {
+                        gifDecoder.suffix[gifDecoder.runningCode - 2] = TracePrefix(gifDecoder.prefix, code1, clearCode);
+                    }
                 }
                 code1 = code2;
             }
@@ -177,7 +184,7 @@ public static class GifLoader
         return num1;
     }
 
-    private static byte TracePrefix(ref uint[] prefix, int code, int clearCode)
+    private static byte TracePrefix(uint[] prefix, int code, int clearCode)
     {
         int num = 0;
         while (code > clearCode && num++ <= 4095)
