@@ -1,118 +1,122 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net7.0;</TargetFrameworks>
-    <RootNamespace>RSDKv4</RootNamespace>
-    <LangVersion>10</LangVersion>
-  </PropertyGroup>
-	
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
-    <ProjectReference Include="..\Dependencies\FNA\FNA.Core.csproj" />
-    <PackageReference Include="NVorbis" Version="0.10.4" />
-  </ItemGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<RootNamespace>RSDKv4</RootNamespace>
+		<LangVersion>10</LangVersion>
+	</PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <Reference Include="MonoGame.Framework">
-      <HintPath>$(MSBuildProgramFiles32)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="NVorbis">
-      <HintPath>..\Dependencies\netstandard1.6\NVorbis.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<ProjectReference Include="..\Dependencies\FNA\FNA.Core.csproj" />
+		<PackageReference Include="NVorbis" Version="0.10.4" />
+	</ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'sl4' ">
-    <OutputType>Library</OutputType>
-    <TargetFrameworkProfile>WindowsPhone71</TargetFrameworkProfile>
-    <DefineConstants>$(DefineConstants);XNA;</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DefineConstants>$(DefineConstants);XNA;FAST_PALETTE</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <OutputType>Library</OutputType>
-    <DefineConstants>$(DefineConstants);MONOGAME;FAST_PALETTE;NO_THREADS</DefineConstants>
-  </PropertyGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
+		<Reference Include="MonoGame.Framework">
+			<HintPath>$(MSBuildProgramFiles32)\MonoGame\v3.0\Assemblies\WindowsUniversal\MonoGame.Framework.dll</HintPath>
+		</Reference>
+		<Reference Include="NVorbis">
+			<HintPath>..\Dependencies\netstandard1.6\NVorbis.dll</HintPath>
+		</Reference>
+	</ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
-    <DefineConstants>$(DefineConstants);FNA;FAST_PALETTE;NO_THREADS</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <PublishAot>true</PublishAot>
-    <PublishTrimmed>true</PublishTrimmed>
-    
-    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
-    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'sl4' ">
+		<OutputType>Library</OutputType>
+		<TargetFrameworkProfile>WindowsPhone71</TargetFrameworkProfile>
+		<DefineConstants>$(DefineConstants);XNA;</DefineConstants>
+	</PropertyGroup>
 
-    <DebuggerSupport>false</DebuggerSupport>
-    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
-    <EventSourceSupport>false</EventSourceSupport>
-    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
-    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
-    <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
-    <InvariantGlobalization>true</InvariantGlobalization>
-    <UseSystemResourceKeys>true</UseSystemResourceKeys>
-  </PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
+		<PlatformTarget>x86</PlatformTarget>
+		<DefineConstants>$(DefineConstants);XNA;FAST_PALETTE</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
-    <NativeLibrary Include="..\Dependencies\FNA\lib\SDL2.lib" />
-    <NativeLibrary Include="..\Dependencies\FNA\lib\FNA3D.lib" />
-    <NativeLibrary Include="..\Dependencies\FNA\lib\FAudio.lib" />
-    <NativeLibrary Include="..\Dependencies\FNA\lib\libtheorafile.lib" />
-    <NativeLibrary Include="Shell32.lib" />
-    <NativeLibrary Include="Winmm.lib" />
-    <NativeLibrary Include="Setupapi.lib" />
-    <NativeLibrary Include="Gdi32.lib" />
-    <NativeLibrary Include="Imm32.lib" />
-  </ItemGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
+		<OutputType>Library</OutputType>
+		<DefineConstants>$(DefineConstants);MONOGAME;FAST_PALETTE;NO_THREADS</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <DirectPInvoke Include="FNA3D" />
-    <DirectPInvoke Include="FAudio" />
-    <DirectPInvoke Include="libtheorafile" />
-    <DirectPInvokeList Include="SDLApis.txt" />
-  </ItemGroup>
-    
-  <ItemGroup Condition=" '$(TargetFramework)' == 'sl4' ">
-    <Reference Include="mscorlib" />
-    <Reference Include="mscorlib.Extensions" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Windows" />
-    <Reference Include="Microsoft.Xna.Framework" />
-    <Reference Include="Microsoft.Xna.Framework.Game" />
-    <Reference Include="Microsoft.Xna.Framework.Graphics" />
-    <Reference Include="Microsoft.Xna.Framework.Input.Touch" />
-    <Reference Include="Microsoft.Xna.Framework.GamerServices" />
-    <Reference Include="NVorbis">
-      <HintPath>..\Dependencies\sl4\NVorbis.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
-    <Reference Include="Microsoft.Xna.Framework">
-      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Game">
-      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Game.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Graphics">
-      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Graphics.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Input.Touch">
-      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework.GamerServices">
-      <HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
-    </Reference>
-    <Reference Include="NVorbis">
-      <HintPath>..\Dependencies\net40\NVorbis.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<DefineConstants>$(DefineConstants);FNA;FAST_PALETTE;NO_THREADS</DefineConstants>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PublishAot>true</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
 
-  <ItemGroup>
-    <Compile Remove="DllMap.cs" />
-  </ItemGroup>
+		<IlcOptimizationPreference>Size</IlcOptimizationPreference>
+		<IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+
+		<DebuggerSupport>false</DebuggerSupport>
+		<EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+		<EventSourceSupport>false</EventSourceSupport>
+		<HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+		<MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+		<EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<UseSystemResourceKeys>true</UseSystemResourceKeys>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+		<NativeLibrary Include="..\Dependencies\FNA\lib\SDL2.lib" />
+		<NativeLibrary Include="..\Dependencies\FNA\lib\FNA3D.lib" />
+		<NativeLibrary Include="..\Dependencies\FNA\lib\FAudio.lib" />
+		<NativeLibrary Include="..\Dependencies\FNA\lib\libtheorafile.lib" />
+		<NativeLibrary Include="Shell32.lib" />
+		<NativeLibrary Include="Winmm.lib" />
+		<NativeLibrary Include="Setupapi.lib" />
+		<NativeLibrary Include="Gdi32.lib" />
+		<NativeLibrary Include="Imm32.lib" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<DirectPInvoke Include="FNA3D" />
+		<DirectPInvoke Include="FAudio" />
+		<DirectPInvoke Include="libtheorafile" />
+		<DirectPInvokeList Include="SDLApis.txt" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<PackageReference Include="System.IO.Hashing" Version="7.0.0"/>
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'sl4' ">
+		<Reference Include="mscorlib" />
+		<Reference Include="mscorlib.Extensions" />
+		<Reference Include="System" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Windows" />
+		<Reference Include="Microsoft.Xna.Framework" />
+		<Reference Include="Microsoft.Xna.Framework.Game" />
+		<Reference Include="Microsoft.Xna.Framework.Graphics" />
+		<Reference Include="Microsoft.Xna.Framework.Input.Touch" />
+		<Reference Include="Microsoft.Xna.Framework.GamerServices" />
+		<Reference Include="NVorbis">
+			<HintPath>..\Dependencies\sl4\NVorbis.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+		<Reference Include="Microsoft.Xna.Framework">
+			<HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Xna.Framework.Game">
+			<HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Game.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Xna.Framework.Graphics">
+			<HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Xna.Framework.Input.Touch">
+			<HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.Input.Touch.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Xna.Framework.GamerServices">
+			<HintPath>$(MSBuildProgramFiles32)\Microsoft XNA\XNA Game Studio\v4.0\References\Windows\x86\Microsoft.Xna.Framework.GamerServices.dll</HintPath>
+		</Reference>
+		<Reference Include="NVorbis">
+			<HintPath>..\Dependencies\net40\NVorbis.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="DllMap.cs" />
+	</ItemGroup>
 </Project>

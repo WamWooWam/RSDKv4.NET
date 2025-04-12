@@ -37,7 +37,7 @@ public abstract class Drawing
     public int GFX_LINESIZE_DOUBLE = SCREEN_YSIZE / 2;
 
     public const int SURFACE_LIMIT = PALETTE_COUNT;
-    public const int SURFACE_SIZE = 1024;
+    public const int SURFACE_SIZE = 1024 + 256;
 
     public const int SURFACE_DATASIZE = SURFACE_SIZE * SURFACE_SIZE * sizeof(short);
 
@@ -73,6 +73,7 @@ public abstract class Drawing
     protected Scene Scene;
     protected Script Script;
     protected Input Input;
+    protected Hooks Hooks;
 
     protected NativeRenderer Renderer;
 
@@ -87,6 +88,7 @@ public abstract class Drawing
 
     public virtual void Initialize(Engine engine)
     {
+        Hooks = engine.hooks;
         FileIO = engine.FileIO;
         Animation = engine.Animation;
         Objects = engine.Objects;

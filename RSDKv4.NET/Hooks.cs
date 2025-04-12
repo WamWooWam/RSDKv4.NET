@@ -34,6 +34,10 @@ namespace RSDKv4
         /// </summary>
         public event EventHandler StageDidStep;
 
+        public event EventHandler WillDraw;
+
+        public event EventHandler DidDraw;
+
         internal void OnStageWillLoad()
         {
             StageWillLoad?.Invoke(this, EventArgs.Empty);
@@ -58,5 +62,11 @@ namespace RSDKv4
         {
             GameConfigLoaded?.Invoke(this, EventArgs.Empty);
         }
+
+        internal void OnWillDraw() =>
+            WillDraw?.Invoke(this, EventArgs.Empty);
+
+        internal void OnDidDraw() =>
+            DidDraw?.Invoke(this, EventArgs.Empty);
     }
 }

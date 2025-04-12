@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using RSDKv4.Native;
 using RSDKv4.Render;
 using RSDKv4.Utility;
+using RSDKv4.Patches;
 
 #if NO_THREADS
 using System.Threading.Tasks;
@@ -119,24 +120,19 @@ public class RSDKv4Game : Game
 
     private void LoadRetroEngine()
     {
-        // new InputPlayer().Install(Engine.hooks);
-        // new PaletteHack().Install(Engine.hooks);
-        engine = new Engine(this, GraphicsDevice);
-
         FastMath.CalculateTrigAngles();
-        //if (!FileIO.CheckRSDKFile("Data.rsdk"))
-        engine.FileIO.CheckRSDKFile("Data.rsdk");
 
+        engine = new Engine(this, GraphicsDevice);
+        engine.FileIO.CheckRSDKFile("Data.rsdk");
         engine.Strings.InitLocalizedStrings();
         engine.SaveData.InitializeSaveRAM();
 
+        new PaletteHack().Install(engine);
+
         var saveData = engine.SaveData.saveGame;
         var saveFile = saveData.files[0];
-
-        var newGame = false;
         if (saveFile.stageId == 0)
         {
-            newGame = true;
             saveFile.lives = int.MaxValue;
             saveFile.score = 0;
             saveFile.scoreBonus = 500000;
@@ -148,69 +144,63 @@ public class RSDKv4Game : Game
             engine.SaveData.WriteSaveRAMData();
         }
 
-        //NativeRenderer.InitRenderDevice(this, GraphicsDevice);
-
         if (engine.LoadGameConfig("Data/Game/GameConfig.bin"))
         {
-            loadPercent = 0.05f;
-            //if (engine.InitRenderDevice())
-            //{
-                loadPercent = 0.10f;
-                if (engine.Audio.InitAudioPlayback())
-                {
-                    engine.Objects.CreateNativeObject(() => new TitleScreen());
+            loadPercent = 0.10f;
+            if (engine.Audio.InitAudioPlayback())
+            {
+                engine.Objects.CreateNativeObject(() => new RetroGameLoop());
 
-                    loadPercent = 0.85f;
+                loadPercent = 0.85f;
 
-                    engine.SetGlobalVariableByName("options.saveSlot", 0);
-                    engine.SetGlobalVariableByName("options.gameMode", 1);
-                    engine.SetGlobalVariableByName("options.stageSelectFlag", 0);
+                engine.SetGlobalVariableByName("options.saveSlot", 0);
+                engine.SetGlobalVariableByName("options.gameMode", 1);
+                engine.SetGlobalVariableByName("options.stageSelectFlag", 0);
 
-                    engine.SetGlobalVariableByName("player.lives", saveFile.lives);
-                    engine.SetGlobalVariableByName("player.score", saveFile.score);
-                    engine.SetGlobalVariableByName("player.scoreBonus", saveFile.scoreBonus);
+                engine.SetGlobalVariableByName("player.lives", saveFile.lives);
+                engine.SetGlobalVariableByName("player.score", saveFile.score);
+                engine.SetGlobalVariableByName("player.scoreBonus", saveFile.scoreBonus);
 
-                    engine.SetGlobalVariableByName("specialStage.emeralds", saveFile.emeralds);
-                    engine.SetGlobalVariableByName("specialStage.listPos", saveFile.specialStageId);
+                engine.SetGlobalVariableByName("specialStage.emeralds", 127);
+                engine.SetGlobalVariableByName("specialStage.listPos", saveFile.specialStageId);
 
-                    engine.SetGlobalVariableByName("stage.player2Enabled", 0);
+                engine.SetGlobalVariableByName("stage.player2Enabled", 0);
 
-                    engine.SetGlobalVariableByName("lampPostID", 0); // For S1
-                    engine.SetGlobalVariableByName("starPostID", 0); // For S2
+                engine.SetGlobalVariableByName("lampPostID", 0); // For S1
+                engine.SetGlobalVariableByName("starPostID", 0); // For S2
 
-                    engine.SetGlobalVariableByName("options.vsMode", 0);
+                engine.SetGlobalVariableByName("options.vsMode", 0);
 
-                    //Scene.InitFirstStage();
+                // Scene.InitFirstStage();
 
-                    engine.Script.ClearScriptData();
-                    loadPercent = 0.9f;
+                engine.Script.ClearScriptData();
+                loadPercent = 0.9f;
 
-                    //if (newGame)
-                    //{
-                    //    Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, saveFile.characterId);
-                    //}
-                    //else if (saveFile.stageId >= 0x80)
-                    //{
-                    //    Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 0x81);
-                    //    Scene.InitStartingStage(STAGELIST.SPECIAL, saveFile.specialStageId, saveFile.characterId);
-                    //}
-                    //else
-                    //{
-                    //    Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 1);
-                    //    Scene.InitStartingStage(STAGELIST.REGULAR, saveFile.stageId - 1, saveFile.characterId);
-                    //}
+                // if (newGame)
+                // {
+                //     Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, saveFile.characterId);
+                // }
+                // else if (saveFile.stageId >= 0x80)
+                // {
+                //     Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 0x81);
+                //     Scene.InitStartingStage(STAGELIST.SPECIAL, saveFile.specialStageId, saveFile.characterId);
+                // }
+                // else
+                // {
+                //     Engine.SetGlobalVariableByName("specialStage.nextZone", saveFile.stageId - 1);
+                //     Scene.InitStartingStage(STAGELIST.REGULAR, saveFile.stageId - 1, saveFile.characterId);
+                // }
 
-                    // stage select
-                    // Scene.InitStartingStage(STAGELIST.PRESENTATION, 0, 0);
+                // stage select
+                engine.Scene.InitStartingStage(STAGELIST.REGULAR, 6, 0);
 
-                    loadPercent = 0.95f;
+                loadPercent = 0.95f;
 
-                    // Scene.ProcessStage();
+                engine.Scene.ProcessStage();
 
-                    engine.engineState = ENGINE_STATE.WAIT;
-                    loadPercent = 1f;
-                }
-            //}
+                engine.engineState = ENGINE_STATE.MAINGAME;
+                loadPercent = 1f;
+            }
         }
 
         isLoaded = true;
@@ -270,9 +260,9 @@ public class RSDKv4Game : Game
         if (keyboard.IsKeyDown(Keys.Escape))
         {
 #if RETRO_USE_MOD_LOADER
-                            // hacky patch because people can escape
-                            if (Engine.gameMode == ENGINE_DEVMENU && stageMode == DEVMENU_MODMENU)
-                                RefreshEngine();
+            // hacky patch because people can escape
+            if (Engine.gameMode == ENGINE_DEVMENU && stageMode == DEVMENU_MODMENU)
+                RefreshEngine();
 #endif
             engine.Objects.ClearNativeObjects();
             engine.Objects.CreateNativeObject(() => new RetroGameLoop());

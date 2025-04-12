@@ -62,10 +62,10 @@ public class DevMenu
 #if !RETRO_USE_ORIGINAL_CODE
         Objects.RemoveNativeObjects<PauseMenu>();
 #endif
-#if RETRO_HARDWARE_RENDER
-    render3DEnabled = false;
-    UpdateHardwareTextures();
-#endif
+//#if RETRO_HARDWARE_RENDER
+        //Drawing.render3DEnabled = false;
+        (Drawing as HardwareDrawing).UpdateSurfaces();
+//#endif
     }
 
     public void InitErrorMessage()

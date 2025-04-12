@@ -27,10 +27,17 @@ public partial class Input
 
     public InputButton[] buttons = new InputButton[15]
     {
+#if false
         new InputButton(Keys.Up),
         new InputButton(Keys.Down),
         new InputButton(Keys.Left),
         new InputButton(Keys.Right),
+#else
+        new InputButton(Keys.I),
+        new InputButton(Keys.K),
+        new InputButton(Keys.J),
+        new InputButton(Keys.L),
+#endif
         new InputButton(Keys.A),
         new InputButton(Keys.S),
         new InputButton(Keys.D),

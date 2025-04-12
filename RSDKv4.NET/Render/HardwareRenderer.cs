@@ -67,6 +67,9 @@ public class HardwareDrawing : Drawing
     public const float PIXEL_TO_UV = 1.0f / (float)SURFACE_SIZE;
     public const float TILE_UV_OFFSET = 1f / (SURFACE_SIZE / 8);
 
+    public Game Game => _game;
+    public GraphicsDevice GraphicsDevice => _device;
+
 
     public HardwareDrawing(Game game, GraphicsDevice device)
     {
@@ -189,19 +192,19 @@ public class HardwareDrawing : Drawing
         }
 
 #else
-        SetActivePalette(0, 0, SCREEN_YSIZE);
+        Palette.SetActivePalette(0, 0, SCREEN_YSIZE);
         UpdateTextureBufferWithTiles();
         UpdateTextureBufferWithSortedSprites();
         _textures[0].SetData(textureBuffer);
 
         for (byte paletteNum = 1; paletteNum < 6; ++paletteNum)
         {
-            SetActivePalette(paletteNum, 0, SCREEN_YSIZE);
+            Palette.SetActivePalette(paletteNum, 0, SCREEN_YSIZE);
             UpdateTextureBufferWithTiles();
             UpdateTextureBufferWithSortedSprites();
             _textures[paletteNum].SetData(textureBuffer);
         }
-        SetActivePalette((byte)0, 0, SCREEN_YSIZE);
+        Palette.SetActivePalette((byte)0, 0, SCREEN_YSIZE);
 #endif
     }
 
@@ -235,6 +238,8 @@ public class HardwareDrawing : Drawing
         frame++;
         _device.SetRenderTarget(_renderTarget);
         _device.Clear(Color.Black);
+
+        Hooks.OnWillDraw();
 
         if (surfaceDirty)
         {
@@ -346,6 +351,8 @@ public class HardwareDrawing : Drawing
 #endif
         }
 
+
+        Hooks.OnDidDraw();
 
 #if FAST_PALETTE
         _device.Textures[0] = null;

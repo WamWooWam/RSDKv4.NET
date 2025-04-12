@@ -38,6 +38,7 @@ public class LeaderboardsButton : MenuButton
                 if (this.scale > 0.2f)
                     this.scale = 0.2f;
             }
+
             Renderer.SetRenderBlendMode(RENDER_BLEND.ALPHA);
             Renderer.SetRenderVertexColor(this.r, this.g, this.b);
             Renderer.RenderImage(this.x, this.y, this.z, this.scale, this.scale, 256.0f, 256.0f, 512.0f, 512.0f, 0.0f, 0.0f, 255, this.textureCircle);
